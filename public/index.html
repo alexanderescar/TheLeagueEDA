@@ -839,6 +839,27 @@ function getTeamsMapFor(season) {
   return map;
 }
 
+// Returns completed matchups — handles seasons where ESPN omits the 'winner' field
+function getCompletedMatchups(src) {
+  if (!src) return [];
+  return (src.schedule || []).filter(m => {
+    const hs = m.home?.totalPoints ?? 0;
+    const as_ = m.away?.totalPoints ?? 0;
+    if (m.winner && m.winner !== 'UNDECIDED') return true;
+    return (hs > 0 || as_ > 0) && m.home?.teamId && m.away?.teamId;
+  });
+}
+
+// Infer winner from scores (handles ESPN active-season schedules without winner field)
+function inferWinner(m) {
+  if (m.winner && m.winner !== 'UNDECIDED') return m.winner;
+  const hs = m.home?.totalPoints ?? 0;
+  const as_ = m.away?.totalPoints ?? 0;
+  if (hs > as_) return 'HOME';
+  if (as_ > hs) return 'AWAY';
+  return null; // tie or in-progress
+}
+
 // ══════════════════════════════════════════════
 //  STANDINGS
 // ══════════════════════════════════════════════
@@ -950,8 +971,7 @@ function renderH2H() {
   const src = activeSeason || allSeasons[0];
   if (!src) return;
 
-  const schedule = (src.schedule||[]).filter(m => m.winner && m.winner !== 'UNDECIDED');
-  const localMap = getTeamsMapFor(src);
+const schedule = getCompletedMatchups(src);  const localMap = getTeamsMapFor(src);
   const ids = Object.keys(localMap).map(Number);
 
   const rec = {};
@@ -960,8 +980,7 @@ function renderH2H() {
   schedule.forEach(m => {
     const h = m.home?.teamId, a = m.away?.teamId;
     if (!h||!a||!rec[h]||!rec[a]) return;
-    if (m.winner==='HOME') { rec[h][a].w++; rec[a][h].l++; }
-    else { rec[a][h].w++; rec[h][a].l++; }
+if (inferWinner(m)==='HOME') { rec[h][a].w++; rec[a][h].l++; }    else { rec[a][h].w++; rec[h][a].l++; }
   });
 
   const sorted = [...src.teams].sort((a,b) => ((b.record?.overall?.wins??0)-(a.record?.overall?.wins??0)));
@@ -1015,8 +1034,7 @@ function renderScores() {
   let any = false;
 
   weeks.forEach(wk => {
-    const done = byWeek[wk].filter(m => m.winner && m.winner !== 'UNDECIDED');
-    if (!done.length) return;
+const done = byWeek[wk].filter(m => (m.home?.totalPoints||0)>0||(m.away?.totalPoints||0)>0);    if (!done.length) return;
     any = true;
     h += `<div class="wk-header">Week ${wk}</div>`;
     done.forEach(m => {
@@ -1024,8 +1042,7 @@ function renderScores() {
       if (!ht||!at) return;
       const hs = (m.home?.totalPoints??0).toFixed(2);
       const as_ = (m.away?.totalPoints??0).toFixed(2);
-      const hw = m.winner==='HOME';
-      h += `<div class="mu-row">
+const hw = inferWinner(m)==='HOME';      h += `<div class="mu-row">
         <div class="mu-team ${hw?'w':'l'}">${tName(ht)}</div>
         <div class="mu-score ${hw?'w':'l'}">${hs}</div>
         <div class="mu-vs">vs</div>
@@ -1049,35 +1066,29 @@ function renderAwards() {
 
   const teams = src.teams;
   const localMap = getTeamsMapFor(src);
-  const sched = (src.schedule||[]).filter(m=>m.winner&&m.winner!=='UNDECIDED');
+  const sched = getCompletedMatchups(src);
 
-  let highScore=0, highTeam=null;
-  let lowLoss=Infinity, lowLossTeam=null;
-  let bigMargin=0, blowW=null, blowL=null;
-  let closeMargin=Infinity, closeL=null, closeW=null;
+let highScore=0, highTeam=null;
+let lowLoss=Infinity, lowLossTeam=null;
+let bigMargin=0, blowW=null, blowL=null;
+let closeMargin=Infinity, closeL=null, closeW=null;
 
-  sched.forEach(m => {
-    const ht=localMap[m.home?.teamId], at=localMap[m.away?.teamId];
-    if(!ht||!at) return;
-    const hs=m.home?.totalPoints??0, as_=m.away?.totalPoints??0;
-    const hw=m.winner==='HOME';
-    const margin=Math.abs(hs-as_);
+sched.forEach(m => {
+const ht=localMap[m.home?.teamId], at=localMap[m.away?.teamId];
+if(!ht||!at) return;
+const hs=m.home?.totalPoints??0, as_=m.away?.totalPoints??0;
+const hw = inferWinner(m) === 'HOME';
+const margin=Math.abs(hs-as_);
 
-    if(hs>highScore){highScore=hs;highTeam=ht;}
-    if(as_>highScore){highScore=as_;highTeam=at;}
-    const lScore=hw?as_:hs, lTeam=hw?at:ht;
-    if(lScore<lowLoss&&lScore>0){lowLoss=lScore;lowLossTeam=lTeam;}
-    if(margin>bigMargin){bigMargin=margin;blowW=hw?ht:at;blowL=hw?at:ht;}
-    if(margin<closeMargin){closeMargin=margin;closeL=hw?at:ht;closeW=hw?ht:at;}
-  });
+if(hs>highScore){highScore=hs;highTeam=ht;}
+if(as_>highScore){highScore=as_;highTeam=at;}
+const lScore=hw?as_:hs, lTeam=hw?at:ht;
+if(lScore<lowLoss&&lScore>0){lowLoss=lScore;lowLossTeam=lTeam;}
+if(margin>bigMargin){bigMargin=margin;blowW=hw?ht:at;blowL=hw?at:ht;}
+if(margin<closeMargin&&margin>0){closeMargin=margin;closeL=hw?at:ht;closeW=hw?ht:at;}
+});
 
-  const byPF   = [...teams].sort((a,b)=>(b.points??0)-(a.points??0));
-  const byPFA  = [...teams].sort((a,b)=>(a.points??0)-(b.points??0));
-  const byW    = [...teams].sort((a,b)=>((b.record?.overall?.wins??0)-(a.record?.overall?.wins??0)));
-  const byL    = [...teams].sort((a,b)=>((b.record?.overall?.losses??0)-(a.record?.overall?.losses??0)));
-  const byPA   = [...teams].sort((a,b)=>(b.pointsAgainst??0)-(a.pointsAgainst??0));
-
-  const N = t => t ? tName(t) : '—';
+const N = t => t ? tName(t) : '—';
 
   const awards = [
     {emoji:'👑',color:'gold',   title:'The Juggernaut',        winner:N(byW[0]),     desc:`${byW[0]?.record?.overall?.wins??0}–${byW[0]?.record?.overall?.losses??0} record. Running the league.`},
@@ -1170,37 +1181,44 @@ function renderHistory() {
 }
 
 function histSubTab(e, name) {
-  document.querySelectorAll('.hist-sub').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.hist-tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('hist-sub-' + name).classList.add('active');
-  e.target.classList.add('active');
+document.querySelectorAll('.hist-sub').forEach(el => el.classList.remove('active'));
+document.querySelectorAll('.hist-tab-btn').forEach(el => el.classList.remove('active'));
+document.getElementById('hist-sub-' + name).classList.add('active');
+e.target.classList.add('active');
+// Sync VIEW dropdown to match
+const viewSel = document.getElementById('hist-view-sel');
+if (viewSel) viewSel.value = name;
 }
 
 function renderHistSub() {
-  const view = document.getElementById('hist-view-sel')?.value || 'season-table';
-  const sortBy = document.getElementById('hist-sort-sel')?.value || 'wins';
-  const crossStats = buildCrossSeasonStats();
-  if (view === 'season-table') renderHistSeasonTable(crossStats, sortBy);
-  else if (view === 'alltime') renderHistAllTime(crossStats);
-  else if (view === 'matchups') renderHistMatchups();
-  else renderHistRecords(crossStats);
+const view = document.getElementById('hist-view-sel')?.value || 'season-table';
+const sortBy = document.getElementById('hist-sort-sel')?.value || 'wins';
+const crossStats = buildCrossSeasonStats();
+// Sync VIEW dropdown with sub-tab buttons
+const target = {'season-table':'season-table','alltime':'alltime','matchups':'matchups','records':'records'}[view] || 'season-table';
+document.querySelectorAll('.hist-sub').forEach(el => el.classList.remove('active'));
+document.querySelectorAll('.hist-tab-btn').forEach(el => el.classList.remove('active'));
+const subEl = document.getElementById('hist-sub-' + target);
+if (subEl) subEl.classList.add('active');
+document.querySelectorAll('.hist-tab-btn').forEach(btn => {
+if (btn.getAttribute('onclick')?.includes("'" + target + "'")) btn.classList.add('active');
+});
+if (view === 'season-table') renderHistSeasonTable(crossStats, sortBy);
+else if (view === 'alltime') renderHistAllTime(crossStats);
+else if (view === 'matchups') renderHistMatchups();
+else renderHistRecords(crossStats);
 }
-
 // Build per-team per-season stats
 function buildCrossSeasonStats() {
   const rows = [];
   allSeasons.forEach(s => {
     const localMap = getTeamsMapFor(s);
-    const sched = (s.schedule||[]).filter(m=>m.winner&&m.winner!=='UNDECIDED');
+    const sched = getCompletedMatchups(s);
 
     // Who had the best record = champion candidate (most wins, then PF)
-    const byW = [...s.teams].sort((a,b)=>{
-      const dw = (b.record?.overall?.wins??0)-(a.record?.overall?.wins??0);
-      if(dw!==0) return dw;
-      return (b.points??0)-(a.points??0);
-    });
-    const champId = byW[0]?.id;
-
+    // True champion = rankCalculatedFinal === 1 (actual playoff winner, not regular season leader)
+const champTeam = s.teams.find(t => t.rankCalculatedFinal === 1);
+const champId = champTeam?.id;
     s.teams.forEach(t => {
       const rec = t.record?.overall||{};
       const w = rec.wins??0, l = rec.losses??0, gp = w+l||1;
@@ -1396,7 +1414,7 @@ function renderHistAllTime(rows) {
     { cat:'Most Points For',      fmt: o=>`${o.pf.toFixed(0)}`, topFn: o=>o.pf, detFn: o=>`${(o.pf/gp(o)).toFixed(1)} PPG avg` },
     { cat:'Highest Single Week',  fmt: o=>`${o.weekHighAll.toFixed(2)}`, topFn: o=>o.weekHighAll, detFn: o=>`personal best` },
     { cat:'Most Championships',   fmt: o=>`${o.champs} 👑`, topFn: o=>o.champs, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} played` },
-    { cat:'Most Seasons Played',  fmt: o=>`${o.seasons}`, topFn: o=>o.seasons, detFn: o=>`${o.wins}–${o.losses} record` },
+    { cat:'Most Championships', fmt: o=>`${o.champs} 👑`, topFn: o=>o.champs, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} played` },
     { cat:'Most Points Against',  fmt: o=>`${o.pa.toFixed(0)} PA`, topFn: o=>o.pa, detFn: o=>`unlucky or just bad D?` },
     { cat:'Most Total Losses',    fmt: o=>`${o.losses} L`, topFn: o=>o.losses, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} of pain` },
   ];
@@ -1423,8 +1441,7 @@ function renderHistMatchups() {
   allSeasons.forEach(s => {
     const localMap = getTeamsMapFor(s);
     (s.schedule||[])
-      .filter(m => m.winner && m.winner!=='UNDECIDED')
-      .forEach(m => {
+    .filter(m => getCompletedMatchups({schedule:[m]}).length > 0)      .forEach(m => {
         const ht=localMap[m.home?.teamId], at=localMap[m.away?.teamId];
         if(!ht||!at) return;
         allMatchups.push({
@@ -1433,8 +1450,7 @@ function renderHistMatchups() {
           homeTeam: tName(ht), awayTeam: tName(at),
           homeScore: m.home?.totalPoints??0,
           awayScore: m.away?.totalPoints??0,
-          winner: m.winner==='HOME' ? tName(ht) : tName(at),
-          margin: Math.abs((m.home?.totalPoints??0)-(m.away?.totalPoints??0)),
+winner: inferWinner(m)==='HOME' ? tName(ht) : tName(at),          margin: Math.abs((m.home?.totalPoints??0)-(m.away?.totalPoints??0)),
         });
       });
   });
