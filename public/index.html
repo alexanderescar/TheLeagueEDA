@@ -1088,6 +1088,12 @@ if(margin>bigMargin){bigMargin=margin;blowW=hw?ht:at;blowL=hw?at:ht;}
 if(margin<closeMargin&&margin>0){closeMargin=margin;closeL=hw?at:ht;closeW=hw?ht:at;}
 });
 
+const byPF = [...teams].sort((a,b)=>(b.points??0)-(a.points??0));
+const byPFA = [...teams].sort((a,b)=>(a.points??0)-(b.points??0));
+const byW = [...teams].sort((a,b)=>((b.record?.overall?.wins??0)-(a.record?.overall?.wins??0)));
+const byL = [...teams].sort((a,b)=>((b.record?.overall?.losses??0)-(a.record?.overall?.losses??0)));
+const byPA = [...teams].sort((a,b)=>(b.pointsAgainst??0)-(a.pointsAgainst??0));
+
 const N = t => t ? tName(t) : '—';
 
   const awards = [
