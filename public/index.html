@@ -870,7 +870,7 @@ function renderStandings() {
   const teams = [...src.teams].sort((a,b) => {
     const wa = a.record?.overall?.wins ?? 0, wb = b.record?.overall?.wins ?? 0;
     if (wb !== wa) return wb - wa;
-    return (b.points??0) - (a.points??0);
+    return (b.record?.overall?.pointsFor ?? b.points ?? 0) - (a.record?.overall?.pointsFor ?? a.points ?? 0);
   });
 
   const week = src.status?.currentMatchupPeriod || src.scoringPeriodId || '?';
@@ -896,8 +896,8 @@ function renderStandings() {
     const w = rec.wins??0, l = rec.losses??0;
     const gp = w+l||1;
     const pct = (w/gp*100).toFixed(0);
-    const pf = (t.points??0).toFixed(1);
-    const pa = (t.pointsAgainst??0).toFixed(1);
+    const pf = (t.record?.overall?.pointsFor ?? t.points ?? 0).toFixed(1);
+    const pa = (t.record?.overall?.pointsAgainst ?? 0).toFixed(1);
     const st = t.record?.overall?.streak || {};
     const sType = (st.type||'').toUpperCase();
     const sLen = st.length||0;
@@ -1092,7 +1092,7 @@ const byPF = [...teams].sort((a,b)=>(b.points??0)-(a.points??0));
 const byPFA = [...teams].sort((a,b)=>(a.points??0)-(b.points??0));
 const byW = [...teams].sort((a,b)=>((b.record?.overall?.wins??0)-(a.record?.overall?.wins??0)));
 const byL = [...teams].sort((a,b)=>((b.record?.overall?.losses??0)-(a.record?.overall?.losses??0)));
-const byPA = [...teams].sort((a,b)=>(b.pointsAgainst??0)-(a.pointsAgainst??0));
+const byPA = [...teams].sort((a,b)=>(b.record?.overall?.pointsAgainst??0)-(a.record?.overall?.pointsAgainst??0));
 
 const N = t => t ? tName(t) : '—';
 
@@ -1102,7 +1102,7 @@ const N = t => t ? tName(t) : '—';
     {emoji:'🔥',color:'orange', title:'Single-Week Scorcher',  winner:N(highTeam),   desc:highTeam?`Season-high ${highScore.toFixed(2)} pts in a single week.`:'Not yet determined.'},
     {emoji:'💔',color:'red',    title:'Heartbreak Hotel',      winner:N(closeL),     desc:closeL?`Lost by ${closeMargin.toFixed(2)} pts to ${N(closeW)}. Devastating.`:'Not yet determined.'},
     {emoji:'🏟️',color:'purple', title:'The Blowout King',      winner:N(blowW),      desc:blowW?`Crushed ${N(blowL)} by ${bigMargin.toFixed(2)} pts. No mercy.`:'Not yet determined.'},
-    {emoji:'🪨',color:'red',    title:'Turnstile Defense',     winner:N(byPA[0]),    desc:`Most points allowed: ${(byPA[0]?.pointsAgainst??0).toFixed(1)} PA.`},
+    {emoji:'🪨',color:'red',    title:'Turnstile Defense',     winner:N(byPA[0]),    desc:`Most points allowed: ${(byPA[0]?.record?.overall?.pointsAgainst??0).toFixed(1)} PA.`},
     {emoji:'😬',color:'silver', title:'Glass Jaw',             winner:N(byL[0]),     desc:`${byL[0]?.record?.overall?.losses??0} losses. It's not over… right?`},
     {emoji:'⚰️',color:'red',    title:'Worst Loss Score',      winner:N(lowLossTeam),desc:lowLossTeam?`Put up ${lowLoss.toFixed(2)} pts and still lost.`:'Not yet determined.'},
     {emoji:'📉',color:'silver', title:'Fewest Points Scored',  winner:N(byPFA[0]),   desc:`Only ${(byPFA[0]?.points??0).toFixed(1)} PF this season.`},
