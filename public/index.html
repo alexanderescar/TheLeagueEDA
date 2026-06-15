@@ -1429,7 +1429,7 @@ function renderHistAllTime(rows) {
     { cat:'Most Points For',      fmt: o=>`${o.pf.toFixed(0)}`, topFn: o=>o.pf, detFn: o=>`${(o.pf/gp(o)).toFixed(1)} PPG avg` },
     { cat:'Highest Single Week',  fmt: o=>`${o.weekHighAll.toFixed(2)}`, topFn: o=>o.weekHighAll, detFn: o=>`personal best` },
     { cat:'Most Championships',   fmt: o=>`${o.champs} 👑`, topFn: o=>o.champs, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} played` },
-    { { cat:'Highest Career PPG', fmt: o=>`${(o.pf/(o.wins+o.losses||1)).toFixed(1)}`, topFn: o=>o.pf/(o.wins+o.losses||1), detFn: o=>`${o.wins+o.losses} games played` } 👑`, topFn: o=>o.champs, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} played` },
+    { cat:'Highest Career PPG', fmt: o=>`${(o.pf/(o.wins+o.losses||1)).toFixed(1)}`, topFn: o=>o.pf/(o.wins+o.losses||1), detFn: o=>`${o.wins+o.losses} games played` },
     { cat:'Most Points Against',  fmt: o=>`${o.pa.toFixed(0)} PA`, topFn: o=>o.pa, detFn: o=>`unlucky or just bad D?` },
     { cat:'Most Total Losses',    fmt: o=>`${o.losses} L`, topFn: o=>o.losses, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} of pain` },
   ];
