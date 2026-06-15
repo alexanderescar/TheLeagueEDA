@@ -916,7 +916,7 @@ function renderPower() {
   const maxPPG = Math.max(...teams.map(x => x.ppg)) || 1;
   teams.forEach(x => { x.power = (x.ppg/maxPPG)*60 + x.wPct*40; });
   teams.sort((a,b) => b.power - a.power);
-  const maxP = teams[0].power || 1;h
+  const maxP = teams[0].power || 1;
 
   let h = `<div class="card">
     <div class="card-header">
