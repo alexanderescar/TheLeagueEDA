@@ -579,6 +579,99 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
   .history-hero { padding:16px; }
   .history-hero h2 { font-size:22px; }
 }
+
+/* ─── DRAFT ─── */
+.draft-controls {
+  display:flex; gap:10px; flex-wrap:wrap;
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  background:var(--turf);
+  align-items:flex-end;
+}
+
+.pick-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
+  gap:12px;
+  padding:16px;
+}
+
+.pick-card {
+  background:var(--turf);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:12px 14px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  transition:border-color 0.15s;
+}
+.pick-card:hover { border-color:var(--border-bright); }
+
+.pick-num {
+  font-family:"Bebas Neue",sans-serif;
+  font-size:22px;
+  color:var(--muted);
+  min-width:36px;
+  line-height:1;
+}
+.pick-num.early { color:var(--gold); }
+.pick-num.mid   { color:var(--chalk-dim); }
+
+.pick-info { flex:1; min-width:0; }
+.pick-player { font-weight:600; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pick-team   { font-size:11px; color:var(--muted); margin-top:2px; }
+.pick-owner  { font-size:11px; color:var(--gold); margin-top:3px; font-weight:600; }
+
+.round-divider {
+  padding:8px 18px;
+  background:var(--turf);
+  border-bottom:1px solid var(--border);
+  font-family:"Bebas Neue",sans-serif;
+  font-size:14px; letter-spacing:1px;
+  color:var(--muted);
+}
+
+.draft-board-wrap { overflow-x:auto; padding:0; }
+.draft-board {
+  border-collapse:collapse;
+  font-size:12px;
+  min-width:600px;
+}
+.draft-board th {
+  font-family:"JetBrains Mono",monospace;
+  font-size:10px; color:var(--muted);
+  text-transform:uppercase; letter-spacing:0.5px;
+  padding:8px 12px;
+  background:var(--turf);
+  border:1px solid var(--border);
+  white-space:nowrap;
+}
+.draft-board td {
+  padding:8px 12px;
+  border:1px solid rgba(27,51,36,0.5);
+  vertical-align:top;
+  min-width:120px;
+  max-width:160px;
+}
+.draft-board td:first-child {
+  background:var(--turf);
+  font-family:"Bebas Neue",sans-serif;
+  font-size:16px; color:var(--muted);
+  text-align:center;
+  min-width:50px;
+}
+.draft-board td .db-player { font-weight:600; font-size:12px; }
+.draft-board td .db-pos    { font-size:10px; color:var(--muted); }
+.draft-board td .db-team   { font-size:10px; color:var(--muted); }
+
+.pos-qb  { color:#e88030; }
+.pos-rb  { color:var(--green); }
+.pos-wr  { color:#4888e0; }
+.pos-te  { color:#a060d0; }
+.pos-k   { color:var(--muted); }
+.pos-dst { color:#d04040; }
+.pos-def { color:#d04040; }
 </style>
 </head>
 <body>
@@ -607,6 +700,7 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
     <button onclick="switchTab(event,'scores')">Scores</button>
     <button onclick="switchTab(event,'awards')">Awards</button>
     <button class="history-tab" onclick="switchTab(event,'history')">History</button>
+    <button onclick="switchTab(event,'draft')">Draft History</button>
   </nav>
 
   <main>
@@ -616,6 +710,7 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
     <div id="tab-scores"    class="tab-content"></div>
     <div id="tab-awards"    class="tab-content"></div>
     <div id="tab-history"   class="tab-content"></div>
+    <div id="tab-draft"    class="tab-content"></div>
   </main>
 
 </div>
@@ -663,7 +758,7 @@ async function loadData() {
   } catch (err) {
     setStatus('err', 'Error');
     const html = errorHTML(err.message);
-    ['standings','power','h2h','scores','awards','history'].forEach(t => {
+    ['standings','power','h2h','scores','awards','history','draft'].forEach(t => {
       document.getElementById('tab-' + t).innerHTML = html;
     });
   }
@@ -689,6 +784,7 @@ function renderAll() {
   renderScores();
   renderAwards();
   renderHistory();
+  renderDraft();
 }
 
 // ══════════════════════════════════════════════
@@ -1465,6 +1561,270 @@ function renderHistRecords(rows) {
     </tbody></table></div>`;
 
   document.getElementById('hist-sub-records').innerHTML = h;
+}
+
+
+// ══════════════════════════════════════════════
+//  DRAFT HISTORY
+// ══════════════════════════════════════════════
+function renderDraft() {
+  const tab = document.getElementById('tab-draft');
+  if (!allSeasons.length) return;
+
+  // Get seasons that have draft data
+  const drafts = allSeasons.filter(s => s.draftDetail?.picks?.length);
+
+  if (!drafts.length) {
+    tab.innerHTML = `<div class="card"><div class="empty-msg">
+      <div class="eicon">📋</div>
+      <h3>No Draft Data Yet</h3>
+      <p>Draft history will appear here after running the scraper.<br>
+      Draft data requires your ESPN cookies and the <code>mDraftDetail</code> view.<br><br>
+      Run <code>node scrape.js</code> locally to populate draft history.</p>
+    </div></div>`;
+    return;
+  }
+
+  // Build team map across all seasons
+  const getMap = (s) => { const m={}; s.teams.forEach(t=>m[t.id]=t); return m; };
+
+  // Season selector at top
+  const latestDraft = drafts[0];
+
+  let h = `
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-header">
+      <div class="card-title">Draft History</div>
+      <div class="card-sub">${drafts.length} season${drafts.length>1?'s':''} available</div>
+    </div>
+    <div class="draft-controls">
+      <div class="ctrl-group">
+        <div class="ctrl-label">Season</div>
+        <select class="hist-sel" id="draft-season-sel" onchange="renderDraftSeason()">
+          ${drafts.map(s=>`<option value="${s.season}">${s.season} Draft</option>`).join('')}
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">View</div>
+        <select class="hist-sel" id="draft-view-sel" onchange="renderDraftSeason()">
+          <option value="picks">Pick-by-Pick</option>
+          <option value="board">Draft Board</option>
+          <option value="by-team">By Team</option>
+          <option value="by-position">By Position</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">Filter Position</div>
+        <select class="hist-sel" id="draft-pos-sel" onchange="renderDraftSeason()">
+          <option value="">All Positions</option>
+          <option value="QB">QB</option>
+          <option value="RB">RB</option>
+          <option value="WR">WR</option>
+          <option value="TE">TE</option>
+          <option value="K">K</option>
+          <option value="D/ST">D/ST</option>
+        </select>
+      </div>
+    </div>
+    <div id="draft-content"></div>
+  </div>`;
+
+  tab.innerHTML = h;
+  window._drafts = drafts;
+  window._draftSeasonMaps = {};
+  drafts.forEach(s => { window._draftSeasonMaps[s.season] = getMap(s); });
+  renderDraftSeason();
+}
+
+function posClass(pos) {
+  const p = (pos||'').toUpperCase();
+  if(p==='QB') return 'pos-qb';
+  if(p==='RB') return 'pos-rb';
+  if(p==='WR') return 'pos-wr';
+  if(p==='TE') return 'pos-te';
+  if(p==='K')  return 'pos-k';
+  return 'pos-dst';
+}
+
+function renderDraftSeason() {
+  const seasonVal = parseInt(document.getElementById('draft-season-sel')?.value);
+  const view      = document.getElementById('draft-view-sel')?.value || 'picks';
+  const posFilter = document.getElementById('draft-pos-sel')?.value  || '';
+
+  const seasonObj = (window._drafts||[]).find(s => s.season === seasonVal);
+  if (!seasonObj) return;
+
+  const picks     = seasonObj.draftDetail?.picks || [];
+  const localMap  = window._draftSeasonMaps?.[seasonVal] || {};
+  const totalTeams = seasonObj.teams?.length || 10;
+
+  // Enrich picks
+  const enriched = picks.map(p => {
+    const owner = localMap[p.teamId];
+    return {
+      ...p,
+      ownerName: owner ? tName(owner) : `Team ${p.teamId}`,
+      round: Math.ceil(p.overallPickNumber / totalTeams),
+      pickInRound: ((p.overallPickNumber - 1) % totalTeams) + 1,
+    };
+  });
+
+  // Apply position filter
+  const filtered = posFilter
+    ? enriched.filter(p => (p.playerPoolEntry?.onTeamId !== undefined) &&
+        getPlayerPos(p) === posFilter)
+    : enriched;
+
+  const el = document.getElementById('draft-content');
+  if (!el) return;
+
+  if (view === 'picks')    { el.innerHTML = renderPicksList(filtered, posFilter); }
+  else if (view === 'board')    { el.innerHTML = renderDraftBoard(enriched, totalTeams, localMap); }
+  else if (view === 'by-team')  { el.innerHTML = renderByTeam(enriched, localMap); }
+  else if (view === 'by-position') { el.innerHTML = renderByPosition(enriched); }
+}
+
+function getPlayerName(p) {
+  return p.playerPoolEntry?.player?.fullName
+      || p.playerPoolEntry?.player?.lastName
+      || `Pick #${p.overallPickNumber}`;
+}
+
+function getPlayerPos(p) {
+  const posMap = {0:'QB',2:'CB',3:'S',4:'LB',5:'DL',6:'K',7:'P',16:'D/ST',
+    23:'WR',1:'WR',10:'RB',11:'RB',22:'TE'};
+  const id = p.playerPoolEntry?.player?.defaultPositionId;
+  // Try the lineup slot first, then defaultPositionId
+  return p.playerPoolEntry?.player?.eligibleSlots?.[0] === 16 ? 'D/ST'
+       : posMap[id] || 'FLEX';
+}
+
+function getPlayerNFLTeam(p) {
+  const teams = {1:'ATL',2:'BUF',3:'CHI',4:'CIN',5:'CLE',6:'DAL',7:'DEN',8:'DET',
+    9:'GB',10:'TEN',11:'IND',12:'KC',13:'OAK',14:'LAR',15:'MIA',16:'MIN',17:'NE',
+    18:'NO',19:'NYG',20:'NYJ',21:'PHI',22:'ARI',23:'PIT',24:'LAC',25:'SF',26:'SEA',
+    27:'TB',28:'WAS',29:'CAR',30:'JAC',33:'BAL',34:'HOU',0:'FA'};
+  return teams[p.playerPoolEntry?.player?.proTeamId] || '';
+}
+
+function renderPicksList(picks, posFilter) {
+  if (!picks.length) return '<div class="empty-msg"><p>No picks match this filter.</p></div>';
+  let h = '';
+  let lastRound = 0;
+  picks.forEach(p => {
+    if (p.round !== lastRound) {
+      h += `<div class="round-divider">Round ${p.round}</div>`;
+      lastRound = p.round;
+    }
+    const pos = getPlayerPos(p);
+    const pc  = posClass(pos);
+    const earlyClass = p.overallPickNumber <= 10 ? 'early' : p.overallPickNumber <= 30 ? 'mid' : '';
+    h += `<div class="mu-row">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:44px;flex-shrink:0">#${p.overallPickNumber}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;width:30px;flex-shrink:0;color:var(--muted)">${p.pickInRound}.</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px">${getPlayerName(p)}</div>
+        <div style="font-size:11px;color:var(--muted)">${getPlayerNFLTeam(p)} · <span class="${pc}">${pos}</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--gold);font-weight:600;text-align:right">${p.ownerName}</div>
+    </div>`;
+  });
+  return h;
+}
+
+function renderDraftBoard(picks, totalTeams, localMap) {
+  // Build grid: rows = rounds, cols = teams (in draft order)
+  const rounds = Math.ceil(picks.length / totalTeams);
+  const teamOrder = []; // first-round pick order
+
+  // Get teams in order of their first pick
+  const firstPicks = picks.filter(p => p.round === 1).sort((a,b)=>a.overallPickNumber-b.overallPickNumber);
+  firstPicks.forEach(p => { if(!teamOrder.includes(p.teamId)) teamOrder.push(p.teamId); });
+
+  // Add any teams that didn't pick in round 1
+  Object.keys(localMap).forEach(id => {
+    if(!teamOrder.includes(parseInt(id))) teamOrder.push(parseInt(id));
+  });
+
+  let h = '<div class="draft-board-wrap"><table class="draft-board"><thead><tr><th>Rd</th>';
+  teamOrder.forEach(id => {
+    const t = localMap[id];
+    h += `<th>${t ? tName(t).split(' ').slice(-1)[0] : id}</th>`;
+  });
+  h += '</tr></thead><tbody>';
+
+  for (let r = 1; r <= rounds; r++) {
+    h += `<tr><td>${r}</td>`;
+    // Snake draft: even rounds reverse order
+    const colOrder = r % 2 === 0 ? [...teamOrder].reverse() : teamOrder;
+    teamOrder.forEach(teamId => {
+      const pick = picks.find(p => p.round === r && p.teamId === teamId);
+      if (!pick) { h += '<td></td>'; return; }
+      const pos = getPlayerPos(pick);
+      h += `<td>
+        <div class="db-player">${getPlayerName(pick)}</div>
+        <div class="db-pos ${posClass(pos)}">${pos}</div>
+        <div class="db-team">${getPlayerNFLTeam(pick)}</div>
+      </td>`;
+    });
+    h += '</tr>';
+  }
+  h += '</tbody></table></div>';
+  return h;
+}
+
+function renderByTeam(picks, localMap) {
+  const byTeam = {};
+  picks.forEach(p => {
+    if(!byTeam[p.teamId]) byTeam[p.teamId] = [];
+    byTeam[p.teamId].push(p);
+  });
+  let h = '<div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">';
+  Object.keys(byTeam).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(teamId => {
+    const t = localMap[teamId];
+    const tpicks = byTeam[teamId].sort((a,b)=>a.overallPickNumber-b.overallPickNumber);
+    h += `<div class="card" style="margin-bottom:0">
+      <div class="card-header" style="padding:10px 14px">
+        <div class="card-title" style="font-size:14px">${t ? tName(t) : 'Team '+teamId}</div>
+        <div class="card-sub">${tpicks.length} picks</div>
+      </div>`;
+    tpicks.forEach(p => {
+      const pos = getPlayerPos(p);
+      h += `<div style="padding:7px 14px;border-bottom:1px solid rgba(27,51,36,0.4);display:flex;gap:8px;align-items:center">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:28px">#${p.overallPickNumber}</span>
+        <span class="${posClass(pos)}" style="font-size:10px;font-weight:600;width:30px">${pos}</span>
+        <span style="font-size:12px;font-weight:600;flex:1">${getPlayerName(p)}</span>
+      </div>`;
+    });
+    h += '</div>';
+  });
+  return h + '</div>';
+}
+
+function renderByPosition(picks) {
+  const positions = ['QB','RB','WR','TE','K','D/ST','FLEX'];
+  const byPos = {};
+  positions.forEach(p => byPos[p] = []);
+  picks.forEach(p => {
+    const pos = getPlayerPos(p);
+    if(byPos[pos]) byPos[pos].push(p);
+    else byPos['FLEX'] = (byPos['FLEX']||[]).concat([p]);
+  });
+  let h = '';
+  positions.forEach(pos => {
+    const group = byPos[pos]||[];
+    if(!group.length) return;
+    h += `<div class="wk-header"><span class="${posClass(pos)}">${pos}</span> — ${group.length} picks</div>`;
+    group.sort((a,b)=>a.overallPickNumber-b.overallPickNumber).forEach(p => {
+      h += `<div class="mu-row">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:44px;flex-shrink:0">#${p.overallPickNumber}</div>
+        <div style="flex:1;font-weight:600;font-size:13px">${getPlayerName(p)}</div>
+        <div style="font-size:11px;color:var(--muted);margin:0 12px">${getPlayerNFLTeam(p)}</div>
+        <div style="font-size:12px;color:var(--gold);font-weight:600">${p.ownerName}</div>
+      </div>`;
+    });
+  });
+  return h;
 }
 
 // ══════════════════════════════════════════════

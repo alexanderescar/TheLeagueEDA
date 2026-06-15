@@ -1,98 +1,153 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 
-const app = express();
+const app  = express();
 const PORT = process.env.PORT || 3000;
 
-const LEAGUE_ID = process.env.LEAGUE_ID || '119089';
-const ESPN_S2 = process.env.ESPN_S2 || '';
-const SWID = process.env.SWID || '';
+const LEAGUE_ID    = process.env.LEAGUE_ID    || '119089';
+const ESPN_S2      = process.env.ESPN_S2      || '';
+const SWID         = process.env.SWID         || '';
+const TURSO_URL    = process.env.TURSO_URL    || '';
+const TURSO_TOKEN  = process.env.TURSO_TOKEN  || '';
 
-// Seasons to load — extend this array each year
-const SEASONS = process.env.SEASONS
-  ? process.env.SEASONS.split(',').map(s => s.trim())
-  : ['2025', '2024', '2023', '2022'];
+// Data file written by scrape.js
+const DATA_FILE = path.join(__dirname, 'data', 'league_data.json');
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ── Data source priority:
+//    1. Turso (if configured)
+//    2. Local JSON file (committed from scrape)
+//    3. Live ESPN fetch (fallback, requires cookies)
+
+async function getFromTurso() {
+  if (!TURSO_URL || !TURSO_TOKEN) return null;
+  const { createClient } = await import('@libsql/client');
+  const db = createClient({ url: TURSO_URL, authToken: TURSO_TOKEN });
+  const res = await db.execute('SELECT data FROM league_data WHERE id = 1');
+  if (!res.rows.length) return null;
+  return JSON.parse(res.rows[0].data);
+}
+
+function getFromFile() {
+  if (!fs.existsSync(DATA_FILE)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  } catch {
+    return null;
+  }
+}
 
 function espnHeaders() {
   const h = {
     'Accept': 'application/json',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     'Referer': 'https://fantasy.espn.com/',
     'Origin': 'https://fantasy.espn.com',
-    'x-fantasy-filter': JSON.stringify({ schedule: { filterProposedMatchupPeriodIds: { value: [] } } }),
   };
-  if (ESPN_S2 && SWID) {
-    h['Cookie'] = `espn_s2=${ESPN_S2}; SWID=${SWID}`;
-  }
+  if (ESPN_S2 && SWID) h['Cookie'] = `espn_s2=${ESPN_S2}; SWID=${SWID}`;
   return h;
 }
 
-async function fetchSeason(season) {
-  const views = ['mTeam', 'mStandings', 'mSettings', 'mSchedule'];
+async function fetchSeasonLive(season) {
   const base = `https://fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${LEAGUE_ID}`;
-  const url = `${base}?${views.map(v => `view=${v}`).join('&')}`;
 
-  console.log(`[ESPN] Fetching season ${season}: ${url}`);
+  const [main, draftRes] = await Promise.allSettled([
+    fetch(`${base}?view=mTeam&view=mStandings&view=mSettings&view=mSchedule`, { headers: espnHeaders() }),
+    fetch(`${base}?view=mDraftDetail`, { headers: espnHeaders() }),
+  ]);
 
-  const res = await fetch(url, { headers: espnHeaders() });
+  if (main.status === 'rejected' || !main.value.ok) return null;
+  const data = await main.value.json();
+  if (!data.teams?.length) return null;
 
-  if (!res.ok) {
-    const body = await res.text();
-    console.error(`[ESPN] Season ${season} returned ${res.status}: ${body.slice(0, 200)}`);
-    return null;
+  let draftDetail = null;
+  if (draftRes.status === 'fulfilled' && draftRes.value.ok) {
+    const dd = await draftRes.value.json();
+    draftDetail = dd.draftDetail || null;
   }
 
-  const data = await res.json();
-
-  // Validate we got real data
-  if (!data.teams || data.teams.length === 0) {
-    console.warn(`[ESPN] Season ${season}: no teams returned`);
-    return null;
-  }
-
-  console.log(`[ESPN] Season ${season}: ${data.teams.length} teams, ${(data.schedule || []).length} matchups`);
-  return { season: parseInt(season), ...data };
+  return {
+    season: parseInt(season),
+    settings:    data.settings    || {},
+    teams:       data.teams       || [],
+    schedule:    data.schedule    || [],
+    status:      data.status      || {},
+    draftDetail,
+    scrapedAt:   new Date().toISOString(),
+    source:      'live',
+  };
 }
 
-// Main league endpoint — returns all seasons
+async function getAllData() {
+  // 1. Try Turso
+  try {
+    const turso = await getFromTurso();
+    if (turso?.seasons?.length) {
+      console.log(`[Data] Loaded ${turso.seasons.length} seasons from Turso`);
+      return { ...turso, source: 'turso' };
+    }
+  } catch (e) {
+    console.warn('[Data] Turso error:', e.message);
+  }
+
+  // 2. Try local file
+  const file = getFromFile();
+  if (file?.seasons?.length) {
+    console.log(`[Data] Loaded ${file.seasons.length} seasons from file`);
+    return { ...file, source: 'file' };
+  }
+
+  // 3. Fallback: live ESPN fetch (needs cookies for private leagues)
+  console.log('[Data] No stored data — attempting live ESPN fetch');
+  const SEASONS = ['2024', '2023', '2022', '2021'];
+  const results = await Promise.allSettled(SEASONS.map(fetchSeasonLive));
+  const seasons = results
+    .map(r => r.status === 'fulfilled' ? r.value : null)
+    .filter(Boolean)
+    .sort((a, b) => b.season - a.season);
+
+  if (!seasons.length) return null;
+  return { seasons, source: 'live', updatedAt: new Date().toISOString() };
+}
+
+// Main API endpoint
 app.get('/api/league', async (req, res) => {
   try {
-    const results = await Promise.allSettled(SEASONS.map(fetchSeason));
-    const seasons = results
-      .map(r => r.status === 'fulfilled' ? r.value : null)
-      .filter(Boolean)
-      .sort((a, b) => b.season - a.season);
-
-    if (seasons.length === 0) {
+    const data = await getAllData();
+    if (!data) {
       return res.status(502).json({
-        error: 'No season data returned from ESPN',
-        hint: 'Check that LEAGUE_ID is correct and the league is public. For private leagues, set ESPN_S2 and SWID env vars.',
-        seasonsAttempted: SEASONS,
+        error: 'No data available',
+        fix: 'Run scrape.js locally to populate data, then redeploy. See README for instructions.',
+        hasFile:  fs.existsSync(DATA_FILE),
+        hasTurso: !!(TURSO_URL && TURSO_TOKEN),
+        hasCookies: !!(ESPN_S2 && SWID),
       });
     }
-
-    res.json({ seasons });
+    res.json(data);
   } catch (err) {
-    console.error('[API] Unhandled error:', err);
+    console.error('[API] Error:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Debug endpoint — raw ESPN response for one season
-app.get('/api/debug/:season', async (req, res) => {
-  try {
-    const data = await fetchSeason(req.params.season);
-    res.json(data || { error: 'No data returned' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Status endpoint — tells you exactly what data sources are configured
+app.get('/api/status', (req, res) => {
+  res.json({
+    leagueId:    LEAGUE_ID,
+    hasFile:     fs.existsSync(DATA_FILE),
+    hasTurso:    !!(TURSO_URL && TURSO_TOKEN),
+    hasCookies:  !!(ESPN_S2 && SWID),
+    fileAge:     fs.existsSync(DATA_FILE)
+      ? Math.round((Date.now() - fs.statSync(DATA_FILE).mtimeMs) / 1000 / 60) + ' min ago'
+      : null,
+  });
 });
 
-app.get('/health', (req, res) => res.json({ ok: true, leagueId: LEAGUE_ID, seasons: SEASONS }));
+app.get('/health', (req, res) => res.json({ ok: true }));
 
 app.listen(PORT, () => {
-  console.log(`The League running on port ${PORT}`);
-  console.log(`League ID: ${LEAGUE_ID} | Seasons: ${SEASONS.join(', ')}`);
+  console.log(`The League on port ${PORT} · League ${LEAGUE_ID}`);
+  console.log(`Data sources: file=${fs.existsSync(DATA_FILE)} turso=${!!(TURSO_URL&&TURSO_TOKEN)} cookies=${!!(ESPN_S2&&SWID)}`);
 });
