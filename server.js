@@ -5,60 +5,94 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const LEAGUE_ID = process.env.LEAGUE_ID || '119089';
-const SEASON = process.env.SEASON || '2025';
-
-// Optional private league cookies (set in Railway env vars if needed later)
 const ESPN_S2 = process.env.ESPN_S2 || '';
 const SWID = process.env.SWID || '';
 
-const ESPN_BASE = `https://fantasy.espn.com/apis/v3/games/ffl/seasons/${SEASON}/segments/0/leagues/${LEAGUE_ID}`;
+// Seasons to load — extend this array each year
+const SEASONS = process.env.SEASONS
+  ? process.env.SEASONS.split(',').map(s => s.trim())
+  : ['2025', '2024', '2023', '2022'];
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ESPN proxy endpoint
+function espnHeaders() {
+  const h = {
+    'Accept': 'application/json',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Referer': 'https://fantasy.espn.com/',
+    'Origin': 'https://fantasy.espn.com',
+    'x-fantasy-filter': JSON.stringify({ schedule: { filterProposedMatchupPeriodIds: { value: [] } } }),
+  };
+  if (ESPN_S2 && SWID) {
+    h['Cookie'] = `espn_s2=${ESPN_S2}; SWID=${SWID}`;
+  }
+  return h;
+}
+
+async function fetchSeason(season) {
+  const views = ['mTeam', 'mStandings', 'mSettings', 'mSchedule'];
+  const base = `https://fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${LEAGUE_ID}`;
+  const url = `${base}?${views.map(v => `view=${v}`).join('&')}`;
+
+  console.log(`[ESPN] Fetching season ${season}: ${url}`);
+
+  const res = await fetch(url, { headers: espnHeaders() });
+
+  if (!res.ok) {
+    const body = await res.text();
+    console.error(`[ESPN] Season ${season} returned ${res.status}: ${body.slice(0, 200)}`);
+    return null;
+  }
+
+  const data = await res.json();
+
+  // Validate we got real data
+  if (!data.teams || data.teams.length === 0) {
+    console.warn(`[ESPN] Season ${season}: no teams returned`);
+    return null;
+  }
+
+  console.log(`[ESPN] Season ${season}: ${data.teams.length} teams, ${(data.schedule || []).length} matchups`);
+  return { season: parseInt(season), ...data };
+}
+
+// Main league endpoint — returns all seasons
 app.get('/api/league', async (req, res) => {
   try {
-    const views = [
-      'mTeam',
-      'mStandings',
-      'mSettings',
-      'mSchedule',
-      'mRoster',
-    ];
-    const url = `${ESPN_BASE}?${views.map(v => `view=${v}`).join('&')}`;
+    const results = await Promise.allSettled(SEASONS.map(fetchSeason));
+    const seasons = results
+      .map(r => r.status === 'fulfilled' ? r.value : null)
+      .filter(Boolean)
+      .sort((a, b) => b.season - a.season);
 
-    const headers = {
-      'Accept': 'application/json',
-      'User-Agent': 'Mozilla/5.0 (compatible; FantasyHQ/1.0)',
-      'Referer': 'https://fantasy.espn.com/',
-      'Origin': 'https://fantasy.espn.com',
-    };
-
-    if (ESPN_S2 && SWID) {
-      headers['Cookie'] = `espn_s2=${ESPN_S2}; SWID=${SWID}`;
-    }
-
-    const response = await fetch(url, { headers });
-
-    if (!response.ok) {
-      const text = await response.text();
-      return res.status(response.status).json({
-        error: `ESPN API returned ${response.status}`,
-        detail: text.slice(0, 300),
+    if (seasons.length === 0) {
+      return res.status(502).json({
+        error: 'No season data returned from ESPN',
+        hint: 'Check that LEAGUE_ID is correct and the league is public. For private leagues, set ESPN_S2 and SWID env vars.',
+        seasonsAttempted: SEASONS,
       });
     }
 
-    const data = await response.json();
-    res.json(data);
+    res.json({ seasons });
+  } catch (err) {
+    console.error('[API] Unhandled error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Debug endpoint — raw ESPN response for one season
+app.get('/api/debug/:season', async (req, res) => {
+  try {
+    const data = await fetchSeason(req.params.season);
+    res.json(data || { error: 'No data returned' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Health check
-app.get('/health', (req, res) => res.json({ ok: true }));
+app.get('/health', (req, res) => res.json({ ok: true, leagueId: LEAGUE_ID, seasons: SEASONS }));
 
 app.listen(PORT, () => {
-  console.log(`Fantasy HQ running on port ${PORT}`);
-  console.log(`League: ${LEAGUE_ID} | Season: ${SEASON}`);
+  console.log(`The League running on port ${PORT}`);
+  console.log(`League ID: ${LEAGUE_ID} | Seasons: ${SEASONS.join(', ')}`);
 });
