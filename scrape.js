@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
-   * ESPN Fantasy Scraper — full historical data with player names & real team names
-   * - Uses lm-api-reads.fantasy.espn.com (server-side friendly, no geo-block)
-   * - Fetches player name/position lookup per season from ESPN players API
-   * - Enriches draft picks with playerName + playerPosition at scrape time
-   * - Scrapes 2011–2025 by default, skips any seasons that 404
+   * ESPN Fantasy Scraper — full historical data with real player names & team names
+   * Uses lm-api-reads.fantasy.espn.com (server-side, no geo-block)
+   * Decodes URL-encoded ESPN_S2 cookie automatically
+   * Fetches player name/position map per season (with 20s timeout)
+   * Callable as module (/admin/scrape) or CLI (node scrape.js)
    */
 
 const fs   = require('fs');
@@ -14,17 +14,12 @@ const LEAGUE_ID   = process.env.LEAGUE_ID || '119089';
 const ESPN_S2_RAW = process.env.ESPN_S2 || process.env.ESPN_2 || '';
 const ESPN_S2     = ESPN_S2_RAW ? decodeURIComponent(ESPN_S2_RAW) : '';
 const SWID        = process.env.SWID || '';
-// Default: all seasons 2011-2025; override with SEASONS env var
-const SEASONS = (process.env.SEASONS || '2025,2024,2023,2022,2021,2020,2019,2018,2017,2016,2015,2014,2013,2012,2011').split(',').map(s => s.trim());
-const OUT_FILE = path.join(__dirname, 'data', 'league_data.json');
+const SEASONS     = (process.env.SEASONS || '2025,2024,2023,2022,2021,2020,2019,2018,2017,2016,2015,2014,2013,2012,2011').split(',').map(s => s.trim());
+const OUT_FILE    = path.join(__dirname, 'data', 'league_data.json');
+const ESPN_API    = 'https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl';
 
-const ESPN_API   = 'https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl';
-
-// ESPN position ID → position abbreviation
 const POSITION_MAP = { 1:'QB', 2:'RB', 3:'WR', 4:'TE', 5:'K', 16:'D/ST' };
-
-// ESPN lineup slot ID → slot label (for display)
-const SLOT_MAP = { 0:'QB', 2:'RB', 4:'WR', 6:'TE', 16:'D/ST', 17:'K', 20:'Bench', 21:'IR', 23:'FLEX' };
+const SLOT_MAP     = { 0:'QB', 2:'RB', 4:'WR', 6:'TE', 16:'D/ST', 17:'K', 20:'Bench', 21:'IR', 23:'FLEX' };
 
 function espnHeaders() {
     const h = {
@@ -49,11 +44,13 @@ async function fetchView(season, views) {
     return JSON.parse(text);
 }
 
-// Fetch player id→{name,position} map for a season using the players_wl endpoint
 async function fetchPlayerMap(season, log) {
     const url = `${ESPN_API}/seasons/${season}/players?scoringPeriodId=0&view=players_wl`;
     try {
-          const res = await fetch(url, { headers: espnHeaders() });
+          const ac  = new AbortController();
+          const tid = setTimeout(() => ac.abort(), 20000);
+          const res = await fetch(url, { headers: espnHeaders(), signal: ac.signal });
+          clearTimeout(tid);
           if (!res.ok) return {};
           const text = await res.text();
           if (!text.trim() || text.trimStart().startsWith('<')) return {};
@@ -72,49 +69,43 @@ async function fetchPlayerMap(season, log) {
           log(`  ✓ Loaded ${Object.keys(map).length} players for ${season}`);
           return map;
     } catch (e) {
-          log(`  ⚠️  Could not load player map for ${season}: ${e.message}`);
+          log(`  ⚠️  Player map skipped for ${season}: ${e.message}`);
           return {};
     }
 }
 
 async function scrapeSeason(season, log) {
     log(`  Scraping ${season}...`);
-
-  const main = await fetchView(season, ['mTeam', 'mStandings', 'mSettings', 'mSchedule']);
+    const main = await fetchView(season, ['mTeam', 'mStandings', 'mSettings', 'mSchedule']);
     if (!main || !main.teams?.length) {
           log(`  ⚠️  No data for ${season} — skipping`);
           return null;
     }
 
-  // Build teamId → team name map using the real team names from the API
   const teamMap = {};
     for (const t of main.teams) {
           teamMap[t.id] = t.name || t.abbrev || `Team ${t.id}`;
     }
+    log(`  ✓ ${season}: ${main.teams.length} teams, ${(main.schedule||[]).length} matchups`);
 
-  log(`  ✓ ${season}: ${main.teams.length} teams, ${(main.schedule||[]).length} matchups`);
-
-  // Fetch player name map for this season
   const playerMap = await fetchPlayerMap(season, log);
 
-  // Fetch draft data
   let draftDetail = null;
     try {
           const draftData = await fetchView(season, ['mDraftDetail']);
           if (draftData?.draftDetail) {
                   draftDetail = draftData.draftDetail;
-                  // Enrich picks with player name, position, team name, and slot label
-            if (draftDetail.picks) {
-                      draftDetail.picks = draftDetail.picks.map(pick => {
-                                  const player = playerMap[pick.playerId] || {};
-                                  return {
-                                                ...pick,
-                                                playerName:     player.name     || `Player ${pick.playerId}`,
-                                                playerPosition: player.position || SLOT_MAP[pick.lineupSlotId] || `Slot${pick.lineupSlotId}`,
-                                                teamName:       teamMap[pick.teamId] || `Team ${pick.teamId}`,
-                                  };
-                      });
-            }
+                  if (draftDetail.picks) {
+                            draftDetail.picks = draftDetail.picks.map(pick => {
+                                        const player = playerMap[pick.playerId] || {};
+                                        return {
+                                                      ...pick,
+                                                      playerName:     player.name     || `Player ${pick.playerId}`,
+                                                      playerPosition: player.position || SLOT_MAP[pick.lineupSlotId] || `Slot${pick.lineupSlotId}`,
+                                                      teamName:       teamMap[pick.teamId] || `Team ${pick.teamId}`,
+                                        };
+                            });
+                  }
                   log(`  ✓ ${season} draft: ${draftDetail.picks?.length || 0} picks enriched`);
           }
     } catch (e) {
@@ -146,15 +137,13 @@ async function runScrape(log = console.log) {
           try {
                   const data = await scrapeSeason(season, log);
                   if (data) allData.push(data);
-                  await new Promise(r => setTimeout(r, 700)); // polite delay
+                  await new Promise(r => setTimeout(r, 700));
           } catch (err) {
                   log(`  ❌ ${season}: ${err.message}`);
           }
     }
 
-  if (allData.length === 0) {
-        throw new Error('No data scraped — check league accessibility.');
-  }
+  if (allData.length === 0) throw new Error('No data scraped.');
 
   allData.sort((a, b) => b.season - a.season);
     const payload = { seasons: allData, updatedAt: new Date().toISOString() };
