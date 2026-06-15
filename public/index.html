@@ -1225,10 +1225,19 @@ function buildCrossSeasonStats() {
     // True champion = rankCalculatedFinal === 1 (actual playoff winner, not regular season leader)
 const champTeam = s.teams.find(t => t.rankCalculatedFinal === 1);
 const champId = champTeam?.id;
+// Compute PA from schedule (ESPN omits pointsAgainst in team record for active seasons)
+const paMap = {};
+sched.forEach(m => {
+const hId = m.home?.teamId, aId = m.away?.teamId;
+const hPts = m.home?.totalPoints||0, aPts = m.away?.totalPoints||0;
+if (hId != null) paMap[hId] = (paMap[hId]||0) + aPts;
+if (aId != null) paMap[aId] = (paMap[aId]||0) + hPts;
+});
+
     s.teams.forEach(t => {
       const rec = t.record?.overall||{};
       const w = rec.wins??0, l = rec.losses??0, gp = w+l||1;
-      const pf = t.points??0, pa = t.pointsAgainst??0;
+const pf = t.points??0, pa = paMap[t.id] || t.pointsAgainst || 0;
 
       // High/low week for this team this season
       let weekHigh=0, weekLow=Infinity;
@@ -1420,7 +1429,7 @@ function renderHistAllTime(rows) {
     { cat:'Most Points For',      fmt: o=>`${o.pf.toFixed(0)}`, topFn: o=>o.pf, detFn: o=>`${(o.pf/gp(o)).toFixed(1)} PPG avg` },
     { cat:'Highest Single Week',  fmt: o=>`${o.weekHighAll.toFixed(2)}`, topFn: o=>o.weekHighAll, detFn: o=>`personal best` },
     { cat:'Most Championships',   fmt: o=>`${o.champs} 👑`, topFn: o=>o.champs, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} played` },
-    { cat:'Most Championships', fmt: o=>`${o.champs} 👑`, topFn: o=>o.champs, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} played` },
+    { { cat:'Highest Career PPG', fmt: o=>`${(o.pf/(o.wins+o.losses||1)).toFixed(1)}`, topFn: o=>o.pf/(o.wins+o.losses||1), detFn: o=>`${o.wins+o.losses} games played` } 👑`, topFn: o=>o.champs, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} played` },
     { cat:'Most Points Against',  fmt: o=>`${o.pa.toFixed(0)} PA`, topFn: o=>o.pa, detFn: o=>`unlucky or just bad D?` },
     { cat:'Most Total Losses',    fmt: o=>`${o.losses} L`, topFn: o=>o.losses, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} of pain` },
   ];
