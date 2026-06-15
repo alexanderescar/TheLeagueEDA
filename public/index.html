@@ -1696,7 +1696,7 @@ function getPlayerPos(p) {
   const id = p.playerPoolEntry?.player?.defaultPositionId;
   // Try the lineup slot first, then defaultPositionId
   return p.playerPosition || (p.playerPoolEntry?.player?.eligibleSlots?.[0] === 16 ? 'D/ST'
-       : posMap[id] || 'FLEX';
+       : posMap[id] || 'FLEX');
 }
 
 function getPlayerNFLTeam(p) {
