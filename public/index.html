@@ -804,7 +804,7 @@ function switchTab(e, name) {
 }
 
 function tName(t) {
-  return ((t.location||'') + ' ' + (t.nickname||'')).trim() || ('Team ' + t.id);
+  return t.name || ((t.location||'') + ' ' + (t.nickname||'')).trim() || ('Team ' + t.id);
 }
 function oName(t) {
   if (!t.owners||!t.owners.length) return '';
@@ -916,7 +916,7 @@ function renderPower() {
   const maxPPG = Math.max(...teams.map(x => x.ppg)) || 1;
   teams.forEach(x => { x.power = (x.ppg/maxPPG)*60 + x.wPct*40; });
   teams.sort((a,b) => b.power - a.power);
-  const maxP = teams[0].power || 1;
+  const maxP = teams[0].power || 1;h
 
   let h = `<div class="card">
     <div class="card-header">
@@ -1685,7 +1685,7 @@ function renderDraftSeason() {
 }
 
 function getPlayerName(p) {
-  return p.playerPoolEntry?.player?.fullName
+  return p.playerName || p.playerPoolEntry?.player?.fullName
       || p.playerPoolEntry?.player?.lastName
       || `Pick #${p.overallPickNumber}`;
 }
@@ -1695,7 +1695,7 @@ function getPlayerPos(p) {
     23:'WR',1:'WR',10:'RB',11:'RB',22:'TE'};
   const id = p.playerPoolEntry?.player?.defaultPositionId;
   // Try the lineup slot first, then defaultPositionId
-  return p.playerPoolEntry?.player?.eligibleSlots?.[0] === 16 ? 'D/ST'
+  return p.playerPosition || (p.playerPoolEntry?.player?.eligibleSlots?.[0] === 16 ? 'D/ST'
        : posMap[id] || 'FLEX';
 }
 
