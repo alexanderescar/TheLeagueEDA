@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fantasy HQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --field: #0a1a0f;
+    --turf: #0f2418;
+    --line: #1a3d28;
+    --chalk: #e8f5ec;
+    --gold: #f0c040;
+    --red: #e05050;
+    --green: #40c070;
+    --muted: #4a7a5a;
+    --card: #111f16;
+    --border: #1e3828;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--field);
+    color: var(--chalk);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      180deg,
+      transparent, transparent 99px,
+      rgba(255,255,255,0.03) 99px, rgba(255,255,255,0.03) 100px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app { position: relative; z-index: 1; }
+
+  header {
+    padding: 24px 32px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(10,26,15,0.95);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; color: var(--gold); line-height: 1; }
+
+  .league-meta { border-left: 2px solid var(--border); padding-left: 16px; }
+  .league-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; color: var(--chalk); line-height: 1; }
+  .league-sub { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+  .status-badge {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+  }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+  .dot.err { background: var(--red); }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  nav {
+    display: flex;
+    padding: 0 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--turf);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+
+  nav button {
+    background: none; border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 14px 20px;
+    cursor: pointer; white-space: nowrap;
+    text-transform: uppercase;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  nav button:hover { color: var(--chalk); }
+  nav button.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  main { padding: 28px 32px; max-width: 1100px; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+
+  .card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--gold); }
+  .card-sub { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* STANDINGS */
+  .standings-table { width: 100%; border-collapse: collapse; }
+  .standings-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 10px 18px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .standings-table td { padding: 12px 18px; border-bottom: 1px solid rgba(30,56,40,0.5); vertical-align: middle; }
+  .standings-table tr:last-child td { border-bottom: none; }
+  .standings-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .rank-num { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--muted); width: 40px; }
+  .rank-num.top3 { color: var(--gold); }
+  .team-name-cell { font-weight: 600; font-size: 14px; }
+  .owner-name { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .record { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; }
+  .pts { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--green); }
+  .pts-against { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--muted); }
+
+  .streak-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; }
+  .streak-w { background: rgba(64,192,112,0.15); color: var(--green); }
+  .streak-l { background: rgba(224,80,80,0.15); color: var(--red); }
+
+  /* POWER RANKINGS */
+  .power-rank-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(30,56,40,0.5);
+    transition: background 0.1s;
+  }
+  .power-rank-item:last-child { border-bottom: none; }
+  .power-rank-item:hover { background: rgba(255,255,255,0.02); }
+
+  .pr-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; width: 36px; text-align: center; color: var(--muted); flex-shrink: 0; }
+  .pr-num.pr-1 { color: var(--gold); }
+  .pr-num.pr-2 { color: #c0c0c0; }
+  .pr-num.pr-3 { color: #cd7f32; }
+
+  .pr-info { flex: 1; min-width: 0; }
+  .pr-name { font-weight: 600; font-size: 14px; }
+  .pr-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  .pr-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; max-width: 140px; }
+  .pr-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--green), var(--gold)); transition: width 1s ease; }
+
+  .pr-score { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--gold); width: 50px; text-align: right; flex-shrink: 0; }
+
+  /* H2H */
+  .h2h-wrap { overflow-x: auto; padding: 0; }
+  .h2h-table { border-collapse: collapse; font-size: 12px; min-width: 600px; }
+  .h2h-table th, .h2h-table td { padding: 8px 10px; text-align: center; border: 1px solid var(--border); white-space: nowrap; }
+  .h2h-table th { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); background: var(--turf); }
+  .h2h-table .row-label { text-align: left; font-weight: 600; background: var(--turf); font-size: 12px; padding-right: 14px; }
+  .h2h-win { background: rgba(64,192,112,0.2); color: var(--green); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .h2h-loss { background: rgba(224,80,80,0.12); color: var(--red); font-family: 'JetBrains Mono', monospace; }
+  .h2h-self { background: var(--line); color: var(--muted); }
+  .h2h-none { color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* SCORES */
+  .week-header {
+    padding: 10px 18px;
+    background: var(--turf);
+    border-bottom: 1px solid var(--border);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 1px;
+    color: var(--chalk);
+  }
+
+  .matchup-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 18px;
+    border-bottom: 1px solid rgba(30,56,40,0.4);
+    transition: background 0.1s;
+  }
+  .matchup-row:hover { background: rgba(255,255,255,0.02); }
+  .matchup-row:last-child { border-bottom: none; }
+
+  .match-team { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+  .match-team.winner { font-weight: 600; }
+  .match-team.loser { opacity: 0.6; }
+  .match-team.right { text-align: right; }
+
+  .match-score { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; min-width: 56px; text-align: right; flex-shrink: 0; }
+  .match-score.winner { color: var(--green); }
+  .match-score.loser { color: var(--red); }
+  .match-vs { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); flex-shrink: 0; padding: 0 4px; }
+
+  /* AWARDS */
+  .awards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; padding: 18px; }
+
+  .award-card {
+    background: var(--turf);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .award-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.1); }
+  .award-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .award-card.gold::before { background: var(--gold); }
+  .award-card.green::before { background: var(--green); }
+  .award-card.red::before { background: var(--red); }
+  .award-card.silver::before { background: #9090a0; }
+  .award-card.blue::before { background: #5090e0; }
+  .award-card.purple::before { background: #9060d0; }
+  .award-card.orange::before { background: #e08030; }
+
+  .award-emoji { font-size: 28px; margin-bottom: 8px; }
+  .award-title { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 0.5px; color: var(--chalk); margin-bottom: 4px; }
+  .award-winner { font-weight: 600; font-size: 14px; color: var(--gold); margin-bottom: 6px; }
+  .award-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* EMPTY / ERROR */
+  .center-msg { padding: 48px; text-align: center; color: var(--muted); }
+  .center-msg .icon { font-size: 40px; margin-bottom: 12px; }
+  .center-msg h3 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--red); margin-bottom: 8px; }
+  .center-msg p { font-size: 13px; line-height: 1.7; }
+  .center-msg code { font-family: 'JetBrains Mono', monospace; background: var(--line); padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+
+  @media (max-width: 700px) {
+    main { padding: 16px; }
+    header { padding: 14px 16px; gap: 10px; }
+    nav { padding: 0 16px; }
+    .logo { font-size: 26px; }
+    .league-name { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">🏈 FFQ</div>
+    <div class="league-meta">
+      <div class="league-name" id="league-name">Loading...</div>
+      <div class="league-sub" id="league-sub">ESPN Fantasy</div>
+    </div>
+    <div class="status-badge" id="status-badge">
+      <div class="spinner"></div>
+      <span>Fetching...</span>
+    </div>
+  </header>
+
+  <nav id="main-nav">
+    <button class="active" onclick="switchTab(event,'standings')">Standings</button>
+    <button onclick="switchTab(event,'power')">Power Rankings</button>
+    <button onclick="switchTab(event,'h2h')">Head-to-Head</button>
+    <button onclick="switchTab(event,'scores')">Scores</button>
+    <button onclick="switchTab(event,'awards')">Awards</button>
+  </nav>
+
+  <main>
+    <div id="tab-standings" class="tab-content active"></div>
+    <div id="tab-power" class="tab-content"></div>
+    <div id="tab-h2h" class="tab-content"></div>
+    <div id="tab-scores" class="tab-content"></div>
+    <div id="tab-awards" class="tab-content"></div>
+  </main>
+</div>
+
+<script>
+let teamsMap = {};
+
+function switchTab(e, name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  e.target.classList.add('active');
+}
+
+function teamName(t) {
+  const full = ((t.location || '') + ' ' + (t.nickname || '')).trim();
+  return full || ('Team ' + t.id);
+}
+
+function ownerName(t) {
+  if (!t.owners || !t.owners.length) return '';
+  const o = t.owners[0];
+  return o.firstName ? (o.firstName + ' ' + (o.lastName || '')).trim() : '';
+}
+
+function loading(id) {
+  document.getElementById(id).innerHTML = '<div class="center-msg"><div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px;"></div></div>';
+}
+
+function setStatus(state, text) {
+  const el = document.getElementById('status-badge');
+  const dotClass = state === 'live' ? 'live' : state === 'err' ? 'err' : '';
+  el.innerHTML = `<div class="dot ${dotClass}"></div><span>${text}</span>`;
+}
+
+async function loadData() {
+  ['standings','power','h2h','scores','awards'].forEach(t => loading('tab-' + t));
+
+  try {
+    const res = await fetch('/api/league');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+
+    const leagueName = data.settings?.name || 'Fantasy League';
+    const currentWeek = data.status?.currentMatchupPeriod || data.scoringPeriodId || '?';
+    const season = data.seasonId || '2025';
+
+    document.getElementById('league-name').textContent = leagueName;
+    document.getElementById('league-sub').textContent = `ESPN · ${season} Season · Week ${currentWeek}`;
+    setStatus('live', 'Live');
+
+    data.teams.forEach(t => { teamsMap[t.id] = t; });
+
+    renderStandings(data, currentWeek);
+    renderPower(data);
+    renderH2H(data);
+    renderScores(data);
+    renderAwards(data);
+
+  } catch (err) {
+    setStatus('err', 'Error');
+    const html = `<div class="card"><div class="center-msg">
+      <div class="icon">⚠️</div>
+      <h3>Couldn't load league data</h3>
+      <p>Error: <code>${err.message}</code><br><br>
+      Check your Railway logs or make sure the ESPN API is reachable.</p>
+    </div></div>`;
+    ['standings','power','h2h','scores','awards'].forEach(t => {
+      document.getElementById('tab-' + t).innerHTML = html;
+    });
+  }
+}
+
+function renderStandings(data, currentWeek) {
+  const teams = [...data.teams].sort((a, b) => {
+    const wa = a.record?.overall?.wins ?? 0, wb = b.record?.overall?.wins ?? 0;
+    if (wb !== wa) return wb - wa;
+    return (b.points ?? 0) - (a.points ?? 0);
+  });
+
+  let html = `<div class="card">
+    <div class="card-header">
+      <div class="card-title">League Standings</div>
+      <div class="card-sub">Through Week ${currentWeek - 1}</div>
+    </div>
+    <table class="standings-table">
+      <thead><tr>
+        <th style="width:44px">#</th>
+        <th>Team</th>
+        <th>W–L</th>
+        <th>PF</th>
+        <th>PA</th>
+        <th>Streak</th>
+      </tr></thead><tbody>`;
+
+  teams.forEach((t, i) => {
+    const rank = i + 1;
+    const rec = t.record?.overall || {};
+    const wins = rec.wins ?? 0, losses = rec.losses ?? 0;
+    const pf = (t.points ?? 0).toFixed(1);
+    const pa = (t.pointsAgainst ?? 0).toFixed(1);
+    const streak = t.record?.overall?.streak || {};
+    const st = streak.type || '', sl = streak.length || 0;
+    const streakHTML = sl
+      ? `<span class="streak-badge streak-${st.toLowerCase()}">${st}${sl}</span>`
+      : '<span style="color:var(--muted)">—</span>';
+
+    html += `<tr>
+      <td class="rank-num${rank <= 3 ? ' top3' : ''}">${rank}</td>
+      <td>
+        <div class="team-name-cell">${teamName(t)}</div>
+        <div class="owner-name">${ownerName(t)}</div>
+      </td>
+      <td><span class="record">${wins}–${losses}</span></td>
+      <td><span class="pts">${pf}</span></td>
+      <td><span class="pts-against">${pa}</span></td>
+      <td>${streakHTML}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById('tab-standings').innerHTML = html;
+}
+
+function renderPower(data) {
+  const teams = data.teams.map(t => {
+    const rec = t.record?.overall || {};
+    const wins = rec.wins ?? 0, losses = rec.losses ?? 0;
+    const gp = wins + losses || 1;
+    const pf = t.points ?? 0;
+    const pfPG = pf / gp;
+    const winPct = wins / gp;
+    return { t, wins, losses, pf, pfPG, winPct };
+  });
+
+  const maxPPG = Math.max(...teams.map(x => x.pfPG)) || 1;
+  teams.forEach(x => { x.power = (x.pfPG / maxPPG) * 60 + x.winPct * 40; });
+  teams.sort((a, b) => b.power - a.power);
+  const maxP = teams[0].power || 1;
+
+  let html = `<div class="card">
+    <div class="card-header">
+      <div class="card-title">Power Rankings</div>
+      <div class="card-sub">60% PPG + 40% Win % · Higher = stronger</div>
+    </div>`;
+
+  teams.forEach((x, i) => {
+    const rank = i + 1;
+    const rc = rank <= 3 ? `pr-${rank}` : '';
+    const bar = (x.power / maxP * 100).toFixed(1);
+    html += `<div class="power-rank-item">
+      <div class="pr-num ${rc}">${rank}</div>
+      <div class="pr-info">
+        <div class="pr-name">${teamName(x.t)}</div>
+        <div class="pr-sub">${ownerName(x.t)} · ${x.wins}–${x.losses} · ${x.pfPG.toFixed(1)} PPG</div>
+      </div>
+      <div class="pr-bar-wrap"><div class="pr-bar" style="width:${bar}%"></div></div>
+      <div class="pr-score">${x.power.toFixed(1)}</div>
+    </div>`;
+  });
+
+  html += '</div>';
+  document.getElementById('tab-power').innerHTML = html;
+}
+
+function renderH2H(data) {
+  const schedule = (data.schedule || []).filter(m => m.winner && m.winner !== 'UNDECIDED');
+  const teamIds = Object.keys(teamsMap).map(Number);
+
+  const rec = {};
+  teamIds.forEach(a => {
+    rec[a] = {};
+    teamIds.forEach(b => { if (a !== b) rec[a][b] = { w: 0, l: 0 }; });
+  });
+
+  schedule.forEach(m => {
+    const h = m.home?.teamId, a = m.away?.teamId;
+    if (!h || !a || !rec[h] || !rec[a]) return;
+    if (m.winner === 'HOME') { rec[h][a].w++; rec[a][h].l++; }
+    else { rec[a][h].w++; rec[h][a].l++; }
+  });
+
+  const sorted = [...data.teams].sort((a, b) =>
+    ((b.record?.overall?.wins ?? 0) - (a.record?.overall?.wins ?? 0))
+  );
+
+  let html = `<div class="card">
+    <div class="card-header">
+      <div class="card-title">Head-to-Head Records</div>
+      <div class="card-sub">Row team's record vs column team · Green = winning matchup</div>
+    </div>
+    <div class="h2h-wrap">
+    <table class="h2h-table"><thead><tr><th class="row-label">vs →</th>`;
+
+  sorted.forEach(t => {
+    const abbr = teamName(t).split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase();
+    html += `<th title="${teamName(t)}">${abbr}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  sorted.forEach(row => {
+    html += `<tr><td class="row-label">${teamName(row)}</td>`;
+    sorted.forEach(col => {
+      if (row.id === col.id) {
+        html += `<td class="h2h-self">—</td>`;
+      } else {
+        const r = rec[row.id]?.[col.id] || { w: 0, l: 0 };
+        if (r.w === 0 && r.l === 0) {
+          html += `<td class="h2h-none">·</td>`;
+        } else if (r.w > r.l) {
+          html += `<td class="h2h-win">${r.w}–${r.l}</td>`;
+        } else {
+          html += `<td class="h2h-loss">${r.w}–${r.l}</td>`;
+        }
+      }
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div></div>';
+  document.getElementById('tab-h2h').innerHTML = html;
+}
+
+function renderScores(data) {
+  const schedule = data.schedule || [];
+  const byWeek = {};
+  schedule.forEach(m => {
+    const wk = m.matchupPeriodId;
+    if (!byWeek[wk]) byWeek[wk] = [];
+    byWeek[wk].push(m);
+  });
+
+  const weeks = Object.keys(byWeek).map(Number).sort((a, b) => b - a);
+  let html = '<div class="card"><div class="card-header"><div class="card-title">All Matchup Scores</div><div class="card-sub">Every week, every game</div></div>';
+
+  let hasAny = false;
+  weeks.forEach(wk => {
+    const matchups = byWeek[wk].filter(m => m.winner && m.winner !== 'UNDECIDED');
+    if (!matchups.length) return;
+    hasAny = true;
+
+    html += `<div class="week-header">Week ${wk}</div>`;
+    matchups.forEach(m => {
+      const ht = teamsMap[m.home?.teamId], at = teamsMap[m.away?.teamId];
+      if (!ht || !at) return;
+      const hs = (m.home?.totalPoints ?? 0).toFixed(2);
+      const as_ = (m.away?.totalPoints ?? 0).toFixed(2);
+      const hw = m.winner === 'HOME';
+
+      html += `<div class="matchup-row">
+        <div class="match-team ${hw ? 'winner' : 'loser'}">${teamName(ht)}</div>
+        <div class="match-score ${hw ? 'winner' : 'loser'}">${hs}</div>
+        <div class="match-vs">vs</div>
+        <div class="match-score ${!hw ? 'winner' : 'loser'}">${as_}</div>
+        <div class="match-team right ${!hw ? 'winner' : 'loser'}">${teamName(at)}</div>
+      </div>`;
+    });
+  });
+
+  if (!hasAny) html += '<div class="center-msg"><p>No completed matchups yet. Check back when the season starts!</p></div>';
+  html += '</div>';
+  document.getElementById('tab-scores').innerHTML = html;
+}
+
+function renderAwards(data) {
+  const teams = data.teams;
+  const schedule = (data.schedule || []).filter(m => m.winner && m.winner !== 'UNDECIDED');
+
+  if (!teams.length) {
+    document.getElementById('tab-awards').innerHTML = '<div class="card"><div class="center-msg"><p>No data yet.</p></div></div>';
+    return;
+  }
+
+  let highScore = 0, highScoreTeam = null;
+  let lowLossScore = Infinity, lowLossTeam = null;
+  let biggestMargin = 0, blowoutW = null, blowoutL = null;
+  let closestMargin = Infinity, heartbreakL = null, heartbreakW = null;
+
+  schedule.forEach(m => {
+    const ht = teamsMap[m.home?.teamId], at = teamsMap[m.away?.teamId];
+    if (!ht || !at) return;
+    const hs = m.home?.totalPoints ?? 0, as_ = m.away?.totalPoints ?? 0;
+    const hw = m.winner === 'HOME';
+    const margin = Math.abs(hs - as_);
+
+    if (hs > highScore) { highScore = hs; highScoreTeam = ht; }
+    if (as_ > highScore) { highScore = as_; highScoreTeam = at; }
+
+    const loserScore = hw ? as_ : hs;
+    const loserTeam = hw ? at : ht;
+    if (loserScore < lowLossScore && loserScore > 0) { lowLossScore = loserScore; lowLossTeam = loserTeam; }
+
+    if (margin > biggestMargin) { biggestMargin = margin; blowoutW = hw ? ht : at; blowoutL = hw ? at : ht; }
+    if (margin < closestMargin) { closestMargin = margin; heartbreakL = hw ? at : ht; heartbreakW = hw ? ht : at; }
+  });
+
+  const byPF = [...teams].sort((a, b) => (b.points ?? 0) - (a.points ?? 0));
+  const byPFAsc = [...teams].sort((a, b) => (a.points ?? 0) - (b.points ?? 0));
+  const byWins = [...teams].sort((a, b) => ((b.record?.overall?.wins ?? 0) - (a.record?.overall?.wins ?? 0)));
+  const byLosses = [...teams].sort((a, b) => ((b.record?.overall?.losses ?? 0) - (a.record?.overall?.losses ?? 0)));
+  const byPA = [...teams].sort((a, b) => (b.pointsAgainst ?? 0) - (a.pointsAgainst ?? 0));
+
+  const noData = (t) => !t ? '—' : teamName(t);
+
+  const awards = [
+    { emoji: '👑', color: 'gold', title: 'The Juggernaut', winner: teamName(byWins[0]), desc: `${byWins[0].record?.overall?.wins ?? 0}–${byWins[0].record?.overall?.losses ?? 0} record. Running the league.` },
+    { emoji: '💣', color: 'green', title: 'Points Machine', winner: teamName(byPF[0]), desc: `Most total points this season: ${(byPF[0].points ?? 0).toFixed(1)} PF.` },
+    { emoji: '🔥', color: 'orange', title: 'Single-Week Scorcher', winner: noData(highScoreTeam), desc: highScoreTeam ? `Season-high ${highScore.toFixed(2)} points in a single week.` : 'Not yet determined.' },
+    { emoji: '💔', color: 'red', title: 'Heartbreak Hotel', winner: noData(heartbreakL), desc: heartbreakL ? `Lost by just ${closestMargin.toFixed(2)} pts to ${teamName(heartbreakW)}. Gut punch.` : 'Not yet determined.' },
+    { emoji: '🏟️', color: 'purple', title: 'The Blowout King', winner: noData(blowoutW), desc: blowoutW ? `Crushed ${teamName(blowoutL)} by ${biggestMargin.toFixed(2)} points. Ruthless.` : 'Not yet determined.' },
+    { emoji: '🪨', color: 'red', title: 'Turnstile Defense', winner: teamName(byPA[0]), desc: `Giving up the most points against: ${(byPA[0].pointsAgainst ?? 0).toFixed(1)} PA. The open barn door.` },
+    { emoji: '😬', color: 'silver', title: 'Glass Jaw', winner: teamName(byLosses[0]), desc: `${byLosses[0].record?.overall?.losses ?? 0} losses. The season is long… right?` },
+    { emoji: '⚰️', color: 'red', title: 'Worst Loss Score', winner: noData(lowLossTeam), desc: lowLossTeam ? `Put up ${lowLossScore.toFixed(2)} points and still took the L. Rough.` : 'Not yet determined.' },
+    { emoji: '📉', color: 'silver', title: 'Fewest Points Scored', winner: teamName(byPFAsc[0]), desc: `Only ${(byPFAsc[0].points ?? 0).toFixed(1)} PF this season. Check the waiver wire.` },
+  ];
+
+  let html = `<div class="card"><div class="card-header"><div class="card-title">League Awards</div><div class="card-sub">Season superlatives — updated live</div></div><div class="awards-grid">`;
+  awards.forEach(a => {
+    html += `<div class="award-card ${a.color}">
+      <div class="award-emoji">${a.emoji}</div>
+      <div class="award-title">${a.title}</div>
+      <div class="award-winner">${a.winner}</div>
+      <div class="award-desc">${a.desc}</div>
+    </div>`;
+  });
+  html += '</div></div>';
+  document.getElementById('tab-awards').innerHTML = html;
+}
+
+loadData();
+</script>
+</body>
+</html>
