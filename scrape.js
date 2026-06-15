@@ -34,14 +34,14 @@ function espnHeaders() {
 }
 
 async function fetchView(season, views) {
-    const base = `${ESPN_API}/seasons/${season}/segments/0/leagues/${LEAGUE_ID}`;
-    const url  = `${base}?${views.map(v => `view=${v}`).join('&')}`;
+    const base = parseInt(season) < 2018 ? `${ESPN_API}/leagueHistory/${LEAGUE_ID}?seasonId=${season}` : `${ESPN_API}/seasons/${season}/segments/0/leagues/${LEAGUE_ID}`;
+    const url  = base + (base.indexOf('?') === -1 ? '?' : '&') + views.map(v => `view=${v}`).join('&');
     const res  = await fetch(url, { headers: espnHeaders() });
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`ESPN ${res.status} for season ${season}`);
     const text = await res.text();
     if (!text.trim() || text.trimStart().startsWith('<')) return null;
-    return JSON.parse(text);
+    const json = JSON.parse(text); return Array.isArray(json) ? json[0] : json;
 }
 
 async function fetchPlayerMap(season, log) {
