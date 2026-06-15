@@ -1,168 +1,121 @@
 #!/usr/bin/env node
 /**
- * ESPN Fantasy Scraper
- * Run this locally (while logged into ESPN) to populate the database.
- *
- * Usage:
- *   ESPN_S2="your_espn_s2_cookie" SWID="{your-swid}" node scrape.js
- *
- * Or set them in a .env file (never commit .env to git).
- *
- * To get your cookies:
- *   1. Open https://fantasy.espn.com in Chrome
- *   2. Open DevTools (F12) → Application → Cookies → https://fantasy.espn.com
- *   3. Copy the value of `espn_s2` and `SWID`
- */
+   * ESPN Fantasy Scraper — no dotenv dependency, callable as module or CLI
+   * Handles ESPN_S2 or ESPN_2 env var name (Railway typo-tolerant)
+   *
+   * CLI:  node scrape.js
+   * Module: const { runScrape } = require('./scrape'); await runScrape(log);
+   */
 
-require('dotenv').config();
-const { createClient } = require('@libsql/client');
 const fs = require('fs');
 const path = require('path');
 
-const LEAGUE_ID  = process.env.LEAGUE_ID  || '119089';
-const ESPN_S2    = process.env.ESPN_S2    || '';
-const SWID       = process.env.SWID       || '';
-const SEASONS    = (process.env.SEASONS   || '2024,2023,2022,2021,2020').split(',').map(s => s.trim());
-
-// Output path for local JSON backup (always written regardless of DB)
-const OUT_FILE = path.join(__dirname, 'data', 'league_data.json');
-
-if (!ESPN_S2 || !SWID) {
-  console.error('\n❌  ESPN_S2 and SWID are required.\n');
-  console.error('Get them from: ESPN Fantasy → DevTools → Application → Cookies → fantasy.espn.com\n');
-  console.error('Then run:\n  ESPN_S2="..." SWID="{...}" node scrape.js\n');
-  process.exit(1);
-}
+const LEAGUE_ID = process.env.LEAGUE_ID || '119089';
+// Accept ESPN_S2 or ESPN_2 (common Railway typo)
+const ESPN_S2   = process.env.ESPN_S2 || process.env.ESPN_2 || '';
+const SWID      = process.env.SWID || '';
+const SEASONS   = (process.env.SEASONS || '2024,2023,2022,2021,2020').split(',').map(s => s.trim());
+const OUT_FILE  = path.join(__dirname, 'data', 'league_data.json');
 
 function espnHeaders() {
-  return {
-    'Accept': 'application/json',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'Referer': 'https://fantasy.espn.com/',
-    'Origin': 'https://fantasy.espn.com',
-    'Cookie': `espn_s2=${ESPN_S2}; SWID=${SWID}`,
-  };
+    return {
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Referer': 'https://fantasy.espn.com/',
+          'Origin': 'https://fantasy.espn.com',
+          'Cookie': `espn_s2=${ESPN_S2}; SWID=${SWID}`,
+    };
 }
 
 async function fetchView(season, views) {
-  const base = `https://fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${LEAGUE_ID}`;
-  const url  = `${base}?${views.map(v => `view=${v}`).join('&')}`;
-
-  const res = await fetch(url, { headers: espnHeaders() });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`ESPN ${res.status} for season ${season}: ${body.slice(0, 300)}`);
+    const base = `https://fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${LEAGUE_ID}`;
+    const url  = `${base}?${views.map(v => `view=${v}`).join('&')}`;
+    const res  = await fetch(url, { headers: espnHeaders() });
+    if (!res.ok) {
+          const body = await res.text();
+          throw new Error(`ESPN ${res.status} for season ${season}: ${body.slice(0, 200)}`);
+    }
+    const text = await res.text();
+    // Detect HTML login redirect
+  if (text.trimStart().startsWith('<')) {
+        throw new Error(`ESPN returned HTML for season ${season} — cookies are expired or invalid`);
   }
-  return res.json();
+    return JSON.parse(text);
 }
 
-async function scrapeSeason(season) {
-  console.log(`\n📅  Scraping season ${season}...`);
+async function scrapeSeason(season, log) {
+    log(`  Scraping ${season}...`);
+    const main = await fetchView(season, ['mTeam', 'mStandings', 'mSettings', 'mSchedule']);
+    if (!main.teams || main.teams.length === 0) {
+          log(`  ⚠️  No teams found for ${season} — skipping`);
+          return null;
+    }
+    log(`  ✓ ${season}: ${main.teams.length} teams, ${(main.schedule||[]).length} matchups`);
 
-  // Fetch main league data
-  const main = await fetchView(season, ['mTeam', 'mStandings', 'mSettings', 'mSchedule']);
-
-  if (!main.teams || main.teams.length === 0) {
-    console.warn(`   ⚠️  No teams found for ${season} — skipping`);
-    return null;
-  }
-  console.log(`   ✅  ${main.teams.length} teams, ${(main.schedule||[]).length} matchups`);
-
-  // Fetch draft data separately
-  let draftData = null;
-  try {
-    const draft = await fetchView(season, ['mDraftDetail']);
-    draftData = draft.draftDetail || null;
-    const picks = draftData?.picks?.length || 0;
-    console.log(`   ✅  Draft: ${picks} picks`);
-  } catch (e) {
-    console.warn(`   ⚠️  Draft data unavailable for ${season}: ${e.message}`);
-  }
+  let draftDetail = null;
+    try {
+          const draft = await fetchView(season, ['mDraftDetail']);
+          draftDetail = draft.draftDetail || null;
+          log(`  ✓ ${season} draft: ${draftDetail?.picks?.length || 0} picks`);
+    } catch (e) {
+          log(`  ⚠️  Draft unavailable for ${season}: ${e.message}`);
+    }
 
   return {
-    season: parseInt(season),
-    settings:    main.settings    || {},
-    teams:       main.teams       || [],
-    schedule:    main.schedule    || [],
-    status:      main.status      || {},
-    draftDetail: draftData,
-    scrapedAt:   new Date().toISOString(),
+        season: parseInt(season),
+        settings:    main.settings    || {},
+        teams:       main.teams       || [],
+        schedule:    main.schedule    || [],
+        status:      main.status      || {},
+        draftDetail,
+        scrapedAt: new Date().toISOString(),
   };
 }
 
-async function main() {
-  console.log('🏈  ESPN Fantasy Scraper');
-  console.log(`   League: ${LEAGUE_ID}`);
-  console.log(`   Seasons: ${SEASONS.join(', ')}`);
-  console.log(`   Cookies: espn_s2=${ESPN_S2.slice(0,20)}... SWID=${SWID.slice(0,10)}...`);
+async function runScrape(log = console.log) {
+    if (!ESPN_S2 || !SWID) {
+          throw new Error('ESPN_S2 (or ESPN_2) and SWID env vars are required');
+    }
 
-  // Ensure output dir
+  log(`🏈 Scraping The League (ID: ${LEAGUE_ID})`);
+    log(`   Seasons: ${SEASONS.join(', ')}`);
+    log(`   Cookie check: espn_s2=${ESPN_S2.slice(0,15)}...`);
+
   fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
 
   const allData = [];
-
-  for (const season of SEASONS) {
-    try {
-      const data = await scrapeSeason(season);
-      if (data) allData.push(data);
-      // Polite delay between requests
-      await new Promise(r => setTimeout(r, 800));
-    } catch (err) {
-      console.error(`   ❌  Error scraping ${season}: ${err.message}`);
+    for (const season of SEASONS) {
+          try {
+                  const data = await scrapeSeason(season, log);
+                  if (data) allData.push(data);
+                  await new Promise(r => setTimeout(r, 600));
+          } catch (err) {
+                  log(`  ❌ ${season}: ${err.message}`);
+          }
     }
-  }
 
   if (allData.length === 0) {
-    console.error('\n❌  No data scraped. Check your cookies and league ID.\n');
-    process.exit(1);
+        throw new Error('No data scraped — cookies are likely expired. Get fresh ones from ESPN DevTools.');
   }
 
-  // Sort newest first
   allData.sort((a, b) => b.season - a.season);
+    const payload = { seasons: allData, updatedAt: new Date().toISOString() };
+    fs.writeFileSync(OUT_FILE, JSON.stringify(payload, null, 2));
 
-  // Write local JSON file
-  fs.writeFileSync(OUT_FILE, JSON.stringify({ seasons: allData, updatedAt: new Date().toISOString() }, null, 2));
-  console.log(`\n✅  Saved ${allData.length} seasons to ${OUT_FILE}`);
+  log(`\n✅ Saved ${allData.length} seasons to data/league_data.json`);
+    allData.forEach(s => {
+          log(`   ${s.season}: ${s.teams.length} teams · ${s.schedule.length} matchups · ${s.draftDetail?.picks?.length || '?'} draft picks`);
+    });
 
-  // If Turso URL is configured, also write to DB
-  const TURSO_URL   = process.env.TURSO_URL;
-  const TURSO_TOKEN = process.env.TURSO_TOKEN;
-
-  if (TURSO_URL && TURSO_TOKEN) {
-    console.log('\n📤  Uploading to Turso...');
-    try {
-      const db = createClient({ url: TURSO_URL, authToken: TURSO_TOKEN });
-
-      await db.execute(`CREATE TABLE IF NOT EXISTS league_data (
-        id        INTEGER PRIMARY KEY DEFAULT 1,
-        data      TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      )`);
-
-      await db.execute({
-        sql: `INSERT OR REPLACE INTO league_data (id, data, updated_at) VALUES (1, ?, ?)`,
-        args: [JSON.stringify({ seasons: allData }), new Date().toISOString()],
-      });
-
-      console.log('✅  Uploaded to Turso successfully');
-    } catch (err) {
-      console.error(`❌  Turso upload failed: ${err.message}`);
-      console.log('   (Local JSON file is still good — you can use that instead)');
-    }
-  } else {
-    console.log('\n💡  To use Turso (optional): set TURSO_URL and TURSO_TOKEN env vars');
-    console.log('   The app will fall back to the local JSON file otherwise.');
-  }
-
-  console.log(`\n🎉  Done! Scraped ${allData.length} seasons:`);
-  allData.forEach(s => {
-    console.log(`   ${s.season}: ${s.teams.length} teams · ${s.schedule.length} matchups · draft: ${s.draftDetail?.picks?.length || '?'} picks`);
-  });
-
-  console.log('\nNext steps:');
-  console.log('  1. Commit data/league_data.json to your repo (or set up Turso)');
-  console.log('  2. Deploy to Railway — the app will serve from stored data');
-  console.log('  3. Re-run scrape.js weekly during the season to refresh\n');
+  return payload;
 }
 
-main();
+// Run as CLI
+if (require.main === module) {
+    runScrape().catch(err => {
+          console.error('\n❌', err.message);
+          process.exit(1);
+    });
+}
+
+module.exports = { runScrape };
