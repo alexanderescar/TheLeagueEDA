@@ -175,7 +175,7 @@ app.get('/admin/scrape', async (req, res) => {
           res.end('</body></html>');
 });
 
-app.get('/health', (req, res) => res.json({ ok: true }));
+if (!fs.existsSync(DATA_FILE) && ESPN_S2 && SWID && !TURSO_URL) { console.log('[Boot] No data file - running background scrape'); Promise.resolve().then(() => require('./scrape').runScrape(console.log)).catch(e => console.error('[Boot] scrape failed', e.message)); } app.get('/health', (req, res) => res.json({ ok: true }));
 
 app.listen(PORT, () => {
     console.log(`The League on :${PORT} · League ${LEAGUE_ID}`);
