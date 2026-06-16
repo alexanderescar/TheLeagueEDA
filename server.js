@@ -101,7 +101,7 @@ async function getAllData() {
 }
 
 // ── API: main data endpoint
-app.get('/api/league', async (req, res) => {
+function getInaugural2010(){ try{ const p=path.join(__dirname,'season_2010.json'); if(fs.existsSync(p)) return JSON.parse(fs.readFileSync(p,'utf8')); }catch(e){ console.warn('[2010]',e.message);} return null; } function withInaugural(d){ if(!d||!Array.isArray(d.seasons)) return d; if(d.seasons.some(s=>s.season===2010)) return d; const s=getInaugural2010(); return s?{...d,seasons:[...d.seasons,s].sort((a,b)=>b.season-a.season)}:d; } app.get('/api/league', async (req, res) => {
     try {
           const data = await getAllData();
           if (!data) return res.status(502).json({
@@ -109,7 +109,7 @@ app.get('/api/league', async (req, res) => {
                   fix: 'Visit /admin/scrape?key=YOUR_SCRAPE_KEY to trigger a scrape',
                   hasFile: fs.existsSync(DATA_FILE), hasTurso: !!(TURSO_URL && TURSO_TOKEN), hasCookies: !!(ESPN_S2 && SWID),
           });
-          res.json(data);
+          res.json(withInaugural(data));
     } catch (err) {
           console.error('[API]', err);
           res.status(500).json({ error: err.message });
