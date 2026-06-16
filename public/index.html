@@ -674,8 +674,8 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
 .pos-def { color:#d04040; }
 /* ===== This Season / History restructure ===== */
 #season-picker{display:none!important}
-.nav-group{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:0 8px 0 4px;white-space:nowrap;align-self:center;font-weight:700}
-.nav-sep{width:1px;height:20px;background:var(--border-bright);margin:0 6px;align-self:center;flex:0 0 auto}
+.nav-group{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--gold);padding:4px 11px;margin:0 8px 0 0;white-space:nowrap;align-self:center;font-weight:800;background:var(--gold-dim);border:1px solid rgba(240,192,64,.4);border-radius:7px}
+.nav-sep{width:1px;height:26px;background:var(--border-bright);margin:0 14px;align-self:center;flex:0 0 auto}
 .rings-row{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px 4px}
 .ring-chip{background:var(--card);border:1px solid var(--border-bright);border-radius:20px;padding:5px 12px;font-size:13px}
 .ring-count{color:var(--gold);font-weight:700}
@@ -707,7 +707,7 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
 @media (max-width:720px){
   nav{gap:2px}
   nav button{font-size:13px;padding:0 8px}
-  .nav-group{font-size:9px;padding:0 4px;letter-spacing:.5px}
+  .nav-group{font-size:9px;padding:3px 7px;letter-spacing:.5px}
   .nav-sep{display:none}
   .std-table{font-size:12px}
   .std-table th,.std-table td{padding:7px 6px}
@@ -746,6 +746,9 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
   .h2h-list{grid-template-columns:1fr 1fr}
 }
 
+.sort-th{cursor:pointer;user-select:none}
+.sort-th:hover{color:var(--gold)}
+.hist-hint{font-size:12px;color:var(--muted);margin-top:6px}
 </style>
 </head>
 <body>
@@ -1219,29 +1222,7 @@ function renderHistory() {
   <div class="history-hero">
     <h2>League History</h2>
     <p>Every season, every matchup, every record — all in one place.</p>
-    <div class="hist-controls">
-      <div class="ctrl-group">
-        <div class="ctrl-label">View</div>
-        <select class="hist-sel" id="hist-view-sel" onchange="renderHistSub()">
-          <option value="season-table">Season-by-Season Stats</option>
-          <option value="standings-all">All-Time Standings</option>
-          <option value="alltime">All-Time Leaders</option>
-          <option value="h2h">Head-to-Head</option>
-          <option value="matchups">Matchup Browser</option>
-          <option value="records">All-Time Records</option>
-        </select>
-      </div>
-      <div class="ctrl-group">
-        <div class="ctrl-label">Sort by</div>
-        <select class="hist-sel" id="hist-sort-sel" onchange="renderHistSub()">
-          <option value="wins">Wins</option>
-          <option value="pf">Points For</option>
-          <option value="ppg">PPG</option>
-          <option value="winpct">Win %</option>
-          <option value="pa">Points Against</option>
-        </select>
-      </div>
-    </div>
+    <div class="hist-hint">Pick a view below · tap any column header to sort</div>
   </div>
 
   <!-- Summary stat cards -->
@@ -2022,11 +2003,13 @@ function aggregateByPerson(rows){
   });
   return Object.values(by);
 }
+let atsSort={col:'winPct',dir:-1};
+function sortATS(col){ if(atsSort.col===col) atsSort.dir*=-1; else atsSort={col,dir:(col==='name'?1:-1)}; renderHistAllStandings(buildCrossSeasonStats()); }
 function renderHistAllStandings(rows){
   const el=document.getElementById('hist-sub-standings-all'); if(!el) return;
   const people=aggregateByPerson(rows).map(o=>{ const gp=o.wins+o.losses||1; return {...o, gp, winPct:o.wins/gp, ppg:o.pf/gp}; });
-  people.sort((a,b)=>b.winPct-a.winPct||b.wins-a.wins);
-  let h='<div class="table-wrap"><table class="std-table"><thead><tr><th>#</th><th>Manager</th><th>Szns</th><th>W–L</th><th>Win %</th><th>PF</th><th>PA</th><th>PPG</th><th>Titles</th></tr></thead><tbody>';
+  const _c=atsSort.col,_d=atsSort.dir; people.sort((a,b)=>{ if(_c==='name') return a.name.localeCompare(b.name)*_d; return (a[_c]-b[_c])*_d; });
+  let h='<div class="table-wrap"><table class="std-table"><thead><tr><th>#</th><th class="sort-th" onclick="sortATS(\'name\')">Manager</th><th class="sort-th" onclick="sortATS(\'seasons\')">Szns</th><th class="sort-th" onclick="sortATS(\'wins\')">W–L</th><th class="sort-th" onclick="sortATS(\'winPct\')">Win %</th><th class="sort-th" onclick="sortATS(\'pf\')">PF</th><th class="sort-th" onclick="sortATS(\'pa\')">PA</th><th class="sort-th" onclick="sortATS(\'ppg\')">PPG</th><th class="sort-th" onclick="sortATS(\'champs\')">Titles</th></tr></thead><tbody>';
   people.forEach((o,i)=>{
     h+=`<tr><td>${i+1}</td><td style="font-weight:600">${nameLink(o.name)}</td><td>${o.seasons}</td><td>${o.wins}–${o.losses}</td><td style="color:var(--gold)">${(o.winPct*100).toFixed(1)}%</td><td>${o.pf.toFixed(0)}</td><td>${o.pa.toFixed(0)}</td><td>${o.ppg.toFixed(1)}</td><td>${o.champs?(o.champs+' 🏆'):'—'}</td></tr>`;
   });
