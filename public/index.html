@@ -803,7 +803,7 @@ function switchTab(e, name) {
   e.target.classList.add('active');
 }
 
-function tName(t) {
+function mgr(t){ return (t&&t.managerNick)||tName(t); } function tName(t) {
   return t.name || ((t.location||'') + ' ' + (t.nickname||'')).trim() || ('Team ' + t.id);
 }
 function oName(t) {
@@ -907,7 +907,7 @@ function renderStandings() {
 
     h += `<tr>
       <td class="rank-n${rank<=3?' top':''}">${rank}</td>
-      <td><div class="tm-name">${tName(t)}</div><div class="tm-owner">${oName(t)}</div></td>
+      <td><div class="tm-name">${mgr(t)}</div><div class="tm-owner">${tName(t)}</div></td>
       <td><span class="rec">${w}–${l}</span></td>
       <td><span class="pf">${pf}</span></td>
       <td><span class="pa">${pa}</span></td>
@@ -1094,7 +1094,7 @@ const byW = [...teams].sort((a,b)=>((b.record?.overall?.wins??0)-(a.record?.over
 const byL = [...teams].sort((a,b)=>((b.record?.overall?.losses??0)-(a.record?.overall?.losses??0)));
 const byPA = [...teams].sort((a,b)=>(b.record?.overall?.pointsAgainst??0)-(a.record?.overall?.pointsAgainst??0));
 
-const N = t => t ? tName(t) : '—';
+const N = t => t ? mgr(t) : '—';
 
   const awards = [
     {emoji:'👑',color:'gold',   title:'The Juggernaut',        winner:N(byW[0]),     desc:`${byW[0]?.record?.overall?.wins??0}–${byW[0]?.record?.overall?.losses??0} record. Running the league.`},
@@ -1254,7 +1254,7 @@ const pf = t.points??0, pa = paMap[t.id] || t.pointsAgainst || 0;
         season: s.season,
         teamId: t.id,
         teamName: tName(t),
-        owner: oName(t),
+        owner: mgr(t),
         wins: w, losses: l, gp,
         pf: pf, pa: pa,
         ppg: pf/gp,
