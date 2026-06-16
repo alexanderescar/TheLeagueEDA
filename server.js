@@ -109,7 +109,7 @@ function getInaugural2010(){ try{ const p=path.join(__dirname,'season_2010.json'
                   fix: 'Visit /admin/scrape?key=YOUR_SCRAPE_KEY to trigger a scrape',
                   hasFile: fs.existsSync(DATA_FILE), hasTurso: !!(TURSO_URL && TURSO_TOKEN), hasCookies: !!(ESPN_S2 && SWID),
           });
-          res.json(withInaugural(data));
+          res.json(annotateManagers(withInaugural(data)));
     } catch (err) {
           console.error('[API]', err);
           res.status(500).json({ error: err.message });
@@ -177,7 +177,7 @@ app.get('/admin/scrape', async (req, res) => {
 
 if (!fs.existsSync(DATA_FILE) && ESPN_S2 && SWID && !TURSO_URL) { console.log('[Boot] No data file - running background scrape'); Promise.resolve().then(() => require('./scrape').runScrape(console.log)).catch(e => console.error('[Boot] scrape failed', e.message)); } app.get('/health', (req, res) => res.json({ ok: true }));
 
-app.listen(PORT, () => {
+let _mgrs=null; function loadManagers(){ if(_mgrs) return _mgrs; try{ _mgrs=JSON.parse(fs.readFileSync(path.join(__dirname,'managers.json'),'utf8')); }catch(e){ _mgrs={}; } return _mgrs; } function annotateManagers(d){ if(!d||!Array.isArray(d.seasons)) return d; const M=loadManagers(); d.seasons.forEach(s=>{ (s.teams||[]).forEach(t=>{ const g=t.owners&&t.owners[0]; const info=(typeof g==='string')?M[g]:null; if(info){ t.managerKey=info.key; t.managerNick=info.nick; t.managerName=info.name; } else { t.managerKey='t:'+(t.name||t.id); t.managerNick=t.name||('Team '+t.id); t.managerName=t.managerNick; } }); }); return d; } app.listen(PORT, () => {
     console.log(`The League on :${PORT} · League ${LEAGUE_ID}`);
     console.log(`Sources: file=${fs.existsSync(DATA_FILE)} turso=${!!(TURSO_URL&&TURSO_TOKEN)} cookies=${!!(ESPN_S2&&SWID)}`);
     if (!ESPN_S2 || !SWID) console.warn('⚠️  No ESPN cookies set — visit /admin/scrape after adding ESPN_S2 + SWID to Railway vars');
