@@ -952,7 +952,7 @@ function renderPower() {
     h += `<div class="pr-item">
       <div class="pr-num ${rc}">${r}</div>
       <div class="pr-info">
-        <div class="pr-name">${tName(x.t)}</div>
+        <div class="pr-name">${mgr(x.t)}</div><div style="font-size:11px;color:var(--muted);margin-top:-2px">${tName(x.t)}</div>
         <div class="pr-sub">${oName(x.t)} · ${x.w}–${x.l} · ${x.ppg.toFixed(1)} PPG</div>
       </div>
       <div class="pr-bar-wrap"><div class="pr-bar" style="width:${bar}%"></div></div>
