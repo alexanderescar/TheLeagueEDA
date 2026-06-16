@@ -1,18 +1,87 @@
 {
-  "{381C82D0-A164-4429-B779-820BBFA44703}": { "key": "alex",   "name": "Alex Escar",        "nick": "Alex" },
-  "{4A78C57A-10D3-4630-B601-75441077D0C2}": { "key": "nick",   "name": "Nicolas Falquez",    "nick": "Nick" },
-  "{2377E62B-E494-44EB-AF9C-6A4F5194BF3C}": { "key": "peter",  "name": "Pietro Rocchetti",   "nick": "Peter" },
-  "{F624984C-C468-4294-AB40-5687F4115596}": { "key": "albert", "name": "Albert Markovich",   "nick": "Albert" },
-  "{BCF12082-88DC-4836-A4A3-2EE0C55018D3}": { "key": "jp",     "name": "Juan Pablo Casas",   "nick": "JP" },
-  "{06FF6BF9-4945-47F9-BF6B-F9494507F992}": { "key": "jp",     "name": "Juan Pablo Casas",   "nick": "JP" },
-  "{32859989-FD2D-4134-9E15-4285343ADF0C}": { "key": "andy",   "name": "Andy Chavarriaga",   "nick": "Andy" },
-  "{E0FA9694-D622-49AC-B412-5C8A5B1BA8B8}": { "key": "diego",  "name": "Diego Lucio",        "nick": "Diego" },
-  "{1290495F-B527-4AA7-BC8C-32F3A987336E}": { "key": "manny",  "name": "Manny Sin",          "nick": "Manny" },
-  "{F6B96CE8-27B0-4843-BF26-CEE8CAE33151}": { "key": "manny",  "name": "Manny Sin",          "nick": "Manny" },
-  "{C6867298-1894-4194-AA82-AB44EB4A496A}": { "key": "angel",  "name": "Angel Garriga",      "nick": "Angel" },
-  "{3F92CE74-2D24-49B3-AA36-73D2EB89849A}": { "key": "rob",    "name": "Roberto Armengol",   "nick": "Rob" },
-  "{455FF353-4A8C-4F10-938B-E593192196F1}": { "key": "rob",    "name": "Roberto Armengol",   "nick": "Rob" },
-  "{A8910F88-72EC-4207-989F-648EE51615B8}": { "key": "jaime",  "name": "Jaime Pelaez",       "nick": "Jaime" },
-  "{F133BEB4-0D6E-4665-AED4-1826ECE4D752}": { "key": "gabe",   "name": "Gabriel Roffe",      "nick": "Gabe" },
-  "{9434B477-5357-4296-9107-F6D2BFC796DF}": { "key": "peddie", "name": "Pedro Ugas",         "nick": "Peddie" }
+  "{381C82D0-A164-4429-B779-820BBFA44703}": {
+    "key": "alex",
+    "name": "Alex Escar",
+    "nick": "Alex"
+  },
+  "{4A78C57A-10D3-4630-B601-75441077D0C2}": {
+    "key": "nick",
+    "name": "Nicolas Falquez",
+    "nick": "Nick"
+  },
+  "{2377E62B-E494-44EB-AF9C-6A4F5194BF3C}": {
+    "key": "peter",
+    "name": "Pietro Rocchetti",
+    "nick": "Peter"
+  },
+  "{F624984C-C468-4294-AB40-5687F4115596}": {
+    "key": "albert",
+    "name": "Albert Markovich",
+    "nick": "Albert"
+  },
+  "{BCF12082-88DC-4836-A4A3-2EE0C55018D3}": {
+    "key": "jp",
+    "name": "Juan Pablo Casas",
+    "nick": "JP"
+  },
+  "{06FF6BF9-4945-47F9-BF6B-F9494507F992}": {
+    "key": "jp",
+    "name": "Juan Pablo Casas",
+    "nick": "JP"
+  },
+  "{32859989-FD2D-4134-9E15-4285343ADF0C}": {
+    "key": "andy",
+    "name": "Andy Chavarriaga",
+    "nick": "Andy"
+  },
+  "{E0FA9694-D622-49AC-B412-5C8A5B1BA8B8}": {
+    "key": "diego",
+    "name": "Diego Lucio",
+    "nick": "Diego"
+  },
+  "{1290495F-B527-4AA7-BC8C-32F3A987336E}": {
+    "key": "manny",
+    "name": "Manny Sin",
+    "nick": "Manny"
+  },
+  "{F6B96CE8-27B0-4843-BF26-CEE8CAE33151}": {
+    "key": "manny",
+    "name": "Manny Sin",
+    "nick": "Manny"
+  },
+  "{C6867298-1894-4194-AA82-AB44EB4A496A}": {
+    "key": "angel",
+    "name": "Angel Garriga",
+    "nick": "Angel"
+  },
+  "{3F92CE74-2D24-49B3-AA36-73D2EB89849A}": {
+    "key": "rob",
+    "name": "Roberto Armengol",
+    "nick": "Rob"
+  },
+  "{455FF353-4A8C-4F10-938B-E593192196F1}": {
+    "key": "rob",
+    "name": "Roberto Armengol",
+    "nick": "Rob"
+  },
+  "{A8910F88-72EC-4207-989F-648EE51615B8}": {
+    "key": "jaime",
+    "name": "Jaime Pelaez",
+    "nick": "Jaime"
+  },
+  "{F133BEB4-0D6E-4665-AED4-1826ECE4D752}": {
+    "key": "gabe",
+    "name": "Gabriel Roffe",
+    "nick": "Gabe"
+  },
+  "{9434B477-5357-4296-9107-F6D2BFC796DF}": {
+    "key": "peddie",
+    "name": "Pedro Ugas",
+    "nick": "Peddie"
+  },
+  "yahoo:viscon": {
+    "key": "viscon",
+    "name": "Viscon",
+    "nick": "Viscon"
+  }
 }
