@@ -172,7 +172,7 @@ nav button.active { color: var(--gold); border-bottom-color: var(--gold); }
 
 /* History tab gets a special badge */
 nav button.history-tab::after {
-  content: 'FEATURED';
+  content: none;
   position: absolute;
   top: 8px; right: 4px;
   font-size: 7px;
@@ -749,6 +749,35 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
 .sort-th{cursor:pointer;user-select:none}
 .sort-th:hover{color:var(--gold)}
 .hist-hint{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* ===== Mobile optimization ===== */
+@media (max-width:720px){
+  main{padding:12px}
+  .tab-content .card{overflow-x:auto}
+  .hist-sub{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .std-table{font-size:11px;min-width:100%}
+  .std-table th,.std-table td{padding:6px 5px;white-space:nowrap}
+  .card-header{flex-wrap:wrap;gap:4px}
+  .card-title{font-size:15px}
+  .card-sub{font-size:11px}
+  .prof-name{font-size:30px}
+  .prof-stats{grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px 14px}
+  .pstat{padding:8px 4px}
+  .pstat-v{font-size:16px}
+  .pstat-l{font-size:9px}
+  .mgr-grid{grid-template-columns:1fr 1fr;gap:8px;padding:12px}
+  .leaders-grid,.awards-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .rings-row{gap:6px;padding:12px 12px 2px}
+  .ring-chip{font-size:11px;padding:4px 9px}
+  .wk-awards-grid{grid-template-columns:1fr 1fr}
+  .hist-tabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+  .hist-tab-btn{white-space:nowrap}
+  .h2h-table{font-size:11px}
+  .h2h-table th,.h2h-table td{padding:4px 5px}
+  .h2h-list{grid-template-columns:1fr 1fr}
+  .history-hero h2{font-size:20px}
+  .draft-yr{font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -2133,7 +2162,7 @@ function openProfile(nick){
 function backToManagers(){ renderManagers(); window.scrollTo({top:0,behavior:'smooth'}); }
 function renderProfile(nick){
   const el=document.getElementById('tab-managers'); if(!el) return;
-  const tot={w:0,l:0,t:0,pf:0,pa:0,seasons:0,champs:0,bestWk:0,bestFin:99,playoffs:0};
+  const tot={w:0,l:0,t:0,pf:0,pa:0,seasons:0,champs:0,bestWk:0,bestFin:99,playoffs:0,finalsApps:0,runnerUps:0};
   const seasonRows=[]; const h2h={}; const draftByYear={}; const titleYears=[];
   allSeasons.forEach(s=>{
     const myTeam=s.teams.find(t=>mgr(t)===nick); if(!myTeam) return;
@@ -2146,6 +2175,8 @@ function renderProfile(nick){
     if(champ){tot.champs++; titleYears.push(s.season);}
     if(fin&&fin<tot.bestFin)tot.bestFin=fin;
     if(fin&&fin<=6)tot.playoffs++;
+    if(fin===1||fin===2)tot.finalsApps++;
+    if(fin===2)tot.runnerUps++;
     seasonRows.push({year:s.season,team:tName(myTeam),w,l,ti,fin,pf,pa,champ});
     const map=getTeamsMapFor(s);
     (s.schedule||[]).forEach(m=>{
@@ -2179,6 +2210,8 @@ function renderProfile(nick){
       <div class="pstat"><div class="pstat-l">Career Record</div><div class="pstat-v">${tot.w}–${tot.l}${tot.t?('–'+tot.t):''}</div></div>
       <div class="pstat"><div class="pstat-l">Win %</div><div class="pstat-v">${(tot.w/gp*100).toFixed(1)}%</div></div>
       <div class="pstat"><div class="pstat-l">Titles</div><div class="pstat-v">${tot.champs} 🏆</div></div>
+      <div class="pstat"><div class="pstat-l">Finals Apps</div><div class="pstat-v">${tot.finalsApps}</div></div>
+      <div class="pstat"><div class="pstat-l">Finals Record</div><div class="pstat-v">${tot.champs}–${tot.runnerUps}</div></div>
       <div class="pstat"><div class="pstat-l">Best Finish</div><div class="pstat-v">${tot.bestFin<99?ord(tot.bestFin):'—'}</div></div>
       <div class="pstat"><div class="pstat-l">Playoff Apps</div><div class="pstat-v">${tot.playoffs}</div></div>
       <div class="pstat"><div class="pstat-l">Total PF</div><div class="pstat-v">${tot.pf.toFixed(0)}</div></div>
