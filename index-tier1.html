@@ -1,0 +1,2589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The League</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --field: #090f0b;
+  --turf: #0d1a11;
+  --line: #162a1d;
+  --chalk: #e8f4ec;
+  --chalk-dim: #a8c4b0;
+  --gold: #f0c040;
+  --gold-dim: rgba(240,192,64,0.15);
+  --red: #e05555;
+  --green: #3dbb6a;
+  --muted: #456055;
+  --card: #0f1c14;
+  --border: #1b3324;
+  --border-bright: #2a4d38;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--field);
+  color: var(--chalk);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* Subtle yard-line texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent, transparent 79px,
+    rgba(255,255,255,0.025) 79px, rgba(255,255,255,0.025) 80px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+#app { position: relative; z-index: 1; }
+
+/* ─── HEADER ─── */
+header {
+  padding: 0 32px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(9,15,11,0.97);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  height: 64px;
+  gap: 0;
+}
+
+.header-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.header-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.season-select {
+  background: var(--line);
+  border: 1px solid var(--border-bright);
+  color: var(--chalk);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+}
+
+.season-select:focus { border-color: var(--gold); }
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--line);
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+.dot.live { background: var(--green); box-shadow: 0 0 5px var(--green); animation: pulse 2s infinite; }
+.dot.err  { background: var(--red); }
+
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* ─── NAV ─── */
+nav {
+  display: flex;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--turf);
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: 0;
+}
+nav::-webkit-scrollbar { display: none; }
+
+nav button {
+  background: none; border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.8px;
+  padding: 13px 22px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-transform: uppercase;
+  transition: color 0.15s, border-color 0.15s;
+  position: relative;
+}
+nav button:hover { color: var(--chalk-dim); }
+nav button.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* History tab gets a special badge */
+nav button.history-tab::after {
+  content: none;
+  position: absolute;
+  top: 8px; right: 4px;
+  font-size: 7px;
+  background: var(--gold);
+  color: var(--field);
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+/* ─── MAIN ─── */
+main {
+  padding: 28px 32px;
+  max-width: 1120px;
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeUp 0.2s ease; }
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.card-header {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+
+.card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 17px; letter-spacing: 1px;
+  color: var(--gold);
+}
+
+.card-sub {
+  font-size: 11px; color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ─── STANDINGS ─── */
+.std-table { width: 100%; border-collapse: collapse; }
+.std-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 9px 16px; text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.std-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid rgba(27,51,36,0.6);
+  vertical-align: middle;
+}
+.std-table tr:last-child td { border-bottom: none; }
+.std-table tr:hover td { background: rgba(255,255,255,0.018); }
+
+.rank-n { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--muted); width:36px; }
+.rank-n.top { color: var(--gold); }
+.tm-name { font-weight:600; font-size:14px; }
+.tm-owner { font-size:11px; color:var(--muted); margin-top:1px; }
+.rec { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; }
+.pf  { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--green); }
+.pa  { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); }
+
+.streak {
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600;
+  padding:3px 7px; border-radius:4px;
+}
+.streak-w { background:rgba(61,187,106,0.15); color:var(--green); }
+.streak-l { background:rgba(224,85,85,0.15); color:var(--red); }
+
+/* ─── POWER RANKINGS ─── */
+.pr-item {
+  display:flex; align-items:center; gap:14px;
+  padding:13px 18px;
+  border-bottom:1px solid rgba(27,51,36,0.5);
+  transition:background 0.1s;
+}
+.pr-item:last-child { border-bottom:none; }
+.pr-item:hover { background:rgba(255,255,255,0.018); }
+
+.pr-num {
+  font-family:'Bebas Neue',sans-serif; font-size:26px;
+  width:34px; text-align:center; color:var(--muted); flex-shrink:0;
+}
+.pr-num.r1 { color:var(--gold); }
+.pr-num.r2 { color:#b0b0b8; }
+.pr-num.r3 { color:#b07840; }
+
+.pr-info { flex:1; min-width:0; }
+.pr-name { font-weight:600; font-size:14px; }
+.pr-sub  { font-size:11px; color:var(--muted); margin-top:1px; }
+
+.pr-bar-wrap { flex:1; height:5px; background:var(--border); border-radius:3px; overflow:hidden; max-width:130px; }
+.pr-bar { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--green),var(--gold)); transition:width 1s ease; }
+.pr-score { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; color:var(--gold); width:48px; text-align:right; flex-shrink:0; }
+
+/* ─── H2H ─── */
+.h2h-wrap { overflow-x:auto; }
+.h2h-tbl { border-collapse:collapse; font-size:12px; }
+.h2h-tbl th, .h2h-tbl td {
+  padding:8px 10px; text-align:center;
+  border:1px solid var(--border); white-space:nowrap;
+}
+.h2h-tbl th { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); background:var(--turf); }
+.h2h-tbl .rl { text-align:left; font-weight:600; background:var(--turf); font-size:12px; padding-right:14px; }
+.h2h-win  { background:rgba(61,187,106,0.18); color:var(--green); font-weight:600; font-family:'JetBrains Mono',monospace; }
+.h2h-loss { background:rgba(224,85,85,0.12); color:var(--red); font-family:'JetBrains Mono',monospace; }
+.h2h-self { background:var(--line); color:var(--muted); }
+.h2h-none { color:var(--border-bright); font-family:'JetBrains Mono',monospace; }
+
+/* ─── SCORES ─── */
+.wk-header {
+  padding:9px 18px;
+  background:var(--turf);
+  border-bottom:1px solid var(--border);
+  font-family:'Bebas Neue',sans-serif;
+  font-size:15px; letter-spacing:1px; color:var(--chalk-dim);
+}
+.mu-row {
+  display:flex; align-items:center; gap:8px;
+  padding:10px 18px;
+  border-bottom:1px solid rgba(27,51,36,0.4);
+  transition:background 0.1s;
+}
+.mu-row:hover { background:rgba(255,255,255,0.018); }
+.mu-team { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; }
+.mu-team.w { font-weight:600; }
+.mu-team.l { opacity:0.55; }
+.mu-team.r { text-align:right; }
+.mu-score { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; min-width:54px; text-align:right; flex-shrink:0; }
+.mu-score.w { color:var(--green); }
+.mu-score.l { color:var(--red); }
+.mu-vs { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); flex-shrink:0; }
+
+/* ─── AWARDS ─── */
+.awards-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
+  gap:14px; padding:16px;
+}
+.aw-card {
+  background:var(--turf);
+  border:1px solid var(--border);
+  border-radius:8px; padding:15px;
+  position:relative; overflow:hidden;
+  transition:transform 0.15s, border-color 0.15s;
+}
+.aw-card:hover { transform:translateY(-2px); border-color:var(--border-bright); }
+.aw-card::before { content:''; position:absolute; top:0;left:0;right:0; height:3px; }
+.aw-card.gold::before   { background:var(--gold); }
+.aw-card.green::before  { background:var(--green); }
+.aw-card.red::before    { background:var(--red); }
+.aw-card.silver::before { background:#808090; }
+.aw-card.blue::before   { background:#4888e0; }
+.aw-card.orange::before { background:#d07830; }
+.aw-card.purple::before { background:#8858c8; }
+
+.aw-emoji  { font-size:26px; margin-bottom:8px; }
+.aw-title  { font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:0.5px; color:var(--chalk); margin-bottom:3px; }
+.aw-winner { font-weight:600; font-size:13px; color:var(--gold); margin-bottom:5px; }
+.aw-desc   { font-size:11px; color:var(--muted); line-height:1.5; }
+
+/* ═══════════════════════════════════════
+   HISTORY — HERO FEATURE
+═══════════════════════════════════════ */
+
+.history-hero {
+  background: linear-gradient(135deg, #0d1f14 0%, #111f16 50%, #0a180f 100%);
+  border: 1px solid var(--border-bright);
+  border-radius: 10px;
+  padding: 24px 24px 20px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.history-hero::before {
+  content: 'HISTORICAL STATS';
+  position: absolute;
+  top: 16px; right: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--muted);
+}
+
+.history-hero h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.history-hero p {
+  font-size: 13px; color: var(--muted);
+  margin-bottom: 18px;
+}
+
+/* Controls row */
+.hist-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ctrl-group { display:flex; flex-direction:column; gap:4px; }
+.ctrl-label {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px; letter-spacing:1px;
+  color:var(--muted); text-transform:uppercase;
+}
+
+select.hist-sel, select.hist-multi {
+  background: var(--field);
+  border: 1px solid var(--border-bright);
+  color: var(--chalk);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer; outline: none;
+  min-width: 140px;
+}
+select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
+
+.ctrl-btn {
+  background: var(--gold-dim);
+  border: 1px solid rgba(240,192,64,0.3);
+  color: var(--gold);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  align-self: flex-end;
+  transition: background 0.15s;
+}
+.ctrl-btn:hover { background: rgba(240,192,64,0.25); }
+
+/* Season summary cards */
+.season-summary-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sscard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.sscard-label {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px; letter-spacing:1px;
+  color:var(--muted); text-transform:uppercase;
+  margin-bottom:6px;
+}
+.sscard-val {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px; color:var(--gold);
+  line-height:1;
+}
+.sscard-sub { font-size:11px; color:var(--muted); margin-top:3px; }
+
+/* History table */
+.hist-table-wrap { overflow-x:auto; }
+.hist-table {
+  width:100%; border-collapse:collapse;
+  font-size:13px;
+}
+.hist-table th {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px; color:var(--muted);
+  text-transform:uppercase; letter-spacing:0.5px;
+  padding:9px 14px; text-align:left;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+  cursor:pointer;
+  user-select:none;
+  transition:color 0.15s;
+}
+.hist-table th:hover { color:var(--chalk); }
+.hist-table th.sort-asc::after  { content:' ▲'; color:var(--gold); font-size:9px; }
+.hist-table th.sort-desc::after { content:' ▼'; color:var(--gold); font-size:9px; }
+
+.hist-table td {
+  padding:11px 14px;
+  border-bottom:1px solid rgba(27,51,36,0.5);
+  vertical-align:middle;
+  white-space:nowrap;
+}
+.hist-table tr:last-child td { border-bottom:none; }
+.hist-table tr:hover td { background:rgba(255,255,255,0.018); }
+
+.hist-table td.num { font-family:'JetBrains Mono',monospace; }
+.hist-table td.green-val { color:var(--green); font-family:'JetBrains Mono',monospace; font-weight:600; }
+.hist-table td.red-val   { color:var(--red); font-family:'JetBrains Mono',monospace; }
+.hist-table td.gold-val  { color:var(--gold); font-family:'JetBrains Mono',monospace; font-weight:600; }
+
+.season-badge {
+  display:inline-block;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px; font-weight:600;
+  padding:2px 7px; border-radius:4px;
+  background:var(--gold-dim);
+  color:var(--gold);
+  border:1px solid rgba(240,192,64,0.2);
+}
+
+.champ-crown { color:var(--gold); margin-right:4px; }
+
+/* Matchup browser */
+.mu-browser-controls {
+  display:flex; gap:10px; flex-wrap:wrap;
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  background:var(--turf);
+  align-items:flex-end;
+}
+
+/* All-time leaders */
+.leaders-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:12px; padding:16px;
+}
+.leader-card {
+  background:var(--turf);
+  border:1px solid var(--border);
+  border-radius:8px; padding:14px;
+}
+.leader-cat {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px; letter-spacing:1px;
+  color:var(--muted); text-transform:uppercase;
+  margin-bottom:8px;
+}
+.leader-name { font-weight:700; font-size:14px; color:var(--chalk); margin-bottom:2px; }
+.leader-val {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:26px; color:var(--gold); line-height:1;
+}
+.leader-detail { font-size:11px; color:var(--muted); margin-top:3px; }
+
+/* History sub-tabs */
+.hist-tabs {
+  display:flex; gap:0;
+  border-bottom:1px solid var(--border);
+  padding:0 18px;
+  background:var(--turf);
+  overflow-x:auto;
+}
+.hist-tab-btn {
+  background:none; border:none;
+  border-bottom:2px solid transparent;
+  color:var(--muted);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px; font-weight:600;
+  padding:10px 16px; cursor:pointer;
+  white-space:nowrap;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  transition:color 0.15s, border-color 0.15s;
+}
+.hist-tab-btn:hover { color:var(--chalk-dim); }
+.hist-tab-btn.active { color:var(--gold); border-bottom-color:var(--gold); }
+
+.hist-sub { display:none; }
+.hist-sub.active { display:block; animation:fadeUp 0.2s ease; }
+
+/* ─── EMPTY / ERROR ─── */
+.empty-msg {
+  padding:48px; text-align:center; color:var(--muted);
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+}
+.empty-msg .eicon { font-size:38px; }
+.empty-msg h3 { font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--red); }
+.empty-msg p { font-size:13px; line-height:1.7; max-width:480px; }
+.empty-msg code {
+  font-family:'JetBrains Mono',monospace;
+  background:var(--line); padding:2px 6px;
+  border-radius:3px; font-size:12px;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width:720px) {
+  main { padding:16px; }
+  header { padding:0 16px; height:56px; }
+  .header-title { font-size:24px; }
+  nav { padding:0 16px; }
+  .history-hero { padding:16px; }
+  .history-hero h2 { font-size:22px; }
+}
+
+/* ─── DRAFT ─── */
+.draft-controls {
+  display:flex; gap:10px; flex-wrap:wrap;
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  background:var(--turf);
+  align-items:flex-end;
+}
+
+.pick-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
+  gap:12px;
+  padding:16px;
+}
+
+.pick-card {
+  background:var(--turf);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:12px 14px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  transition:border-color 0.15s;
+}
+.pick-card:hover { border-color:var(--border-bright); }
+
+.pick-num {
+  font-family:"Bebas Neue",sans-serif;
+  font-size:22px;
+  color:var(--muted);
+  min-width:36px;
+  line-height:1;
+}
+.pick-num.early { color:var(--gold); }
+.pick-num.mid   { color:var(--chalk-dim); }
+
+.pick-info { flex:1; min-width:0; }
+.pick-player { font-weight:600; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pick-team   { font-size:11px; color:var(--muted); margin-top:2px; }
+.pick-owner  { font-size:11px; color:var(--gold); margin-top:3px; font-weight:600; }
+
+.round-divider {
+  padding:8px 18px;
+  background:var(--turf);
+  border-bottom:1px solid var(--border);
+  font-family:"Bebas Neue",sans-serif;
+  font-size:14px; letter-spacing:1px;
+  color:var(--muted);
+}
+
+.draft-board-wrap { overflow-x:auto; padding:0; }
+.draft-board {
+  border-collapse:collapse;
+  font-size:12px;
+  min-width:600px;
+}
+.draft-board th {
+  font-family:"JetBrains Mono",monospace;
+  font-size:10px; color:var(--muted);
+  text-transform:uppercase; letter-spacing:0.5px;
+  padding:8px 12px;
+  background:var(--turf);
+  border:1px solid var(--border);
+  white-space:nowrap;
+}
+.draft-board td {
+  padding:8px 12px;
+  border:1px solid rgba(27,51,36,0.5);
+  vertical-align:top;
+  min-width:120px;
+  max-width:160px;
+}
+.draft-board td:first-child {
+  background:var(--turf);
+  font-family:"Bebas Neue",sans-serif;
+  font-size:16px; color:var(--muted);
+  text-align:center;
+  min-width:50px;
+}
+.draft-board td .db-player { font-weight:600; font-size:12px; }
+.draft-board td .db-pos    { font-size:10px; color:var(--muted); }
+.draft-board td .db-team   { font-size:10px; color:var(--muted); }
+
+.pos-qb  { color:#e88030; }
+.pos-rb  { color:var(--green); }
+.pos-wr  { color:#4888e0; }
+.pos-te  { color:#a060d0; }
+.pos-k   { color:var(--muted); }
+.pos-dst { color:#d04040; }
+.pos-def { color:#d04040; }
+/* ===== This Season / History restructure ===== */
+#season-picker{display:none!important}
+.nav-group{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--gold);padding:4px 11px;margin:0 8px 0 0;white-space:nowrap;align-self:center;font-weight:800;background:var(--gold-dim);border:1px solid rgba(240,192,64,.4);border-radius:7px}
+.nav-sep{width:1px;height:26px;background:var(--border-bright);margin:0 14px;align-self:center;flex:0 0 auto}
+.rings-row{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px 4px}
+.ring-chip{background:var(--card);border:1px solid var(--border-bright);border-radius:20px;padding:5px 12px;font-size:13px}
+.ring-count{color:var(--gold);font-weight:700}
+.champ-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:16px}
+.champ-card{background:var(--card);border:1px solid var(--border-bright);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:.15s}
+.champ-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.champ-year{font-size:13px;color:var(--muted);font-weight:700}
+.champ-trophy{font-size:28px;margin:4px 0}
+.champ-name{font-weight:700;color:var(--gold)}
+.champ-team{font-size:12px;color:var(--muted)}
+.champ-cta{font-size:11px;color:var(--muted);margin-top:8px}
+.champ-detail{padding:8px 16px 20px}
+.champ-detail-title{font-weight:700;color:var(--gold);margin:8px 0}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.h2h-table{border-collapse:collapse;font-size:12px}
+.h2h-table th,.h2h-table td{border:1px solid var(--border);padding:5px 8px;text-align:center;white-space:nowrap}
+.h2h-table .rl{text-align:left;font-weight:600;position:sticky;left:0;background:var(--field);z-index:1}
+.h2h-win{color:var(--green);font-weight:600}
+.h2h-loss{color:var(--red)}
+.h2h-self{color:var(--border-bright)}
+.h2h-note{font-size:11px;color:var(--muted);padding:10px 4px}
+.wk-awards{padding:10px 16px;border-top:1px solid var(--border)}
+.wk-awards-h{font-weight:700;color:var(--gold);font-size:13px;margin-bottom:6px}
+.wk-awards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.wka{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.wka-l{font-size:11px;color:var(--muted)}
+.wka-w{font-weight:700}
+.wka-d{font-size:11px;color:var(--muted)}
+@media (max-width:720px){
+  nav{gap:2px}
+  nav button{font-size:13px;padding:0 8px}
+  .nav-group{font-size:9px;padding:3px 7px;letter-spacing:.5px}
+  .nav-sep{display:none}
+  .std-table{font-size:12px}
+  .std-table th,.std-table td{padding:7px 6px}
+  .champ-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+  .leaders-grid,.awards-grid{grid-template-columns:1fr 1fr!important}
+}
+
+/* ===== Manager profiles ===== */
+.mgr-link{cursor:pointer;border-bottom:1px dotted var(--border-bright)}
+.mgr-link:hover{color:var(--gold);border-bottom-color:var(--gold)}
+.mgr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:16px}
+.mgr-card{background:var(--card);border:1px solid var(--border-bright);border-radius:12px;padding:16px;cursor:pointer;transition:.15s}
+.mgr-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.mgr-card-name{font-weight:700;color:var(--gold);font-size:17px}
+.mgr-card-stat{font-size:13px;margin-top:4px}
+.mgr-card-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.prof-back{cursor:pointer;color:var(--muted);padding:14px 16px 0;font-size:13px}
+.prof-back:hover{color:var(--gold)}
+.prof-hero{padding:12px 16px 16px;text-align:center}
+.prof-name{font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--gold);line-height:1}
+.prof-rings{margin-top:6px;font-size:14px}
+.prof-span{color:var(--muted);font-size:13px;margin-top:2px}
+.prof-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;padding:0 16px 18px}
+.pstat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+.pstat-l{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.pstat-v{font-size:20px;font-weight:700;color:var(--gold);margin-top:3px}
+.h2h-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;padding:14px 16px}
+.h2h-item{display:flex;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 11px;font-size:13px}
+.h2h-opp{font-weight:600}
+.draft-list{padding:8px 16px 16px}
+.draft-yr{display:flex;gap:12px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+.draft-yr-l{color:var(--gold);font-weight:700;min-width:44px}
+@media (max-width:720px){
+  .prof-name{font-size:34px}
+  .mgr-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+  .h2h-list{grid-template-columns:1fr 1fr}
+}
+
+.sort-th{cursor:pointer;user-select:none}
+.sort-th:hover{color:var(--gold)}
+.hist-hint{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* ===== Mobile optimization ===== */
+@media (max-width:720px){
+  main{padding:12px}
+  .tab-content .card{overflow-x:auto}
+  .hist-sub{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .std-table{font-size:11px;min-width:100%}
+  .std-table th,.std-table td{padding:6px 5px;white-space:nowrap}
+  .card-header{flex-wrap:wrap;gap:4px}
+  .card-title{font-size:15px}
+  .card-sub{font-size:11px}
+  .prof-name{font-size:30px}
+  .prof-stats{grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px 14px}
+  .pstat{padding:8px 4px}
+  .pstat-v{font-size:16px}
+  .pstat-l{font-size:9px}
+  .mgr-grid{grid-template-columns:1fr 1fr;gap:8px;padding:12px}
+  .leaders-grid,.awards-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .rings-row{gap:6px;padding:12px 12px 2px}
+  .ring-chip{font-size:11px;padding:4px 9px}
+  .wk-awards-grid{grid-template-columns:1fr 1fr}
+  .hist-tabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+  .hist-tab-btn{white-space:nowrap}
+  .h2h-table{font-size:11px}
+  .h2h-table th,.h2h-table td{padding:4px 5px}
+  .h2h-list{grid-template-columns:1fr 1fr}
+  .history-hero h2{font-size:20px}
+  .draft-yr{font-size:12px}
+}
+/* ===== All-Play / Luck / Rivalries / Recaps ===== */
+.ap-note{font-size:12px;color:var(--muted);padding:14px 16px 4px;line-height:1.6}
+.ap-note strong{color:var(--gold)}
+.lucky-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 16px 4px}
+.lucky-card{background:var(--card);border:1px solid var(--border-bright);border-radius:10px;padding:12px}
+.lucky-card.up{border-left:3px solid var(--green)}
+.lucky-card.down{border-left:3px solid var(--red)}
+.lucky-l{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.lucky-n{font-weight:700;color:var(--gold);font-size:16px;margin-top:2px}
+.lucky-v{font-size:18px;font-weight:700}
+.lucky-d{font-size:11px;color:var(--muted)}
+.luck-pos{color:var(--green);font-weight:700}
+.luck-neg{color:var(--red);font-weight:700}
+.riv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;padding:16px}
+.riv-card{background:var(--card);border:1px solid var(--border-bright);border-radius:10px;padding:12px}
+.riv-l{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.riv-n{font-weight:700;color:var(--gold);margin-top:3px;font-size:14px}
+.riv-v{font-size:17px;font-weight:700;margin-top:2px}
+.riv-d{font-size:11px;color:var(--muted);margin-top:1px}
+.recap{padding:14px 16px;border-top:1px solid var(--border)}
+.recap-h{font-weight:700;color:var(--gold);font-size:14px;display:flex;justify-content:space-between;align-items:baseline}
+.recap-avg{font-size:11px;color:var(--muted);font-weight:400}
+.recap-b{margin:7px 0 9px;line-height:1.7;font-size:14px}
+.recap-chips{display:flex;flex-wrap:wrap;gap:6px}
+.rchip{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:3px 10px;font-size:11px;color:var(--muted)}
+.rchip b{color:var(--chalk);font-weight:600}
+@media (max-width:720px){
+  .lucky-row{grid-template-columns:1fr}
+  .riv-grid{grid-template-columns:1fr 1fr;gap:8px;padding:12px}
+  .riv-n{font-size:13px}
+  .recap-b{font-size:13px}
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="header-brand">
+      <div class="header-title">The League</div>
+      <div class="header-sub">Brought to you by EDA</div>
+    </div>
+    <div class="header-right">
+      <select class="season-select" id="season-picker" onchange="onSeasonChange()">
+        <option value="all">All Seasons</option>
+      </select>
+      <div class="status-pill" id="status-pill">
+        <div class="spinner"></div>
+        <span id="status-text">Loading...</span>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <span class="nav-group">This Season</span>
+    <button class="active" onclick="switchTab(event,'standings')">Standings</button>
+    <button onclick="switchTab(event,'power')">Power Rankings</button>
+    <button onclick="switchTab(event,'scores')">Matchups</button>
+    <button onclick="switchTab(event,'awards')">Weekly Awards</button>
+    <button onclick="switchTab(event,'recaps')">Recaps</button>
+    <span class="nav-sep"></span>
+    <span class="nav-group">League History</span>
+    <button class="history-tab" onclick="switchTab(event,'history')">All-Time</button>
+    <button onclick="switchTab(event,'champions')">Champion's Alley</button>
+    <button onclick="switchTab(event,'managers')">Managers</button>
+    <button onclick="switchTab(event,'draft')">Draft History</button>
+  </nav>
+
+  <main>
+    <div id="tab-standings" class="tab-content active"></div>
+    <div id="tab-power"     class="tab-content"></div>
+    <div id="tab-scores"    class="tab-content"></div>
+    <div id="tab-awards"    class="tab-content"></div>
+    <div id="tab-recaps"    class="tab-content"></div>
+    <div id="tab-history"   class="tab-content"></div>
+    <div id="tab-champions" class="tab-content"></div>
+    <div id="tab-managers" class="tab-content"></div>
+    <div id="tab-draft"     class="tab-content"></div>
+  </main>
+
+</div>
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let allSeasons = [];       // [{season, teams, schedule, settings, ...}]
+let activeSeason = null;   // single season object or null = "all"
+let teamsMap = {};         // {teamId: team} for active season
+let sortCol = null, sortDir = 1;
+
+// ══════════════════════════════════════════════
+//  BOOTSTRAP
+// ══════════════════════════════════════════════
+async function loadData() {
+  try {
+    const res = await fetch('/api/league');
+    const json = await res.json();
+
+    if (!res.ok || json.error) {
+      throw new Error(json.error || `HTTP ${res.status}`);
+    }
+
+    allSeasons = json.seasons || [];
+    if (!allSeasons.length) throw new Error('No season data returned');
+
+    // Populate season picker
+    const picker = document.getElementById('season-picker');
+    allSeasons.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.season;
+      opt.textContent = `${s.season} Season`;
+      picker.appendChild(opt);
+    });
+
+    // Default to most recent season
+    activeSeason = allSeasons[0];
+    picker.value = activeSeason.season;
+    buildTeamsMap();
+
+    setStatus('live', `${allSeasons.length} season${allSeasons.length>1?'s':''} loaded`);
+    renderAll();
+
+  } catch (err) {
+    setStatus('err', 'Error');
+    const html = errorHTML(err.message);
+    ['standings','power','scores','awards','recaps','history','champions','managers','draft'].forEach(t => {
+      document.getElementById('tab-' + t).innerHTML = html;
+    });
+  }
+}
+
+function onSeasonChange() {
+  const val = document.getElementById('season-picker').value;
+  activeSeason = val === 'all' ? null : allSeasons.find(s => String(s.season) === val);
+  buildTeamsMap();
+  renderAll();
+}
+
+function buildTeamsMap() {
+  teamsMap = {};
+  const src = activeSeason || allSeasons[0];
+  if (src) src.teams.forEach(t => { teamsMap[t.id] = t; });
+}
+
+function renderAll() {
+  renderStandings();
+  renderPower();
+  renderScores();
+  renderAwards();
+  renderRecaps();
+  renderChampions();
+  renderManagers();
+  renderHistory();
+  renderDraft();
+}
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function setStatus(state, text) {
+  const pill = document.getElementById('status-pill');
+  const dotCls = state === 'live' ? 'live' : state === 'err' ? 'err' : '';
+  pill.innerHTML = `<div class="dot ${dotCls}"></div><span id="status-text">${text}</span>`;
+}
+
+function switchTab(e, name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  e.target.classList.add('active');
+}
+
+function mgr(t){ return (t&&t.managerNick)||tName(t); } function tName(t) {
+  return t.name || ((t.location||'') + ' ' + (t.nickname||'')).trim() || ('Team ' + t.id);
+}
+function oName(t) {
+  if (!t.owners||!t.owners.length) return '';
+  const o = t.owners[0];
+  return o.firstName ? (o.firstName + ' ' + (o.lastName||'')).trim() : '';
+}
+function errorHTML(msg) {
+  return `<div class="card"><div class="empty-msg">
+    <div class="eicon">⚠️</div>
+    <h3>Couldn't load data</h3>
+    <p>${msg}<br><br>
+    Check your Railway logs. If ESPN returns empty data, visit
+    <code>/api/debug/2025</code> on your Railway URL to see the raw response.<br><br>
+    For a private league, add <code>ESPN_S2</code> and <code>SWID</code> env vars in Railway.</p>
+  </div></div>`;
+}
+
+// Get the schedule for current view (single season or most recent)
+function getSchedule(season) {
+  const src = season || activeSeason || allSeasons[0];
+  return (src && src.schedule) ? src.schedule : [];
+}
+
+function getTeams(season) {
+  const src = season || activeSeason || allSeasons[0];
+  return (src && src.teams) ? src.teams : [];
+}
+
+function getTeamsMapFor(season) {
+  const map = {};
+  getTeams(season).forEach(t => { map[t.id] = t; });
+  return map;
+}
+
+// Returns completed matchups — handles seasons where ESPN omits the 'winner' field
+function getCompletedMatchups(src) {
+  if (!src) return [];
+  return (src.schedule || []).filter(m => {
+    const hs = m.home?.totalPoints ?? 0;
+    const as_ = m.away?.totalPoints ?? 0;
+    if (m.winner && m.winner !== 'UNDECIDED') return true;
+    return (hs > 0 || as_ > 0) && m.home?.teamId && m.away?.teamId;
+  });
+}
+
+// Infer winner from scores (handles ESPN active-season schedules without winner field)
+function inferWinner(m) {
+  if (m.winner && m.winner !== 'UNDECIDED') return m.winner;
+  const hs = m.home?.totalPoints ?? 0;
+  const as_ = m.away?.totalPoints ?? 0;
+  if (hs > as_) return 'HOME';
+  if (as_ > hs) return 'AWAY';
+  return null; // tie or in-progress
+}
+
+// ══════════════════════════════════════════════
+//  STANDINGS
+// ══════════════════════════════════════════════
+function renderStandings() {
+  const src = activeSeason || allSeasons[0];
+  if (!src) { document.getElementById('tab-standings').innerHTML = errorHTML('No data'); return; }
+
+  const teams = [...src.teams].sort((a,b) => {
+    const wa = a.record?.overall?.wins ?? 0, wb = b.record?.overall?.wins ?? 0;
+    if (wb !== wa) return wb - wa;
+    return (b.record?.overall?.pointsFor ?? b.points ?? 0) - (a.record?.overall?.pointsFor ?? a.points ?? 0);
+  });
+
+  const week = src.status?.currentMatchupPeriod || src.scoringPeriodId || '?';
+
+  let h = `<div class="card">
+    <div class="card-header">
+      <div class="card-title">League Standings</div>
+      <div class="card-sub">${src.season} Season · Through Week ${week}</div>
+    </div>
+    <table class="std-table"><thead><tr>
+      <th style="width:40px">#</th>
+      <th>Team</th>
+      <th>W–L</th>
+      <th>PF</th>
+      <th>PA</th>
+      <th>Win %</th>
+      <th>Streak</th>
+    </tr></thead><tbody>`;
+
+  teams.forEach((t,i) => {
+    const rank = i+1;
+    const rec = t.record?.overall || {};
+    const w = rec.wins??0, l = rec.losses??0;
+    const gp = w+l||1;
+    const pct = (w/gp*100).toFixed(0);
+    const pf = (t.record?.overall?.pointsFor ?? t.points ?? 0).toFixed(1);
+    const pa = (t.record?.overall?.pointsAgainst ?? 0).toFixed(1);
+    const st = t.record?.overall?.streak || {};
+    const sType = (st.type||'').toUpperCase();
+    const sLen = st.length||0;
+    const streak = sLen
+      ? `<span class="streak streak-${sType.toLowerCase()}">${sType}${sLen}</span>`
+      : '<span style="color:var(--muted)">—</span>';
+
+    h += `<tr>
+      <td class="rank-n${rank<=3?' top':''}">${rank}</td>
+      <td><div class="tm-name">${nameLink(mgr(t))}</div><div class="tm-owner">${tName(t)}</div></td>
+      <td><span class="rec">${w}–${l}</span></td>
+      <td><span class="pf">${pf}</span></td>
+      <td><span class="pa">${pa}</span></td>
+      <td><span class="num" style="color:var(--chalk-dim)">${pct}%</span></td>
+      <td>${streak}</td>
+    </tr>`;
+  });
+
+  h += '</tbody></table></div>';
+  document.getElementById('tab-standings').innerHTML = h;
+}
+
+// ══════════════════════════════════════════════
+//  POWER RANKINGS
+// ══════════════════════════════════════════════
+function renderPower() {
+  const src = activeSeason || allSeasons[0];
+  if (!src) return;
+
+  const teams = src.teams.map(t => {
+    const rec = t.record?.overall || {};
+    const w = rec.wins??0, l = rec.losses??0;
+    const gp = w+l||1;
+    return { t, w, l, gp, pf: t.points??0, ppg: (t.points??0)/gp, wPct: w/gp };
+  });
+
+  const maxPPG = Math.max(...teams.map(x => x.ppg)) || 1;
+  teams.forEach(x => { x.power = (x.ppg/maxPPG)*60 + x.wPct*40; });
+  teams.sort((a,b) => b.power - a.power);
+  const maxP = teams[0].power || 1;
+
+  let h = `<div class="card">
+    <div class="card-header">
+      <div class="card-title">Power Rankings</div>
+      <div class="card-sub">${src.season} · 60% PPG + 40% Win % — click a team for details</div>
+    </div>`;
+
+  teams.forEach((x,i) => {
+    const r = i+1;
+    const rc = r<=3 ? 'r'+r : '';
+    const bar = (x.power/maxP*100).toFixed(1);
+    h += `<div class="pr-item">
+      <div class="pr-num ${rc}">${r}</div>
+      <div class="pr-info">
+        <div class="pr-name">${nameLink(mgr(x.t))}</div><div style="font-size:11px;color:var(--muted);margin-top:-2px">${tName(x.t)}</div>
+        <div class="pr-sub">${oName(x.t)} · ${x.w}–${x.l} · ${x.ppg.toFixed(1)} PPG</div>
+      </div>
+      <div class="pr-bar-wrap"><div class="pr-bar" style="width:${bar}%"></div></div>
+      <div class="pr-score">${x.power.toFixed(1)}</div>
+    </div>`;
+  });
+
+  h += '</div>';
+  document.getElementById('tab-power').innerHTML = h;
+}
+
+// ══════════════════════════════════════════════
+//  HEAD-TO-HEAD
+// ══════════════════════════════════════════════
+function renderH2H() {
+  const src = activeSeason || allSeasons[0];
+  if (!src) return;
+
+const schedule = getCompletedMatchups(src);  const localMap = getTeamsMapFor(src);
+  const ids = Object.keys(localMap).map(Number);
+
+  const rec = {};
+  ids.forEach(a => { rec[a] = {}; ids.forEach(b => { if(a!==b) rec[a][b]={w:0,l:0}; }); });
+
+  schedule.forEach(m => {
+    const h = m.home?.teamId, a = m.away?.teamId;
+    if (!h||!a||!rec[h]||!rec[a]) return;
+if (inferWinner(m)==='HOME') { rec[h][a].w++; rec[a][h].l++; }    else { rec[a][h].w++; rec[h][a].l++; }
+  });
+
+  const sorted = [...src.teams].sort((a,b) => ((b.record?.overall?.wins??0)-(a.record?.overall?.wins??0)));
+
+  let h = `<div class="card">
+    <div class="card-header">
+      <div class="card-title">Head-to-Head Records</div>
+      <div class="card-sub">${src.season} · Row's record vs column · Green = winning matchup</div>
+    </div>
+    <div class="h2h-wrap"><table class="h2h-tbl"><thead><tr><th class="rl">vs →</th>`;
+
+  sorted.forEach(t => {
+    const ab = tName(t).split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
+    h += `<th title="${tName(t)}">${ab}</th>`;
+  });
+  h += '</tr></thead><tbody>';
+
+  sorted.forEach(row => {
+    h += `<tr><td class="rl">${tName(row)}</td>`;
+    sorted.forEach(col => {
+      if (row.id===col.id) { h += `<td class="h2h-self">—</td>`; return; }
+      const r = rec[row.id]?.[col.id]||{w:0,l:0};
+      if (r.w===0&&r.l===0) { h += `<td class="h2h-none">·</td>`; return; }
+      const cls = r.w>r.l ? 'h2h-win' : 'h2h-loss';
+      h += `<td class="${cls}">${r.w}–${r.l}</td>`;
+    });
+    h += '</tr>';
+  });
+
+  h += '</tbody></table></div></div>';
+  document.getElementById('tab-h2h').innerHTML = h;
+}
+
+// ══════════════════════════════════════════════
+//  SCORES
+// ══════════════════════════════════════════════
+function renderScores() {
+  const src = activeSeason || allSeasons[0];
+  if (!src) return;
+
+  const localMap = getTeamsMapFor(src);
+  const byWeek = {};
+  (src.schedule||[]).forEach(m => {
+    const wk = m.matchupPeriodId;
+    if (!byWeek[wk]) byWeek[wk] = [];
+    byWeek[wk].push(m);
+  });
+
+  const weeks = Object.keys(byWeek).map(Number).sort((a,b)=>b-a);
+  let h = '<div class="card"><div class="card-header"><div class="card-title">Matchup Scores</div><div class="card-sub">All weeks · Most recent first</div></div>';
+  let any = false;
+
+  weeks.forEach(wk => {
+const done = byWeek[wk].filter(m => (m.home?.totalPoints||0)>0||(m.away?.totalPoints||0)>0);    if (!done.length) return;
+    any = true;
+    h += `<div class="wk-header">Week ${wk}</div>`;
+    done.forEach(m => {
+      const ht = localMap[m.home?.teamId], at = localMap[m.away?.teamId];
+      if (!ht||!at) return;
+      const hs = (m.home?.totalPoints??0).toFixed(2);
+      const as_ = (m.away?.totalPoints??0).toFixed(2);
+const hw = inferWinner(m)==='HOME';      h += `<div class="mu-row">
+        <div class="mu-team ${hw?'w':'l'}">${tName(ht)}</div>
+        <div class="mu-score ${hw?'w':'l'}">${hs}</div>
+        <div class="mu-vs">vs</div>
+        <div class="mu-score ${!hw?'w':'l'}">${as_}</div>
+        <div class="mu-team r ${!hw?'w':'l'}">${tName(at)}</div>
+      </div>`;
+    });
+  });
+
+  if (!any) h += '<div class="empty-msg"><div class="eicon">🏈</div><p>No completed matchups yet. Check back once the season starts.</p></div>';
+  h += '</div>';
+  document.getElementById('tab-scores').innerHTML = h;
+}
+
+// ══════════════════════════════════════════════
+//  AWARDS
+// ══════════════════════════════════════════════
+function renderAwards() {
+  const src = activeSeason || allSeasons[0];
+  if (!src) return;
+
+  const teams = src.teams;
+  const localMap = getTeamsMapFor(src);
+  const sched = getCompletedMatchups(src);
+
+let highScore=0, highTeam=null;
+let lowLoss=Infinity, lowLossTeam=null;
+let bigMargin=0, blowW=null, blowL=null;
+let closeMargin=Infinity, closeL=null, closeW=null;
+
+sched.forEach(m => {
+const ht=localMap[m.home?.teamId], at=localMap[m.away?.teamId];
+if(!ht||!at) return;
+const hs=m.home?.totalPoints??0, as_=m.away?.totalPoints??0;
+const hw = inferWinner(m) === 'HOME';
+const margin=Math.abs(hs-as_);
+
+if(hs>highScore){highScore=hs;highTeam=ht;}
+if(as_>highScore){highScore=as_;highTeam=at;}
+const lScore=hw?as_:hs, lTeam=hw?at:ht;
+if(lScore<lowLoss&&lScore>0){lowLoss=lScore;lowLossTeam=lTeam;}
+if(margin>bigMargin){bigMargin=margin;blowW=hw?ht:at;blowL=hw?at:ht;}
+if(margin<closeMargin&&margin>0){closeMargin=margin;closeL=hw?at:ht;closeW=hw?ht:at;}
+});
+
+const byPF = [...teams].sort((a,b)=>(b.points??0)-(a.points??0));
+const byPFA = [...teams].sort((a,b)=>(a.points??0)-(b.points??0));
+const byW = [...teams].sort((a,b)=>((b.record?.overall?.wins??0)-(a.record?.overall?.wins??0)));
+const byL = [...teams].sort((a,b)=>((b.record?.overall?.losses??0)-(a.record?.overall?.losses??0)));
+const byPA = [...teams].sort((a,b)=>(b.record?.overall?.pointsAgainst??0)-(a.record?.overall?.pointsAgainst??0));
+
+const N = t => t ? mgr(t) : '—';
+
+  const awards = [
+    {emoji:'👑',color:'gold',   title:'The Juggernaut',        winner:N(byW[0]),     desc:`${byW[0]?.record?.overall?.wins??0}–${byW[0]?.record?.overall?.losses??0} record. Running the league.`},
+    {emoji:'💣',color:'green',  title:'Points Machine',        winner:N(byPF[0]),    desc:`Most total points: ${(byPF[0]?.points??0).toFixed(1)} PF.`},
+    {emoji:'🔥',color:'orange', title:'Single-Week Scorcher',  winner:N(highTeam),   desc:highTeam?`Season-high ${highScore.toFixed(2)} pts in a single week.`:'Not yet determined.'},
+    {emoji:'💔',color:'red',    title:'Heartbreak Hotel',      winner:N(closeL),     desc:closeL?`Lost by ${closeMargin.toFixed(2)} pts to ${N(closeW)}. Devastating.`:'Not yet determined.'},
+    {emoji:'🏟️',color:'purple', title:'The Blowout King',      winner:N(blowW),      desc:blowW?`Crushed ${N(blowL)} by ${bigMargin.toFixed(2)} pts. No mercy.`:'Not yet determined.'},
+    {emoji:'🪨',color:'red',    title:'Turnstile Defense',     winner:N(byPA[0]),    desc:`Most points allowed: ${(byPA[0]?.record?.overall?.pointsAgainst??0).toFixed(1)} PA.`},
+    {emoji:'😬',color:'silver', title:'Glass Jaw',             winner:N(byL[0]),     desc:`${byL[0]?.record?.overall?.losses??0} losses. It's not over… right?`},
+    {emoji:'⚰️',color:'red',    title:'Worst Loss Score',      winner:N(lowLossTeam),desc:lowLossTeam?`Put up ${lowLoss.toFixed(2)} pts and still lost.`:'Not yet determined.'},
+    {emoji:'📉',color:'silver', title:'Fewest Points Scored',  winner:N(byPFA[0]),   desc:`Only ${(byPFA[0]?.points??0).toFixed(1)} PF this season.`},
+  ];
+
+  let h = `<div class="card"><div class="card-header"><div class="card-title">League Awards</div><div class="card-sub">${src.season} Season Superlatives</div></div><div class="awards-grid">`;
+  awards.forEach(a => {
+    h += `<div class="aw-card ${a.color}">
+      <div class="aw-emoji">${a.emoji}</div>
+      <div class="aw-title">${a.title}</div>
+      <div class="aw-winner">${a.winner}</div>
+      <div class="aw-desc">${a.desc}</div>
+    </div>`;
+  });
+  h += '</div></div>';
+  h += buildWeeklyAwards(src);
+  document.getElementById('tab-awards').innerHTML = h;
+}
+
+// ══════════════════════════════════════════════
+//  HISTORY — HERO FEATURE
+// ══════════════════════════════════════════════
+function renderHistory() {
+  if (!allSeasons.length) return;
+
+  const tab = document.getElementById('tab-history');
+
+  // Build cross-season stats table
+  // Each row = one team across all seasons they appeared
+  const crossStats = buildCrossSeasonStats();
+
+  let h = `
+  <!-- Hero header -->
+  <div class="history-hero">
+    <h2>League History</h2>
+    <p>Every season, every matchup, every record — all in one place.</p>
+    <div class="hist-hint">Pick a view below · tap any column header to sort</div>
+  </div>
+
+  <!-- Summary stat cards -->
+  ${buildSummaryCards(crossStats)}
+
+  <!-- Sub-tab content -->
+  <div class="card" id="hist-content">
+    <div class="hist-tabs">
+      <button class="hist-tab-btn active" onclick="histSubTab(event,'season-table')">By Season</button>
+      <button class="hist-tab-btn" onclick="histSubTab(event,'standings-all')">All-Time Standings</button>
+      <button class="hist-tab-btn" onclick="histSubTab(event,'alltime')">All-Time Leaders</button>
+      <button class="hist-tab-btn" onclick="histSubTab(event,'allplay')">All-Play &amp; Luck</button>
+      <button class="hist-tab-btn" onclick="histSubTab(event,'h2h')">Head-to-Head</button>
+      <button class="hist-tab-btn" onclick="histSubTab(event,'rivalries')">Rivalries</button>
+      <button class="hist-tab-btn" onclick="histSubTab(event,'matchups')">Matchup Browser</button>
+      <button class="hist-tab-btn" onclick="histSubTab(event,'records')">Records</button>
+    </div>
+    <div id="hist-sub-season-table" class="hist-sub active"></div>
+    <div id="hist-sub-standings-all" class="hist-sub"></div>
+    <div id="hist-sub-alltime"      class="hist-sub"></div>
+    <div id="hist-sub-allplay"      class="hist-sub"></div>
+    <div id="hist-sub-h2h"          class="hist-sub"></div>
+    <div id="hist-sub-rivalries"    class="hist-sub"></div>
+    <div id="hist-sub-matchups"     class="hist-sub"></div>
+    <div id="hist-sub-records"      class="hist-sub"></div>
+  </div>`;
+
+  tab.innerHTML = h;
+
+  renderHistSeasonTable(crossStats, 'wins');
+  renderHistAllStandings(crossStats);
+  renderHistAllTime(crossStats);
+  renderHistAllPlay();
+  renderHistH2HAll();
+  renderHistRivalries();
+  renderHistMatchups();
+  renderHistRecords(crossStats);
+}
+
+function histSubTab(e, name) {
+document.querySelectorAll('.hist-sub').forEach(el => el.classList.remove('active'));
+document.querySelectorAll('.hist-tab-btn').forEach(el => el.classList.remove('active'));
+document.getElementById('hist-sub-' + name).classList.add('active');
+e.target.classList.add('active');
+// Sync VIEW dropdown to match
+const viewSel = document.getElementById('hist-view-sel');
+if (viewSel) viewSel.value = name;
+}
+
+function renderHistSub() {
+const view = document.getElementById('hist-view-sel')?.value || 'season-table';
+const sortBy = document.getElementById('hist-sort-sel')?.value || 'wins';
+const crossStats = buildCrossSeasonStats();
+// Sync VIEW dropdown with sub-tab buttons
+const target = {'season-table':'season-table','alltime':'alltime','matchups':'matchups','records':'records'}[view] || 'season-table';
+document.querySelectorAll('.hist-sub').forEach(el => el.classList.remove('active'));
+document.querySelectorAll('.hist-tab-btn').forEach(el => el.classList.remove('active'));
+const subEl = document.getElementById('hist-sub-' + target);
+if (subEl) subEl.classList.add('active');
+document.querySelectorAll('.hist-tab-btn').forEach(btn => {
+if (btn.getAttribute('onclick')?.includes("'" + target + "'")) btn.classList.add('active');
+});
+if (view === 'season-table') renderHistSeasonTable(crossStats, sortBy);
+else if (view === 'alltime') renderHistAllTime(crossStats);
+else if (view === 'standings-all') renderHistAllStandings(crossStats);
+else if (view === 'allplay') renderHistAllPlay();
+else if (view === 'rivalries') renderHistRivalries();
+else if (view === 'h2h') renderHistH2HAll();
+else if (view === 'matchups') renderHistMatchups();
+else renderHistRecords(crossStats);
+}
+// Build per-team per-season stats
+function buildCrossSeasonStats() {
+  const rows = [];
+  allSeasons.forEach(s => {
+    const localMap = getTeamsMapFor(s);
+    const sched = getCompletedMatchups(s);
+
+    // Who had the best record = champion candidate (most wins, then PF)
+    // True champion = rankCalculatedFinal === 1 (actual playoff winner, not regular season leader)
+const champTeam = s.teams.find(t => t.rankCalculatedFinal === 1);
+const champId = champTeam?.id;
+// Compute PA from schedule (ESPN omits pointsAgainst in team record for active seasons)
+const paMap = {};
+sched.forEach(m => {
+const hId = m.home?.teamId, aId = m.away?.teamId;
+const hPts = m.home?.totalPoints||0, aPts = m.away?.totalPoints||0;
+if (hId != null) paMap[hId] = (paMap[hId]||0) + aPts;
+if (aId != null) paMap[aId] = (paMap[aId]||0) + hPts;
+});
+
+    s.teams.forEach(t => {
+      const rec = t.record?.overall||{};
+      const w = rec.wins??0, l = rec.losses??0, gp = w+l||1;
+const pf = t.points??0, pa = paMap[t.id] || t.pointsAgainst || 0;
+
+      // High/low week for this team this season
+      let weekHigh=0, weekLow=Infinity;
+      sched.forEach(m => {
+        const isHome = m.home?.teamId===t.id;
+        const isAway = m.away?.teamId===t.id;
+        if(!isHome&&!isAway) return;
+        const pts = isHome ? (m.home?.totalPoints??0) : (m.away?.totalPoints??0);
+        if(pts>weekHigh) weekHigh=pts;
+        if(pts<weekLow) weekLow=pts;
+      });
+
+      rows.push({
+        season: s.season,
+        teamId: t.id,
+        teamName: tName(t),
+        owner: mgr(t),
+        wins: w, losses: l, gp,
+        pf: pf, pa: pa,
+        ppg: pf/gp,
+        papg: pa/gp,
+        winPct: w/gp,
+        weekHigh,
+        weekLow: weekLow===Infinity ? 0 : weekLow,
+        isChamp: t.id === champId,
+      });
+    });
+  });
+  return rows;
+}
+
+function buildSummaryCards(rows) {
+  const totalGames = rows.reduce((s,r)=>s+r.gp,0)/2;
+  const totalPts   = rows.reduce((s,r)=>s+r.pf,0);
+  const seasons    = allSeasons.length;
+  const highScore  = rows.reduce((m,r)=>Math.max(m,r.weekHigh),0);
+  const highOwner  = rows.find(r=>r.weekHigh===highScore);
+
+  return `<div class="season-summary-row">
+    <div class="sscard">
+      <div class="sscard-label">Seasons Played</div>
+      <div class="sscard-val">${seasons}</div>
+      <div class="sscard-sub">${allSeasons.map(s=>s.season).join(', ')}</div>
+    </div>
+    <div class="sscard">
+      <div class="sscard-label">Total Matchups</div>
+      <div class="sscard-val">${Math.floor(totalGames)}</div>
+      <div class="sscard-sub">across all seasons</div>
+    </div>
+    <div class="sscard">
+      <div class="sscard-label">Total Points Scored</div>
+      <div class="sscard-val">${(totalPts/1000).toFixed(1)}K</div>
+      <div class="sscard-sub">league-wide</div>
+    </div>
+    <div class="sscard">
+      <div class="sscard-label">All-Time High Score</div>
+      <div class="sscard-val">${highScore.toFixed(0)}</div>
+      <div class="sscard-sub">${highOwner ? highOwner.teamName + ' · ' + highOwner.season : '—'}</div>
+    </div>
+  </div>`;
+}
+
+function renderHistSeasonTable(rows, sortBy='wins') {
+  const col = sortBy;
+  const sorted = [...rows].sort((a,b) => {
+    if(a.season !== b.season) return b.season - a.season;
+    return (b[col]||0) - (a[col]||0);
+  });
+
+  let h = `<div class="hist-table-wrap"><table class="hist-table">
+    <thead><tr>
+      <th onclick="sortHistTable('season',this)">Season</th>
+      <th>Team</th>
+      <th onclick="sortHistTable('wins',this)">W–L</th>
+      <th onclick="sortHistTable('winPct',this)">Win %</th>
+      <th onclick="sortHistTable('pf',this)">PF</th>
+      <th onclick="sortHistTable('pa',this)">PA</th>
+      <th onclick="sortHistTable('ppg',this)">PPG</th>
+      <th onclick="sortHistTable('weekHigh',this)">Week High</th>
+      <th onclick="sortHistTable('weekLow',this)">Week Low</th>
+      <th>Status</th>
+    </tr></thead><tbody>`;
+
+  let lastSeason = null;
+  sorted.forEach(r => {
+    const sepStyle = r.season !== lastSeason && lastSeason !== null
+      ? 'border-top:2px solid var(--border-bright);'
+      : '';
+    lastSeason = r.season;
+
+    const champBadge = r.isChamp
+      ? `<span class="champ-crown">👑</span>`
+      : '';
+
+    h += `<tr>
+      <td style="${sepStyle}"><span class="season-badge">${r.season}</span></td>
+      <td style="${sepStyle}">
+        <div style="font-weight:600">${champBadge}${r.teamName}</div>
+        <div style="font-size:11px;color:var(--muted)">${r.owner}</div>
+      </td>
+      <td class="num" style="${sepStyle}">${r.wins}–${r.losses}</td>
+      <td class="${r.winPct>=0.6?'green-val':r.winPct<0.4?'red-val':'num'}" style="${sepStyle}">${(r.winPct*100).toFixed(0)}%</td>
+      <td class="green-val" style="${sepStyle}">${r.pf.toFixed(1)}</td>
+      <td class="num" style="${sepStyle};color:var(--muted)">${r.pa.toFixed(1)}</td>
+      <td class="gold-val" style="${sepStyle}">${r.ppg.toFixed(1)}</td>
+      <td class="num" style="${sepStyle}">${r.weekHigh>0?r.weekHigh.toFixed(2):'—'}</td>
+      <td class="num" style="${sepStyle};color:var(--muted)">${r.weekLow>0?r.weekLow.toFixed(2):'—'}</td>
+      <td style="${sepStyle}">${r.isChamp?'<span class="streak streak-w">CHAMP</span>':''}</td>
+    </tr>`;
+  });
+
+  h += '</tbody></table></div>';
+  document.getElementById('hist-sub-season-table').innerHTML = h;
+}
+
+let histSortCol = 'season', histSortDir = -1;
+function sortHistTable(col, el) {
+  if(histSortCol===col) histSortDir *= -1;
+  else { histSortCol = col; histSortDir = -1; }
+  document.querySelectorAll('.hist-table th').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+  });
+  el.classList.add(histSortDir===-1?'sort-desc':'sort-asc');
+  const rows = buildCrossSeasonStats();
+  const sorted = [...rows].sort((a,b) => {
+    if(col==='season') return (b.season-a.season)*histSortDir*-1;
+    return ((b[col]||0)-(a[col]||0))*histSortDir*-1;
+  });
+  renderHistSeasonTableFrom(sorted);
+}
+
+function renderHistSeasonTableFrom(sorted) {
+  let h = `<div class="hist-table-wrap"><table class="hist-table">
+    <thead><tr>
+      <th onclick="sortHistTable('season',this)">Season</th>
+      <th>Team</th>
+      <th onclick="sortHistTable('wins',this)">W–L</th>
+      <th onclick="sortHistTable('winPct',this)">Win %</th>
+      <th onclick="sortHistTable('pf',this)">PF</th>
+      <th onclick="sortHistTable('pa',this)">PA</th>
+      <th onclick="sortHistTable('ppg',this)">PPG</th>
+      <th onclick="sortHistTable('weekHigh',this)">Week High</th>
+      <th onclick="sortHistTable('weekLow',this)">Week Low</th>
+      <th>Status</th>
+    </tr></thead><tbody>`;
+  let last=null;
+  sorted.forEach(r => {
+    const sep = r.season!==last&&last!==null?'border-top:2px solid var(--border-bright);':'';
+    last=r.season;
+    h+=`<tr>
+      <td style="${sep}"><span class="season-badge">${r.season}</span></td>
+      <td style="${sep}"><div style="font-weight:600">${r.isChamp?'<span class="champ-crown">👑</span>':''}${r.teamName}</div><div style="font-size:11px;color:var(--muted)">${r.owner}</div></td>
+      <td class="num" style="${sep}">${r.wins}–${r.losses}</td>
+      <td class="${r.winPct>=0.6?'green-val':r.winPct<0.4?'red-val':'num'}" style="${sep}">${(r.winPct*100).toFixed(0)}%</td>
+      <td class="green-val" style="${sep}">${r.pf.toFixed(1)}</td>
+      <td class="num" style="${sep};color:var(--muted)">${r.pa.toFixed(1)}</td>
+      <td class="gold-val" style="${sep}">${r.ppg.toFixed(1)}</td>
+      <td class="num" style="${sep}">${r.weekHigh>0?r.weekHigh.toFixed(2):'—'}</td>
+      <td class="num" style="${sep};color:var(--muted)">${r.weekLow>0?r.weekLow.toFixed(2):'—'}</td>
+      <td style="${sep}">${r.isChamp?'<span class="streak streak-w">CHAMP</span>':''}</td>
+    </tr>`;
+  });
+  h+='</tbody></table></div>';
+  document.getElementById('hist-sub-season-table').innerHTML=h;
+}
+
+function renderHistAllTime(rows) {
+  // Aggregate by owner name (handle same owner across seasons)
+  const byOwner = {};
+  rows.forEach(r => {
+    const key = r.owner || r.teamName;
+    if (!byOwner[key]) byOwner[key] = { owner:key, seasons:0, wins:0, losses:0, pf:0, pa:0, weekHighAll:0, champs:0 };
+    const o = byOwner[key];
+    o.seasons++;
+    o.wins   += r.wins;
+    o.losses += r.losses;
+    o.pf     += r.pf;
+    o.pa     += r.pa;
+    if(r.weekHigh > o.weekHighAll) o.weekHighAll = r.weekHigh;
+    if(r.isChamp) o.champs++;
+  });
+
+  const owners = Object.values(byOwner);
+  const gp = o => o.wins+o.losses||1;
+
+  const leaders = [
+    { cat:'Most Wins (All-Time)', fmt: o=>`${o.wins} W`, topFn: o=>o.wins, detFn: o=>`across ${o.seasons} season${o.seasons>1?'s':''}` },
+    { cat:'Best Win %',           fmt: o=>`${(o.wins/gp(o)*100).toFixed(0)}%`, topFn: o=>o.wins/gp(o), detFn: o=>`${o.wins}–${o.losses}` },
+    { cat:'Most Points For',      fmt: o=>`${o.pf.toFixed(0)}`, topFn: o=>o.pf, detFn: o=>`${(o.pf/gp(o)).toFixed(1)} PPG avg` },
+    { cat:'Highest Single Week',  fmt: o=>`${o.weekHighAll.toFixed(2)}`, topFn: o=>o.weekHighAll, detFn: o=>`personal best` },
+    { cat:'Most Championships',   fmt: o=>`${o.champs} 👑`, topFn: o=>o.champs, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} played` },
+    { cat:'Highest Career PPG', fmt: o=>`${(o.pf/(o.wins+o.losses||1)).toFixed(1)}`, topFn: o=>o.pf/(o.wins+o.losses||1), detFn: o=>`${o.wins+o.losses} games played` },
+    { cat:'Most Points Against',  fmt: o=>`${o.pa.toFixed(0)} PA`, topFn: o=>o.pa, detFn: o=>`unlucky or just bad D?` },
+    { cat:'Most Total Losses',    fmt: o=>`${o.losses} L`, topFn: o=>o.losses, detFn: o=>`${o.seasons} season${o.seasons>1?'s':''} of pain` },
+  ];
+
+  let h = '<div class="leaders-grid">';
+  leaders.forEach(l => {
+    const sorted = [...owners].sort((a,b)=>l.topFn(b)-l.topFn(a));
+    const top = sorted[0];
+    if(!top) return;
+    h += `<div class="leader-card">
+      <div class="leader-cat">${l.cat}</div>
+      <div class="leader-name">${top.owner}</div>
+      <div class="leader-val">${l.fmt(top)}</div>
+      <div class="leader-detail">${l.detFn(top)}</div>
+    </div>`;
+  });
+  h += '</div>';
+  document.getElementById('hist-sub-alltime').innerHTML = h;
+}
+
+function renderHistMatchups() {
+  // Searchable/filterable matchup browser across all seasons
+  const allMatchups = [];
+  allSeasons.forEach(s => {
+    const localMap = getTeamsMapFor(s);
+    (s.schedule||[])
+    .filter(m => getCompletedMatchups({schedule:[m]}).length > 0)      .forEach(m => {
+        const ht=localMap[m.home?.teamId], at=localMap[m.away?.teamId];
+        if(!ht||!at) return;
+        allMatchups.push({
+          season: s.season,
+          week: m.matchupPeriodId,
+          homeTeam: tName(ht), awayTeam: tName(at),
+          homeScore: m.home?.totalPoints??0,
+          awayScore: m.away?.totalPoints??0,
+winner: inferWinner(m)==='HOME' ? tName(ht) : tName(at),          margin: Math.abs((m.home?.totalPoints??0)-(m.away?.totalPoints??0)),
+        });
+      });
+  });
+
+  allMatchups.sort((a,b) => b.season-a.season || b.week-a.week);
+
+  // Build team list for filter
+  const teams = [...new Set(allMatchups.flatMap(m=>[m.homeTeam,m.awayTeam]))].sort();
+
+  let h = `<div class="mu-browser-controls">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Filter Team</div>
+      <select class="hist-sel" id="mu-team-filter" onchange="filterMatchups()">
+        <option value="">All Teams</option>
+        ${teams.map(t=>`<option value="${t}">${t}</option>`).join('')}
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Season</div>
+      <select class="hist-sel" id="mu-season-filter" onchange="filterMatchups()">
+        <option value="">All Seasons</option>
+        ${allSeasons.map(s=>`<option value="${s.season}">${s.season}</option>`).join('')}
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Sort by</div>
+      <select class="hist-sel" id="mu-sort-filter" onchange="filterMatchups()">
+        <option value="date">Most Recent</option>
+        <option value="margin-desc">Biggest Blowout</option>
+        <option value="margin-asc">Closest Game</option>
+        <option value="score-desc">Highest Score</option>
+      </select>
+    </div>
+  </div>
+  <div id="mu-results"></div>`;
+
+  document.getElementById('hist-sub-matchups').innerHTML = h;
+
+  // Store matchups globally for filter function
+  window._allMatchups = allMatchups;
+  filterMatchups();
+}
+
+function filterMatchups() {
+  const teamF   = document.getElementById('mu-team-filter')?.value || '';
+  const seasonF = document.getElementById('mu-season-filter')?.value || '';
+  const sortF   = document.getElementById('mu-sort-filter')?.value || 'date';
+
+  let results = [...(window._allMatchups||[])];
+
+  if(teamF) results = results.filter(m => m.homeTeam===teamF||m.awayTeam===teamF);
+  if(seasonF) results = results.filter(m => String(m.season)===seasonF);
+
+  if(sortF==='margin-desc') results.sort((a,b)=>b.margin-a.margin);
+  else if(sortF==='margin-asc') results.sort((a,b)=>a.margin-b.margin);
+  else if(sortF==='score-desc') results.sort((a,b)=>Math.max(b.homeScore,b.awayScore)-Math.max(a.homeScore,a.awayScore));
+  else results.sort((a,b)=>b.season-a.season||b.week-a.week);
+
+  const el = document.getElementById('mu-results');
+  if(!el) return;
+
+  if(!results.length) {
+    el.innerHTML = '<div class="empty-msg"><div class="eicon">🔍</div><p>No matchups match your filters.</p></div>';
+    return;
+  }
+
+  let h = '';
+  let lastSeason = null;
+  results.forEach(m => {
+    if(m.season!==lastSeason) {
+      h += `<div class="wk-header">${m.season} Season</div>`;
+      lastSeason=m.season;
+    }
+    const hw = m.winner===m.homeTeam;
+    h += `<div class="mu-row">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:52px;flex-shrink:0">WK ${m.week}</div>
+      <div class="mu-team ${hw?'w':'l'}">${m.homeTeam}</div>
+      <div class="mu-score ${hw?'w':'l'}">${m.homeScore.toFixed(2)}</div>
+      <div class="mu-vs">vs</div>
+      <div class="mu-score ${!hw?'w':'l'}">${m.awayScore.toFixed(2)}</div>
+      <div class="mu-team r ${!hw?'w':'l'}">${m.awayTeam}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:52px;text-align:right;flex-shrink:0">Δ${m.margin.toFixed(1)}</div>
+    </div>`;
+  });
+  el.innerHTML = h;
+}
+
+function renderHistRecords(rows) {
+  // Fun season/all-time records
+  const mostPFSeason  = [...rows].sort((a,b)=>b.pf-a.pf)[0];
+  const leastPFSeason = [...rows].sort((a,b)=>a.pf-b.pf)[0];
+  const bestWinPct    = [...rows].sort((a,b)=>b.winPct-a.winPct)[0];
+  const worstWinPct   = [...rows].sort((a,b)=>a.winPct-b.winPct)[0];
+  const highWeek      = [...rows].sort((a,b)=>b.weekHigh-a.weekHigh)[0];
+  const lowWeek       = [...rows].filter(r=>r.weekLow>0).sort((a,b)=>a.weekLow-b.weekLow)[0];
+  const mostWinsSzn   = [...rows].sort((a,b)=>b.wins-a.wins)[0];
+  const mostLossSzn   = [...rows].sort((a,b)=>b.losses-a.losses)[0];
+
+  const R = (r, val, desc) => !r ? '' : `
+    <tr>
+      <td>${desc}</td>
+      <td style="font-weight:600">${r.teamName}</td>
+      <td><span class="season-badge">${r.season}</span></td>
+      <td class="gold-val">${val}</td>
+      <td style="color:var(--muted);font-size:12px">${r.owner}</td>
+    </tr>`;
+
+  let h = `<div class="hist-table-wrap"><table class="hist-table">
+    <thead><tr>
+      <th>Record</th>
+      <th>Team</th>
+      <th>Season</th>
+      <th>Value</th>
+      <th>Owner</th>
+    </tr></thead><tbody>
+    ${R(mostPFSeason,  mostPFSeason?.pf.toFixed(1)+' PF',       '📈 Most Points in a Season')}
+    ${R(leastPFSeason, leastPFSeason?.pf.toFixed(1)+' PF',      '📉 Fewest Points in a Season')}
+    ${R(bestWinPct,    (bestWinPct?.winPct*100).toFixed(0)+'%',  '🏆 Best Win % in a Season')}
+    ${R(worstWinPct,   (worstWinPct?.winPct*100).toFixed(0)+'%', '💀 Worst Win % in a Season')}
+    ${R(highWeek,      highWeek?.weekHigh.toFixed(2)+' pts',     '🔥 Highest Single-Week Score')}
+    ${R(lowWeek,       lowWeek?.weekLow.toFixed(2)+' pts',       '🧊 Lowest Single-Week Score')}
+    ${R(mostWinsSzn,   mostWinsSzn?.wins+' wins',               '👑 Most Wins in a Season')}
+    ${R(mostWinsSzn,   mostWinsSzn?.wins+' wins',               '👑 Most Wins in a Season')}
+    ${extraRecordRows()}
+    </tbody></table></div>`;
+
+  document.getElementById('hist-sub-records').innerHTML = h;
+}
+
+
+// ══════════════════════════════════════════════
+//  DRAFT HISTORY
+// ══════════════════════════════════════════════
+function renderDraft() {
+  const tab = document.getElementById('tab-draft');
+  if (!allSeasons.length) return;
+
+  // Get seasons that have draft data
+  const drafts = allSeasons.filter(s => s.draftDetail?.picks?.length);
+
+  if (!drafts.length) {
+    tab.innerHTML = `<div class="card"><div class="empty-msg">
+      <div class="eicon">📋</div>
+      <h3>No Draft Data Yet</h3>
+      <p>Draft history will appear here after running the scraper.<br>
+      Draft data requires your ESPN cookies and the <code>mDraftDetail</code> view.<br><br>
+      Run <code>node scrape.js</code> locally to populate draft history.</p>
+    </div></div>`;
+    return;
+  }
+
+  // Build team map across all seasons
+  const getMap = (s) => { const m={}; s.teams.forEach(t=>m[t.id]=t); return m; };
+
+  // Season selector at top
+  const latestDraft = drafts[0];
+
+  let h = `
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-header">
+      <div class="card-title">Draft History</div>
+      <div class="card-sub">${drafts.length} season${drafts.length>1?'s':''} available</div>
+    </div>
+    <div class="draft-controls">
+      <div class="ctrl-group">
+        <div class="ctrl-label">Season</div>
+        <select class="hist-sel" id="draft-season-sel" onchange="renderDraftSeason()">
+          ${drafts.map(s=>`<option value="${s.season}">${s.season} Draft</option>`).join('')}
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">View</div>
+        <select class="hist-sel" id="draft-view-sel" onchange="renderDraftSeason()">
+          <option value="picks">Pick-by-Pick</option>
+          <option value="board">Draft Board</option>
+          <option value="by-team">By Team</option>
+          <option value="by-position">By Position</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">Filter Position</div>
+        <select class="hist-sel" id="draft-pos-sel" onchange="renderDraftSeason()">
+          <option value="">All Positions</option>
+          <option value="QB">QB</option>
+          <option value="RB">RB</option>
+          <option value="WR">WR</option>
+          <option value="TE">TE</option>
+          <option value="K">K</option>
+          <option value="D/ST">D/ST</option>
+        </select>
+      </div>
+    </div>
+    <div id="draft-content"></div>
+  </div>`;
+
+  tab.innerHTML = h;
+  window._drafts = drafts;
+  window._draftSeasonMaps = {};
+  drafts.forEach(s => { window._draftSeasonMaps[s.season] = getMap(s); });
+  renderDraftSeason();
+}
+
+function posClass(pos) {
+  const p = (pos||'').toUpperCase();
+  if(p==='QB') return 'pos-qb';
+  if(p==='RB') return 'pos-rb';
+  if(p==='WR') return 'pos-wr';
+  if(p==='TE') return 'pos-te';
+  if(p==='K')  return 'pos-k';
+  return 'pos-dst';
+}
+
+function renderDraftSeason() {
+  const seasonVal = parseInt(document.getElementById('draft-season-sel')?.value);
+  const view      = document.getElementById('draft-view-sel')?.value || 'picks';
+  const posFilter = document.getElementById('draft-pos-sel')?.value  || '';
+
+  const seasonObj = (window._drafts||[]).find(s => s.season === seasonVal);
+  if (!seasonObj) return;
+
+  const picks     = seasonObj.draftDetail?.picks || [];
+  const localMap  = window._draftSeasonMaps?.[seasonVal] || {};
+  const totalTeams = seasonObj.teams?.length || 10;
+
+  // Enrich picks
+  const enriched = picks.map(p => {
+    const owner = localMap[p.teamId];
+    return {
+      ...p,
+      ownerName: owner ? tName(owner) : `Team ${p.teamId}`,
+      round: Math.ceil(p.overallPickNumber / totalTeams),
+      pickInRound: ((p.overallPickNumber - 1) % totalTeams) + 1,
+    };
+  });
+
+  // Apply position filter
+  const filtered = posFilter
+    ? enriched.filter(p => (p.playerPoolEntry?.onTeamId !== undefined) &&
+        getPlayerPos(p) === posFilter)
+    : enriched;
+
+  const el = document.getElementById('draft-content');
+  if (!el) return;
+
+  if (view === 'picks')    { el.innerHTML = renderPicksList(filtered, posFilter); }
+  else if (view === 'board')    { el.innerHTML = renderDraftBoard(enriched, totalTeams, localMap); }
+  else if (view === 'by-team')  { el.innerHTML = renderByTeam(enriched, localMap); }
+  else if (view === 'by-position') { el.innerHTML = renderByPosition(enriched); }
+}
+
+function getPlayerName(p) {
+  return p.playerName || p.playerPoolEntry?.player?.fullName
+      || p.playerPoolEntry?.player?.lastName
+      || `Pick #${p.overallPickNumber}`;
+}
+
+function getPlayerPos(p) {
+  const posMap = {0:'QB',2:'CB',3:'S',4:'LB',5:'DL',6:'K',7:'P',16:'D/ST',
+    23:'WR',1:'WR',10:'RB',11:'RB',22:'TE'};
+  const id = p.playerPoolEntry?.player?.defaultPositionId;
+  // Try the lineup slot first, then defaultPositionId
+  return p.playerPosition || (p.playerPoolEntry?.player?.eligibleSlots?.[0] === 16 ? 'D/ST'
+       : posMap[id] || 'FLEX');
+}
+
+function getPlayerNFLTeam(p) {
+  const teams = {1:'ATL',2:'BUF',3:'CHI',4:'CIN',5:'CLE',6:'DAL',7:'DEN',8:'DET',
+    9:'GB',10:'TEN',11:'IND',12:'KC',13:'OAK',14:'LAR',15:'MIA',16:'MIN',17:'NE',
+    18:'NO',19:'NYG',20:'NYJ',21:'PHI',22:'ARI',23:'PIT',24:'LAC',25:'SF',26:'SEA',
+    27:'TB',28:'WAS',29:'CAR',30:'JAC',33:'BAL',34:'HOU',0:'FA'};
+  return teams[p.playerPoolEntry?.player?.proTeamId] || '';
+}
+
+function renderPicksList(picks, posFilter) {
+  if (!picks.length) return '<div class="empty-msg"><p>No picks match this filter.</p></div>';
+  let h = '';
+  let lastRound = 0;
+  picks.forEach(p => {
+    if (p.round !== lastRound) {
+      h += `<div class="round-divider">Round ${p.round}</div>`;
+      lastRound = p.round;
+    }
+    const pos = getPlayerPos(p);
+    const pc  = posClass(pos);
+    const earlyClass = p.overallPickNumber <= 10 ? 'early' : p.overallPickNumber <= 30 ? 'mid' : '';
+    h += `<div class="mu-row">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:44px;flex-shrink:0">#${p.overallPickNumber}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;width:30px;flex-shrink:0;color:var(--muted)">${p.pickInRound}.</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px">${getPlayerName(p)}</div>
+        <div style="font-size:11px;color:var(--muted)">${getPlayerNFLTeam(p)} · <span class="${pc}">${pos}</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--gold);font-weight:600;text-align:right">${p.ownerName}</div>
+    </div>`;
+  });
+  return h;
+}
+
+function renderDraftBoard(picks, totalTeams, localMap) {
+  // Build grid: rows = rounds, cols = teams (in draft order)
+  const rounds = Math.ceil(picks.length / totalTeams);
+  const teamOrder = []; // first-round pick order
+
+  // Get teams in order of their first pick
+  const firstPicks = picks.filter(p => p.round === 1).sort((a,b)=>a.overallPickNumber-b.overallPickNumber);
+  firstPicks.forEach(p => { if(!teamOrder.includes(p.teamId)) teamOrder.push(p.teamId); });
+
+  // Add any teams that didn't pick in round 1
+  Object.keys(localMap).forEach(id => {
+    if(!teamOrder.includes(parseInt(id))) teamOrder.push(parseInt(id));
+  });
+
+  let h = '<div class="draft-board-wrap"><table class="draft-board"><thead><tr><th>Rd</th>';
+  teamOrder.forEach(id => {
+    const t = localMap[id];
+    h += `<th>${t ? tName(t).split(' ').slice(-1)[0] : id}</th>`;
+  });
+  h += '</tr></thead><tbody>';
+
+  for (let r = 1; r <= rounds; r++) {
+    h += `<tr><td>${r}</td>`;
+    // Snake draft: even rounds reverse order
+    const colOrder = r % 2 === 0 ? [...teamOrder].reverse() : teamOrder;
+    teamOrder.forEach(teamId => {
+      const pick = picks.find(p => p.round === r && p.teamId === teamId);
+      if (!pick) { h += '<td></td>'; return; }
+      const pos = getPlayerPos(pick);
+      h += `<td>
+        <div class="db-player">${getPlayerName(pick)}</div>
+        <div class="db-pos ${posClass(pos)}">${pos}</div>
+        <div class="db-team">${getPlayerNFLTeam(pick)}</div>
+      </td>`;
+    });
+    h += '</tr>';
+  }
+  h += '</tbody></table></div>';
+  return h;
+}
+
+function renderByTeam(picks, localMap) {
+  const byTeam = {};
+  picks.forEach(p => {
+    if(!byTeam[p.teamId]) byTeam[p.teamId] = [];
+    byTeam[p.teamId].push(p);
+  });
+  let h = '<div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">';
+  Object.keys(byTeam).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(teamId => {
+    const t = localMap[teamId];
+    const tpicks = byTeam[teamId].sort((a,b)=>a.overallPickNumber-b.overallPickNumber);
+    h += `<div class="card" style="margin-bottom:0">
+      <div class="card-header" style="padding:10px 14px">
+        <div class="card-title" style="font-size:14px">${t ? tName(t) : 'Team '+teamId}</div>
+        <div class="card-sub">${tpicks.length} picks</div>
+      </div>`;
+    tpicks.forEach(p => {
+      const pos = getPlayerPos(p);
+      h += `<div style="padding:7px 14px;border-bottom:1px solid rgba(27,51,36,0.4);display:flex;gap:8px;align-items:center">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:28px">#${p.overallPickNumber}</span>
+        <span class="${posClass(pos)}" style="font-size:10px;font-weight:600;width:30px">${pos}</span>
+        <span style="font-size:12px;font-weight:600;flex:1">${getPlayerName(p)}</span>
+      </div>`;
+    });
+    h += '</div>';
+  });
+  return h + '</div>';
+}
+
+function renderByPosition(picks) {
+  const positions = ['QB','RB','WR','TE','K','D/ST','FLEX'];
+  const byPos = {};
+  positions.forEach(p => byPos[p] = []);
+  picks.forEach(p => {
+    const pos = getPlayerPos(p);
+    if(byPos[pos]) byPos[pos].push(p);
+    else byPos['FLEX'] = (byPos['FLEX']||[]).concat([p]);
+  });
+  let h = '';
+  positions.forEach(pos => {
+    const group = byPos[pos]||[];
+    if(!group.length) return;
+    h += `<div class="wk-header"><span class="${posClass(pos)}">${pos}</span> — ${group.length} picks</div>`;
+    group.sort((a,b)=>a.overallPickNumber-b.overallPickNumber).forEach(p => {
+      h += `<div class="mu-row">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);width:44px;flex-shrink:0">#${p.overallPickNumber}</div>
+        <div style="flex:1;font-weight:600;font-size:13px">${getPlayerName(p)}</div>
+        <div style="font-size:11px;color:var(--muted);margin:0 12px">${getPlayerNFLTeam(p)}</div>
+        <div style="font-size:12px;color:var(--gold);font-weight:600">${p.ownerName}</div>
+      </div>`;
+    });
+  });
+  return h;
+}
+
+// ══════════════════════════════════════════════
+//  KICK OFF
+// ══════════════════════════════════════════════
+loadData();
+// ══════════════════════════════════════════════
+//  CHAMPION'S ALLEY
+// ══════════════════════════════════════════════
+function renderChampions(){
+  const el=document.getElementById('tab-champions'); if(!el) return;
+  const champRows=[];
+  allSeasons.forEach(s=>{
+    const champ=s.teams.find(t=>t.rankCalculatedFinal===1);
+    if(champ) champRows.push({season:s.season, nick:mgr(champ), team:tName(champ)});
+  });
+  champRows.sort((a,b)=>b.season-a.season);
+  const rings={};
+  champRows.forEach(c=>{ rings[c.nick]=(rings[c.nick]||0)+1; });
+  const ringList=Object.entries(rings).sort((a,b)=>b[1]-a[1]);
+  let h='<div class="card"><div class="card-header"><div class="card-title">Champion’s Alley</div><div class="card-sub">Every title in league history · tap a year to revisit that season</div></div>';
+  if(ringList.length){
+    h+='<div class="rings-row">'+ringList.map(([n,c])=>`<div class="ring-chip"><span class="ring-count">${c}×</span> ${n} ${'🏆'.repeat(Math.min(c,4))}</div>`).join('')+'</div>';
+  }
+  h+='<div class="champ-grid">';
+  champRows.forEach(c=>{
+    h+=`<div class="champ-card" onclick="toggleChampSeason(${c.season})">
+      <div class="champ-year">${c.season}</div>
+      <div class="champ-trophy">🏆</div>
+      <div class="champ-name">${c.nick}</div>
+      <div class="champ-team">${c.team}</div>
+      <div class="champ-cta">View season ▾</div>
+    </div>`;
+  });
+  if(!champRows.length) h+='<div class="empty-msg"><div class="eicon">🏆</div><p>No champions recorded yet.</p></div>';
+  h+='</div><div id="champ-season-detail"></div></div>';
+  el.innerHTML=h;
+}
+function toggleChampSeason(year){
+  const box=document.getElementById('champ-season-detail'); if(!box) return;
+  if(box.getAttribute('data-year')===String(year)){ box.innerHTML=''; box.removeAttribute('data-year'); return; }
+  box.setAttribute('data-year',year);
+  const s=allSeasons.find(x=>x.season===year); if(!s){ box.innerHTML=''; return; }
+  const teams=[...s.teams].sort((a,b)=>{
+    const ra=a.rankCalculatedFinal||99, rb=b.rankCalculatedFinal||99;
+    if(ra!==rb) return ra-rb;
+    return (b.record?.overall?.wins??0)-(a.record?.overall?.wins??0);
+  });
+  let h=`<div class="champ-detail"><div class="champ-detail-title">${year} Final Standings</div><div class="table-wrap"><table class="std-table"><thead><tr><th>#</th><th>Manager</th><th>Team</th><th>W–L</th><th>PF</th><th>PA</th></tr></thead><tbody>`;
+  teams.forEach((t,i)=>{
+    const r=t.record?.overall||{};
+    const fin=t.rankCalculatedFinal||(i+1);
+    const trophy=fin===1?' 🏆':'';
+    h+=`<tr><td>${fin}</td><td style="font-weight:600">${mgr(t)}${trophy}</td><td style="color:var(--muted)">${tName(t)}</td><td>${r.wins??0}–${r.losses??0}${r.ties?('–'+r.ties):''}</td><td>${(r.pointsFor??t.points??0).toFixed(1)}</td><td>${(r.pointsAgainst??0).toFixed(1)}</td></tr>`;
+  });
+  h+='</tbody></table></div></div>';
+  box.innerHTML=h;
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ══════════════════════════════════════════════
+//  ALL-TIME STANDINGS (by person)
+// ══════════════════════════════════════════════
+function aggregateByPerson(rows){
+  const by={};
+  rows.forEach(r=>{
+    const key=r.owner||r.teamName;
+    if(!by[key]) by[key]={name:key, seasons:0, wins:0, losses:0, pf:0, pa:0, champs:0, weekHigh:0};
+    const o=by[key];
+    o.seasons++; o.wins+=r.wins; o.losses+=r.losses; o.pf+=r.pf; o.pa+=r.pa;
+    if(r.isChamp) o.champs++;
+    if(r.weekHigh>o.weekHigh) o.weekHigh=r.weekHigh;
+  });
+  return Object.values(by);
+}
+let atsSort={col:'winPct',dir:-1};
+function sortATS(col){ if(atsSort.col===col) atsSort.dir*=-1; else atsSort={col,dir:(col==='name'?1:-1)}; renderHistAllStandings(buildCrossSeasonStats()); }
+function renderHistAllStandings(rows){
+  const el=document.getElementById('hist-sub-standings-all'); if(!el) return;
+  const people=aggregateByPerson(rows).map(o=>{ const gp=o.wins+o.losses||1; return {...o, gp, winPct:o.wins/gp, ppg:o.pf/gp}; });
+  const _c=atsSort.col,_d=atsSort.dir; people.sort((a,b)=>{ if(_c==='name') return a.name.localeCompare(b.name)*_d; return (a[_c]-b[_c])*_d; });
+  let h='<div class="table-wrap"><table class="std-table"><thead><tr><th>#</th><th class="sort-th" onclick="sortATS(\'name\')">Manager</th><th class="sort-th" onclick="sortATS(\'seasons\')">Szns</th><th class="sort-th" onclick="sortATS(\'wins\')">W–L</th><th class="sort-th" onclick="sortATS(\'winPct\')">Win %</th><th class="sort-th" onclick="sortATS(\'pf\')">PF</th><th class="sort-th" onclick="sortATS(\'pa\')">PA</th><th class="sort-th" onclick="sortATS(\'ppg\')">PPG</th><th class="sort-th" onclick="sortATS(\'champs\')">Titles</th></tr></thead><tbody>';
+  people.forEach((o,i)=>{
+    h+=`<tr><td>${i+1}</td><td style="font-weight:600">${nameLink(o.name)}</td><td>${o.seasons}</td><td>${o.wins}–${o.losses}</td><td style="color:var(--gold)">${(o.winPct*100).toFixed(1)}%</td><td>${o.pf.toFixed(0)}</td><td>${o.pa.toFixed(0)}</td><td>${o.ppg.toFixed(1)}</td><td>${o.champs?(o.champs+' 🏆'):'—'}</td></tr>`;
+  });
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+
+// ══════════════════════════════════════════════
+//  ALL-TIME HEAD-TO-HEAD GRID (by person)
+// ══════════════════════════════════════════════
+function renderHistH2HAll(){
+  const el=document.getElementById('hist-sub-h2h'); if(!el) return;
+  const recs={}; const names=new Set();
+  allSeasons.forEach(s=>{
+    const map=getTeamsMapFor(s);
+    (s.schedule||[]).forEach(m=>{
+      const ht=map[m.home?.teamId], at=map[m.away?.teamId];
+      if(!ht||!at) return;
+      const hs=m.home?.totalPoints??0, as_=m.away?.totalPoints??0;
+      if(hs===0&&as_===0) return;
+      const hp=mgr(ht), ap=mgr(at);
+      if(hp===ap) return;
+      names.add(hp); names.add(ap);
+      recs[hp]=recs[hp]||{}; recs[ap]=recs[ap]||{};
+      recs[hp][ap]=recs[hp][ap]||{w:0,l:0}; recs[ap][hp]=recs[ap][hp]||{w:0,l:0};
+      const w=inferWinner(m);
+      if(w==='HOME'){ recs[hp][ap].w++; recs[ap][hp].l++; }
+      else if(w==='AWAY'){ recs[ap][hp].w++; recs[hp][ap].l++; }
+    });
+  });
+  const ppl=[...names].sort();
+  if(!ppl.length){ el.innerHTML='<p style="color:var(--muted);padding:20px">No matchup data available.</p>'; return; }
+  let h='<div class="table-wrap"><table class="h2h-table"><thead><tr><th class="rl">vs →</th>'+ppl.map(p=>`<th>${p}</th>`).join('')+'</tr></thead><tbody>';
+  ppl.forEach(rp=>{
+    h+=`<tr><td class="rl">${rp}</td>`;
+    ppl.forEach(cp=>{
+      if(rp===cp){ h+='<td class="h2h-self">—</td>'; return; }
+      const rec=recs[rp]&&recs[rp][cp];
+      if(!rec||(rec.w===0&&rec.l===0)){ h+='<td style="color:var(--border-bright)">·</td>'; return; }
+      const cls=rec.w>rec.l?'h2h-win':rec.w<rec.l?'h2h-loss':'';
+      h+=`<td class="${cls}" title="${rp} vs ${cp}: ${rec.w}-${rec.l}">${rec.w}-${rec.l}</td>`;
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table><div class="h2h-note">Rows = manager, columns = opponent. Green = winning record, red = losing record. ESPN era (2011–present).</div></div>';
+  el.innerHTML=h;
+}
+
+// ══════════════════════════════════════════════
+//  WEEKLY AWARDS (current season)
+// ══════════════════════════════════════════════
+function buildWeeklyAwards(src){
+  const map=getTeamsMapFor(src);
+  const byWeek={};
+  (src.schedule||[]).forEach(m=>{ const wk=m.matchupPeriodId; (byWeek[wk]=byWeek[wk]||[]).push(m); });
+  const weeks=Object.keys(byWeek).map(Number).sort((a,b)=>b-a);
+  let rows='';
+  weeks.forEach(wk=>{
+    const ms=byWeek[wk].filter(m=>(m.home?.totalPoints||0)>0||(m.away?.totalPoints||0)>0);
+    if(!ms.length) return;
+    let hi=0,hiT=null, lo=Infinity,loT=null, big=0,bigW=null,bigL=null, close=Infinity,clW=null,clL=null;
+    ms.forEach(m=>{
+      const ht=map[m.home?.teamId], at=map[m.away?.teamId]; if(!ht||!at) return;
+      const hs=m.home?.totalPoints??0, as_=m.away?.totalPoints??0;
+      if(hs>hi){ hi=hs; hiT=ht; } if(as_>hi){ hi=as_; hiT=at; }
+      if(hs<lo){ lo=hs; loT=ht; } if(as_<lo){ lo=as_; loT=at; }
+      const w=inferWinner(m)==='HOME'; const mar=Math.abs(hs-as_);
+      if(mar>big){ big=mar; bigW=w?ht:at; bigL=w?at:ht; }
+      if(mar<close&&mar>0){ close=mar; clW=w?ht:at; clL=w?at:ht; }
+    });
+    rows+=`<div class="wk-awards"><div class="wk-awards-h">Week ${wk}</div><div class="wk-awards-grid">`+
+      `<div class="wka"><span class="wka-l">🔥 Top Score</span><span class="wka-w">${hiT?mgr(hiT):'—'}</span><span class="wka-d">${hi?hi.toFixed(1):''}</span></div>`+
+      `<div class="wka"><span class="wka-l">💥 Blowout</span><span class="wka-w">${bigW?mgr(bigW):'—'}</span><span class="wka-d">${bigW?('+'+big.toFixed(1)+' over '+mgr(bigL)):''}</span></div>`+
+      `<div class="wka"><span class="wka-l">⏱️ Nail-biter</span><span class="wka-w">${clW?mgr(clW):'—'}</span><span class="wka-d">${clW?('by '+close.toFixed(1)+' over '+mgr(clL)):''}</span></div>`+
+      `<div class="wka"><span class="wka-l">🧊 Bust</span><span class="wka-w">${loT?mgr(loT):'—'}</span><span class="wka-d">${lo===Infinity?'':lo.toFixed(1)}</span></div>`+
+      `</div></div>`;
+  });
+  if(!rows) rows='<div class="empty-msg"><div class="eicon">🏈</div><p>No completed weeks yet — weekly awards fill in as the season is played.</p></div>';
+  return `<div class="card"><div class="card-header"><div class="card-title">Weekly Awards</div><div class="card-sub">${src.season} · week by week</div></div>${rows}</div>`;
+}
+
+// ══════════════════════════════════════════════
+//  MANAGER PROFILES
+// ══════════════════════════════════════════════
+function nameLink(nick){
+  if(!nick) return '';
+  const j=JSON.stringify(nick);
+  return `<span class="mgr-link" onclick='event.stopPropagation();openProfile(${j})'>${nick}</span>`;
+}
+function renderManagers(){
+  const el=document.getElementById('tab-managers'); if(!el) return;
+  const rows=buildCrossSeasonStats();
+  const by={};
+  rows.forEach(r=>{
+    const k=r.owner||r.teamName;
+    if(!by[k]) by[k]={name:k,seasons:0,wins:0,losses:0,champs:0};
+    const o=by[k]; o.seasons++; o.wins+=r.wins; o.losses+=r.losses; if(r.isChamp)o.champs++;
+  });
+  const people=Object.values(by).sort((a,b)=>b.champs-a.champs || (b.wins/(b.wins+b.losses||1))-(a.wins/(a.wins+a.losses||1)));
+  let h='<div class="card"><div class="card-header"><div class="card-title">Managers</div><div class="card-sub">Tap a manager for their full career profile</div></div><div class="mgr-grid">';
+  people.forEach(o=>{
+    const gp=o.wins+o.losses||1;
+    h+=`<div class="mgr-card" onclick='openProfile(${JSON.stringify(o.name)})'>
+      <div class="mgr-card-name">${o.name}</div>
+      <div class="mgr-card-stat">${o.wins}–${o.losses} · ${(o.wins/gp*100).toFixed(0)}%</div>
+      <div class="mgr-card-sub">${o.seasons} season${o.seasons>1?'s':''}${o.champs?(' · '+o.champs+' 🏆'):''}</div>
+    </div>`;
+  });
+  h+='</div></div>';
+  el.innerHTML=h;
+}
+function openProfile(nick){
+  renderProfile(nick);
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(el=>el.classList.remove('active'));
+  const tab=document.getElementById('tab-managers'); if(tab) tab.classList.add('active');
+  const btn=[...document.querySelectorAll('nav button')].find(b=>(b.getAttribute('onclick')||'').includes("'managers'"));
+  if(btn) btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function backToManagers(){ renderManagers(); window.scrollTo({top:0,behavior:'smooth'}); }
+function renderProfile(nick){
+  const el=document.getElementById('tab-managers'); if(!el) return;
+  const tot={w:0,l:0,t:0,pf:0,pa:0,seasons:0,champs:0,bestWk:0,bestFin:99,playoffs:0,finalsApps:0,runnerUps:0};
+  const seasonRows=[]; const h2h={}; const draftByYear={}; const titleYears=[];
+  allSeasons.forEach(s=>{
+    const myTeam=s.teams.find(t=>mgr(t)===nick); if(!myTeam) return;
+    const rec=myTeam.record?.overall||{};
+    const w=rec.wins??0,l=rec.losses??0,ti=rec.ties??0;
+    const pf=rec.pointsFor??myTeam.points??0, pa=rec.pointsAgainst??0;
+    const fin=myTeam.rankCalculatedFinal||0;
+    const champ=fin===1;
+    tot.w+=w;tot.l+=l;tot.t+=ti;tot.pf+=pf;tot.pa+=pa;tot.seasons++;
+    if(champ){tot.champs++; titleYears.push(s.season);}
+    if(fin&&fin<tot.bestFin)tot.bestFin=fin;
+    if(fin&&fin<=6)tot.playoffs++;
+    if(fin===1||fin===2)tot.finalsApps++;
+    if(fin===2)tot.runnerUps++;
+    seasonRows.push({year:s.season,team:tName(myTeam),w,l,ti,fin,pf,pa,champ});
+    const map=getTeamsMapFor(s);
+    (s.schedule||[]).forEach(m=>{
+      const isHome=m.home?.teamId===myTeam.id, isAway=m.away?.teamId===myTeam.id;
+      if(!isHome&&!isAway) return;
+      const myPts=isHome?(m.home?.totalPoints??0):(m.away?.totalPoints??0);
+      const oppPts=isHome?(m.away?.totalPoints??0):(m.home?.totalPoints??0);
+      if(myPts===0&&oppPts===0) return;
+      if(myPts>tot.bestWk)tot.bestWk=myPts;
+      const oppTeam=isHome?map[m.away?.teamId]:map[m.home?.teamId];
+      if(!oppTeam) return;
+      const on=mgr(oppTeam); if(on===nick) return;
+      h2h[on]=h2h[on]||{w:0,l:0};
+      if(myPts>oppPts)h2h[on].w++; else if(myPts<oppPts)h2h[on].l++;
+    });
+    const picks=(s.draftDetail&&s.draftDetail.picks)||[];
+    const r1=picks.filter(p=>p.teamId===myTeam.id && p.roundId===1).map(p=>p.playerName).filter(Boolean);
+    if(r1.length) draftByYear[s.season]=r1;
+  });
+  if(!tot.seasons){ el.innerHTML='<div class="card"><p style="padding:20px">No data for '+nick+'.</p></div>'; return; }
+  seasonRows.sort((a,b)=>b.year-a.year);
+  const gp=tot.w+tot.l||1;
+  const ord=n=>{const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);};
+  let h=`<div class="card"><div class="prof-back" onclick="backToManagers()">← All Managers</div>
+    <div class="prof-hero">
+      <div class="prof-name">${nick}</div>
+      <div class="prof-rings">${tot.champs?('🏆'.repeat(tot.champs)+' '+tot.champs+'× Champion'+(titleYears.length?(' · '+titleYears.sort((a,b)=>a-b).join(', ')):'')):'No titles — yet'}</div>
+      <div class="prof-span">${tot.seasons} seasons played</div>
+    </div>
+    <div class="prof-stats">
+      <div class="pstat"><div class="pstat-l">Career Record</div><div class="pstat-v">${tot.w}–${tot.l}${tot.t?('–'+tot.t):''}</div></div>
+      <div class="pstat"><div class="pstat-l">Win %</div><div class="pstat-v">${(tot.w/gp*100).toFixed(1)}%</div></div>
+      <div class="pstat"><div class="pstat-l">Titles</div><div class="pstat-v">${tot.champs} 🏆</div></div>
+      <div class="pstat"><div class="pstat-l">Finals Apps</div><div class="pstat-v">${tot.finalsApps}</div></div>
+      <div class="pstat"><div class="pstat-l">Finals Record</div><div class="pstat-v">${tot.champs}–${tot.runnerUps}</div></div>
+      <div class="pstat"><div class="pstat-l">Best Finish</div><div class="pstat-v">${tot.bestFin<99?ord(tot.bestFin):'—'}</div></div>
+      <div class="pstat"><div class="pstat-l">Playoff Apps</div><div class="pstat-v">${tot.playoffs}</div></div>
+      <div class="pstat"><div class="pstat-l">Total PF</div><div class="pstat-v">${tot.pf.toFixed(0)}</div></div>
+      <div class="pstat"><div class="pstat-l">PPG</div><div class="pstat-v">${(tot.pf/gp).toFixed(1)}</div></div>
+      <div class="pstat"><div class="pstat-l">Best Week</div><div class="pstat-v">${tot.bestWk?tot.bestWk.toFixed(1):'—'}</div></div>
+      ${(function(){ const ap=buildAllPlay().list.find(x=>x.nick===nick); if(!ap) return '';
+        const lc=ap.luck>0.5?'luck-pos':ap.luck<-0.5?'luck-neg':'';
+        return '<div class="pstat"><div class="pstat-l">All-Play</div><div class="pstat-v">'+(ap.apPct*100).toFixed(1)+'%</div></div>'+
+               '<div class="pstat"><div class="pstat-l">Luck</div><div class="pstat-v '+lc+'">'+(ap.luck>0?'+':'')+ap.luck.toFixed(1)+'</div></div>'; })()}
+    </div></div>`;
+  // season by season
+  h+='<div class="card"><div class="card-header"><div class="card-title">Season by Season</div></div><div class="table-wrap"><table class="std-table"><thead><tr><th>Year</th><th>Team</th><th>W–L</th><th>Finish</th><th>PF</th><th>PA</th></tr></thead><tbody>';
+  seasonRows.forEach(r=>{
+    h+=`<tr><td style="font-weight:600">${r.year}</td><td style="color:var(--muted)">${r.team}</td><td>${r.w}–${r.l}${r.ti?('–'+r.ti):''}</td><td>${r.fin?ord(r.fin):'—'}${r.champ?' 🏆':''}</td><td>${r.pf.toFixed(1)}</td><td>${r.pa.toFixed(1)}</td></tr>`;
+  });
+  h+='</tbody></table></div></div>';
+  // head to head
+  const opps=Object.entries(h2h).map(([n,r])=>({n,...r,gp:r.w+r.l})).filter(o=>o.gp>0).sort((a,b)=>(b.w-b.l)-(a.w-a.l));
+  if(opps.length){
+    h+='<div class="card"><div class="card-header"><div class="card-title">Head-to-Head</div><div class="card-sub">Lifetime vs each manager</div></div><div class="h2h-list">';
+    opps.forEach(o=>{
+      const cls=o.w>o.l?'h2h-win':o.w<o.l?'h2h-loss':'';
+      h+=`<div class="h2h-item"><span class="h2h-opp">${nameLink(o.n)}</span><span class="${cls}">${o.w}–${o.l}</span></div>`;
+    });
+    h+='</div></div>';
+  }
+  // draft R1
+  const dy=Object.keys(draftByYear).map(Number).sort((a,b)=>b-a);
+  if(dy.length){
+    h+='<div class="card"><div class="card-header"><div class="card-title">First-Round Picks</div><div class="card-sub">Round 1, by year</div></div><div class="draft-list">';
+    dy.forEach(y=>{ h+=`<div class="draft-yr"><span class="draft-yr-l">${y}</span><span>${draftByYear[y].join(', ')}</span></div>`; });
+    h+='</div></div>';
+  }
+  el.innerHTML=h;
+}
+
+// ══════════════════════════════════════════════
+//  ALL-PLAY / LUCK / RIVALRIES  (core engine)
+// ══════════════════════════════════════════════
+function regWeeksFor(s){
+  const n = s && s.settings && s.settings.scheduleSettings && s.settings.scheduleSettings.matchupPeriodCount;
+  return (typeof n==='number' && n>0) ? n : 99;
+}
+let _apCache=null;
+function buildAllPlay(){
+  if(_apCache) return _apCache;
+  const person={};   // nick -> totals
+  const seasonRows=[]; // {season,nick,aw,al,at,w,l,gp}
+  const P=(n)=>person[n]||(person[n]={nick:n,aw:0,al:0,at:0,w:0,l:0,gp:0,seasons:0});
+  allSeasons.forEach(s=>{
+    const map=getTeamsMapFor(s);
+    const cutoff=regWeeksFor(s);
+    const byWk={};
+    (s.schedule||[]).forEach(m=>{
+      const wk=m.matchupPeriodId;
+      if(!(wk<=cutoff)) return;
+      const hs=m.home&&m.home.totalPoints, as_=m.away&&m.away.totalPoints;
+      if(!((hs>0)||(as_>0))) return;
+      (byWk[wk]=byWk[wk]||[]).push(m);
+    });
+    const local={};
+    Object.keys(byWk).forEach(wk=>{
+      const ms=byWk[wk];
+      const entries=[];
+      ms.forEach(m=>{
+        const ht=map[m.home&&m.home.teamId], at2=map[m.away&&m.away.teamId];
+        if(!ht||!at2) return;
+        const hp=m.home.totalPoints||0, ap=m.away.totalPoints||0;
+        entries.push({nick:mgr(ht),pts:hp,opp:mgr(at2),oppPts:ap});
+        entries.push({nick:mgr(at2),pts:ap,opp:mgr(ht),oppPts:hp});
+      });
+      entries.forEach(e=>{
+        let aw=0,al=0,at=0;
+        entries.forEach(o=>{ if(o===e) return;
+          if(e.pts>o.pts)aw++; else if(e.pts<o.pts)al++; else at++; });
+        const L=local[e.nick]||(local[e.nick]={aw:0,al:0,at:0,w:0,l:0,gp:0});
+        L.aw+=aw; L.al+=al; L.at+=at; L.gp++;
+        if(e.pts>e.oppPts)L.w++; else if(e.pts<e.oppPts)L.l++;
+      });
+    });
+    Object.keys(local).forEach(n=>{
+      const L=local[n]; const p=P(n);
+      p.aw+=L.aw;p.al+=L.al;p.at+=L.at;p.w+=L.w;p.l+=L.l;p.gp+=L.gp;p.seasons++;
+      seasonRows.push({season:s.season,nick:n,...L});
+    });
+  });
+  const list=Object.values(person).map(p=>{
+    const apg=p.aw+p.al+p.at||1;
+    const apPct=(p.aw+p.at*0.5)/apg;
+    const expW=apPct*p.gp;
+    return {...p, apPct, expW, luck:p.w-expW, winPct:p.gp?p.w/p.gp:0};
+  });
+  seasonRows.forEach(r=>{
+    const apg=r.aw+r.al+r.at||1;
+    r.apPct=(r.aw+r.at*0.5)/apg;
+    r.expW=r.apPct*r.gp;
+    r.luck=r.w-r.expW;
+  });
+  _apCache={list,seasonRows};
+  return _apCache;
+}
+let apSort={col:'luck',dir:-1};
+function sortAP(c){ if(apSort.col===c) apSort.dir*=-1; else apSort={col:c,dir:(c==='nick'?1:-1)}; renderHistAllPlay(); }
+function renderHistAllPlay(){
+  const el=document.getElementById('hist-sub-allplay'); if(!el) return;
+  const {list,seasonRows}=buildAllPlay();
+  if(!list.length){ el.innerHTML='<p style="color:var(--muted);padding:20px">No matchup data available.</p>'; return; }
+  const c=apSort.col,d=apSort.dir;
+  const rows=[...list].sort((a,b)=> c==='nick'? a.nick.localeCompare(b.nick)*d : (a[c]-b[c])*d );
+  const lucky=[...seasonRows].sort((a,b)=>b.luck-a.luck)[0];
+  const cursed=[...seasonRows].sort((a,b)=>a.luck-b.luck)[0];
+  let h='<div class="ap-note">Every week, your score is run against <em>every</em> other manager, not just your opponent. All-Play is the record you’d have if you played the whole league each week — it strips out schedule luck. <strong>Luck</strong> = real wins minus the wins All-Play says you earned.</div>';
+  h+='<div class="lucky-row">'+
+     `<div class="lucky-card up"><div class="lucky-l">🍀 Luckiest Season</div><div class="lucky-n">${lucky?lucky.nick:'—'}</div><div class="lucky-v">+${lucky?lucky.luck.toFixed(1):'0'} wins</div><div class="lucky-d">${lucky?lucky.season+' · '+lucky.w+'–'+lucky.l+' actual':''}</div></div>`+
+     `<div class="lucky-card down"><div class="lucky-l">💀 Most Cursed Season</div><div class="lucky-n">${cursed?cursed.nick:'—'}</div><div class="lucky-v">${cursed?cursed.luck.toFixed(1):'0'} wins</div><div class="lucky-d">${cursed?cursed.season+' · '+cursed.w+'–'+cursed.l+' actual':''}</div></div>`+
+     '</div>';
+  h+='<div class="table-wrap"><table class="std-table"><thead><tr>'+
+     '<th>#</th>'+
+     '<th class="sort-th" onclick="sortAP(\'nick\')">Manager</th>'+
+     '<th class="sort-th" onclick="sortAP(\'w\')">Real W–L</th>'+
+     '<th class="sort-th" onclick="sortAP(\'winPct\')">Win %</th>'+
+     '<th class="sort-th" onclick="sortAP(\'aw\')">All-Play W–L</th>'+
+     '<th class="sort-th" onclick="sortAP(\'apPct\')">AP %</th>'+
+     '<th class="sort-th" onclick="sortAP(\'expW\')">Expected W</th>'+
+     '<th class="sort-th" onclick="sortAP(\'luck\')">Luck</th>'+
+     '</tr></thead><tbody>';
+  rows.forEach((r,i)=>{
+    const lc=r.luck>0.5?'luck-pos':r.luck<-0.5?'luck-neg':'';
+    h+=`<tr><td>${i+1}</td><td style="font-weight:600">${nameLink(r.nick)}</td><td>${r.w}–${r.l}</td>`+
+       `<td>${(r.winPct*100).toFixed(1)}%</td><td>${r.aw}–${r.al}${r.at?('–'+r.at):''}</td>`+
+       `<td style="color:var(--gold)">${(r.apPct*100).toFixed(1)}%</td><td>${r.expW.toFixed(1)}</td>`+
+       `<td class="${lc}">${r.luck>0?'+':''}${r.luck.toFixed(1)}</td></tr>`;
+  });
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+
+// ── Rivalries ──────────────────────────────────
+function buildRivalries(){
+  const pairs={};
+  allSeasons.forEach(s=>{
+    const map=getTeamsMapFor(s);
+    (s.schedule||[]).forEach(m=>{
+      const ht=map[m.home&&m.home.teamId], at=map[m.away&&m.away.teamId];
+      if(!ht||!at) return;
+      const hp=m.home.totalPoints||0, ap=m.away.totalPoints||0;
+      if(hp===0&&ap===0) return;
+      const A=mgr(ht),B=mgr(at); if(A===B) return;
+      const key=[A,B].sort().join(' ↔ ');
+      const p=pairs[key]||(pairs[key]={key,a:[A,B].sort()[0],b:[A,B].sort()[1],games:0,aw:0,bw:0,ties:0,marginSum:0,big:null,log:[]});
+      p.games++;
+      const aPts=(A===p.a)?hp:ap, bPts=(A===p.a)?ap:hp;
+      const marg=Math.abs(aPts-bPts);
+      p.marginSum+=marg;
+      let winner=null;
+      if(aPts>bPts){p.aw++;winner=p.a;} else if(bPts>aPts){p.bw++;winner=p.b;} else p.ties++;
+      if(!p.big||marg>p.big.marg) p.big={marg,winner,loser:winner===p.a?p.b:p.a,season:s.season,wk:m.matchupPeriodId,ws:Math.max(aPts,bPts),ls:Math.min(aPts,bPts)};
+      p.log.push({season:s.season,wk:m.matchupPeriodId,winner});
+    });
+  });
+  const list=Object.values(pairs).map(p=>{
+    p.avgMarg=p.marginSum/(p.games||1);
+    p.diff=Math.abs(p.aw-p.bw);
+    p.log.sort((x,y)=> x.season-y.season || x.wk-y.wk);
+    let st=0,who=null;
+    for(let i=p.log.length-1;i>=0;i--){ const w=p.log[i].winner; if(!w) break; if(who===null){who=w;st=1;} else if(w===who) st++; else break; }
+    p.streak=st; p.streakWho=who;
+    return p;
+  });
+  return list;
+}
+function renderHistRivalries(){
+  const el=document.getElementById('hist-sub-rivalries'); if(!el) return;
+  const all=buildRivalries().filter(p=>p.games>=4);
+  if(!all.length){ el.innerHTML='<p style="color:var(--muted);padding:20px">Not enough matchup data.</p>'; return; }
+  const closest=[...all].sort((a,b)=> a.diff-b.diff || b.games-a.games)[0];
+  const lopsided=[...all].sort((a,b)=> (b.diff/b.games)-(a.diff/a.games) || b.games-a.games)[0];
+  const mostPlayed=[...all].sort((a,b)=>b.games-a.games)[0];
+  const bloodbath=[...all].sort((a,b)=>b.big.marg-a.big.marg)[0];
+  const tightest=[...all].sort((a,b)=>a.avgMarg-b.avgMarg)[0];
+  const card=(t,n,v,d)=>`<div class="riv-card"><div class="riv-l">${t}</div><div class="riv-n">${n}</div><div class="riv-v">${v}</div><div class="riv-d">${d}</div></div>`;
+  let h='<div class="riv-grid">';
+  h+=card('⚖️ Dead-Even Rivalry',closest.key,`${Math.max(closest.aw,closest.bw)}–${Math.min(closest.aw,closest.bw)}`,`${closest.games} meetings, separated by ${closest.diff}`);
+  h+=card('🔨 Most Lopsided',`${lopsided.aw>lopsided.bw?lopsided.a:lopsided.b} over ${lopsided.aw>lopsided.bw?lopsided.b:lopsided.a}`,`${Math.max(lopsided.aw,lopsided.bw)}–${Math.min(lopsided.aw,lopsided.bw)}`,`${lopsided.games} meetings`);
+  h+=card('🤝 Most Played',mostPlayed.key,`${mostPlayed.games} games`,`${mostPlayed.aw}–${mostPlayed.bw}${mostPlayed.ties?('–'+mostPlayed.ties):''} (${mostPlayed.a})`);
+  h+=card('💥 Biggest Beatdown',`${bloodbath.big.winner} over ${bloodbath.big.loser}`,`+${bloodbath.big.marg.toFixed(1)}`,`${bloodbath.big.season} Wk ${bloodbath.big.wk} · ${bloodbath.big.ws.toFixed(1)}–${bloodbath.big.ls.toFixed(1)}`);
+  h+=card('🔪 Closest Series',tightest.key,`${tightest.avgMarg.toFixed(1)} avg margin`,`${tightest.games} meetings`);
+  const hotStreak=[...all].sort((a,b)=>b.streak-a.streak)[0];
+  if(hotStreak&&hotStreak.streak>1) h+=card('🔥 Longest Active Streak',hotStreak.streakWho,`${hotStreak.streak} straight`,`over ${hotStreak.streakWho===hotStreak.a?hotStreak.b:hotStreak.a}`);
+  h+='</div>';
+  const sorted=[...all].sort((a,b)=>b.games-a.games);
+  h+='<div class="table-wrap"><table class="std-table"><thead><tr><th>Rivalry</th><th>Record</th><th>Games</th><th>Avg Margin</th><th>Biggest Win</th></tr></thead><tbody>';
+  sorted.forEach(p=>{
+    const lead=p.aw>p.bw?`${p.a} leads`:p.bw>p.aw?`${p.b} leads`:'even';
+    h+=`<tr><td style="font-weight:600">${nameLink(p.a)} <span style="color:var(--muted)">vs</span> ${nameLink(p.b)}</td>`+
+       `<td>${p.aw}–${p.bw}${p.ties?('–'+p.ties):''} <span style="color:var(--muted);font-size:11px">${lead}</span></td>`+
+       `<td>${p.games}</td><td>${p.avgMarg.toFixed(1)}</td>`+
+       `<td style="font-size:12px">${p.big.winner} +${p.big.marg.toFixed(1)} <span style="color:var(--muted)">(${p.big.season})</span></td></tr>`;
+  });
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+
+// ══════════════════════════════════════════════
+//  RECAPS (templated narrative, no AI)
+// ══════════════════════════════════════════════
+function pickV(arr,seed){ return arr[Math.abs(seed)%arr.length]; }
+function renderRecaps(){
+  const el=document.getElementById('tab-recaps'); if(!el) return;
+  const src=allSeasons[0]; if(!src){ el.innerHTML=''; return; }
+  const map=getTeamsMapFor(src);
+  const cutoff=regWeeksFor(src);
+  const byWk={};
+  (src.schedule||[]).forEach(m=>{
+    const hs=m.home&&m.home.totalPoints, as_=m.away&&m.away.totalPoints;
+    if(!((hs>0)||(as_>0))) return;
+    (byWk[m.matchupPeriodId]=byWk[m.matchupPeriodId]||[]).push(m);
+  });
+  const weeks=Object.keys(byWk).map(Number).sort((a,b)=>b-a);
+  let h=`<div class="card"><div class="card-header"><div class="card-title">Season Recaps</div><div class="card-sub">${src.season} · auto-written from the box scores</div></div>`;
+  if(!weeks.length){
+    h+='<div class="empty-msg"><div class="eicon">📰</div><p>No games played yet. Recaps write themselves as the season goes.</p></div></div>';
+    el.innerHTML=h; return;
+  }
+  weeks.forEach(wk=>{
+    const games=byWk[wk].map(m=>{
+      const ht=map[m.home&&m.home.teamId], at=map[m.away&&m.away.teamId];
+      if(!ht||!at) return null;
+      const hp=m.home.totalPoints||0, ap=m.away.totalPoints||0;
+      const hw=hp>=ap;
+      return {w:hw?mgr(ht):mgr(at), l:hw?mgr(at):mgr(ht), ws:hw?hp:ap, ls:hw?ap:hp, marg:Math.abs(hp-ap)};
+    }).filter(Boolean);
+    if(!games.length) return;
+    const scores=[];
+    games.forEach(g=>{scores.push({n:g.w,p:g.ws},{n:g.l,p:g.ls});});
+    scores.sort((a,b)=>b.p-a.p);
+    const top=scores[0], bot=scores[scores.length-1];
+    const blow=[...games].sort((a,b)=>b.marg-a.marg)[0];
+    const close=[...games].sort((a,b)=>a.marg-b.marg)[0];
+    const unlucky=[...games].sort((a,b)=>b.ls-a.ls)[0];
+    const avg=scores.reduce((s,x)=>s+x.p,0)/scores.length;
+    const isPlayoff=wk>cutoff;
+    const lede=pickV([
+      `${top.n} set the pace in Week ${wk}, hanging ${top.p.toFixed(1)} on the board.`,
+      `Week ${wk} belonged to ${top.n}, whose ${top.p.toFixed(1)} was the number everyone else chased.`,
+      `Nobody touched ${top.n} in Week ${wk} — ${top.p.toFixed(1)} points, top of the league.`,
+      `${top.n} led all scorers in Week ${wk} with ${top.p.toFixed(1)}.`
+    ],wk);
+    const blowLine=blow.marg>=40?pickV([
+      ` ${blow.w} handled ${blow.l} ${blow.ws.toFixed(1)}–${blow.ls.toFixed(1)}, a ${blow.marg.toFixed(1)}-point statement.`,
+      ` The week's beatdown went to ${blow.w}, who put ${blow.marg.toFixed(1)} on ${blow.l}.`,
+      ` ${blow.l} never had a chance — ${blow.w} won by ${blow.marg.toFixed(1)}.`
+    ],wk+1):pickV([
+      ` The widest margin was ${blow.w} over ${blow.l} by ${blow.marg.toFixed(1)}.`,
+      ` ${blow.w}'s ${blow.marg.toFixed(1)}-point win over ${blow.l} was as lopsided as it got.`
+    ],wk+1);
+    const closeLine=close.marg<=5?pickV([
+      ` On the other end, ${close.w} survived ${close.l} by ${close.marg.toFixed(1)} — the kind of loss that ruins a week.`,
+      ` ${close.w} edged ${close.l} by ${close.marg.toFixed(1)}. Somewhere, a bench player is being blamed.`,
+      ` ${close.w} escaped ${close.l} by ${close.marg.toFixed(1)} points.`
+    ],wk+2):` ${close.w} beat ${close.l} by ${close.marg.toFixed(1)} in the week's tightest game.`;
+    const unluckyLine=(unlucky.ls>avg)?pickV([
+      ` Spare a thought for ${unlucky.l}, who scored ${unlucky.ls.toFixed(1)} — above the weekly average — and still lost.`,
+      ` ${unlucky.l} put up ${unlucky.ls.toFixed(1)} and got nothing for it.`,
+      ` Tough luck for ${unlucky.l}: ${unlucky.ls.toFixed(1)} points, zero wins.`
+    ],wk+3):'';
+    const botLine=pickV([
+      ` ${bot.n} brought up the rear with ${bot.p.toFixed(1)}.`,
+      ` At the bottom, ${bot.n} managed just ${bot.p.toFixed(1)}.`,
+      ` ${bot.n} would like Week ${wk} back — ${bot.p.toFixed(1)} points.`
+    ],wk+4);
+    h+=`<div class="recap">
+      <div class="recap-h">${isPlayoff?'Playoffs · ':''}Week ${wk}<span class="recap-avg">league avg ${avg.toFixed(1)}</span></div>
+      <p class="recap-b">${lede}${blowLine}${closeLine}${unluckyLine}${botLine}</p>
+      <div class="recap-chips">
+        <span class="rchip"><b>🔥 High</b> ${top.n} ${top.p.toFixed(1)}</span>
+        <span class="rchip"><b>💥 Blowout</b> ${blow.w} +${blow.marg.toFixed(1)}</span>
+        <span class="rchip"><b>⏱️ Closest</b> ${close.w} +${close.marg.toFixed(1)}</span>
+        <span class="rchip"><b>🧊 Low</b> ${bot.n} ${bot.p.toFixed(1)}</span>
+      </div></div>`;
+  });
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+// ── Extra all-time game-level records ──────────
+function extraRecordRows(){
+  let blow=null, highLoss=null, lowWin=null, closest=null;
+  const seq={};
+  allSeasons.forEach(s=>{
+    const map=getTeamsMapFor(s);
+    const ms=(s.schedule||[]).slice().sort((a,b)=>(a.matchupPeriodId||0)-(b.matchupPeriodId||0));
+    ms.forEach(m=>{
+      const ht=map[m.home&&m.home.teamId], at=map[m.away&&m.away.teamId];
+      if(!ht||!at) return;
+      const hp=m.home.totalPoints||0, ap=m.away.totalPoints||0;
+      if(hp===0&&ap===0) return;
+      const hw=hp>ap;
+      const W=hw?mgr(ht):mgr(at), L=hw?mgr(at):mgr(ht);
+      const ws=Math.max(hp,ap), ls=Math.min(hp,ap), marg=ws-ls;
+      const rec={W,L,ws,ls,marg,season:s.season,wk:m.matchupPeriodId};
+      if(!blow||marg>blow.marg) blow=rec;
+      if(!highLoss||ls>highLoss.ls) highLoss=rec;
+      if(!lowWin||ws<lowWin.ws) lowWin=rec;
+      if(marg>0&&(!closest||marg<closest.marg)) closest=rec;
+      if(hp!==ap){
+        [[W,1],[L,0]].forEach(([n,win])=>{
+          const q=seq[n]||(seq[n]={cur:0,best:0,bestEnd:null,curL:0,worst:0,worstEnd:null});
+          if(win){ q.cur++; q.curL=0; if(q.cur>q.best){q.best=q.cur;q.bestEnd=s.season;} }
+          else { q.curL++; q.cur=0; if(q.curL>q.worst){q.worst=q.curL;q.worstEnd=s.season;} }
+        });
+      }
+    });
+  });
+  const streakBest=Object.entries(seq).map(([n,q])=>({n,v:q.best,end:q.bestEnd})).sort((a,b)=>b.v-a.v)[0];
+  const streakWorst=Object.entries(seq).map(([n,q])=>({n,v:q.worst,end:q.worstEnd})).sort((a,b)=>b.v-a.v)[0];
+  const row=(desc,who,season,val,sub)=>`<tr><td>${desc}</td><td style="font-weight:600">${who}</td><td><span class="season-badge">${season}</span></td><td class="gold-val">${val}</td><td style="color:var(--muted);font-size:12px">${sub||''}</td></tr>`;
+  let h='';
+  if(blow)      h+=row('💥 Biggest Blowout Ever',blow.W,blow.season,'+'+blow.marg.toFixed(1),`beat ${blow.L} ${blow.ws.toFixed(1)}–${blow.ls.toFixed(1)} (Wk ${blow.wk})`);
+  if(closest)   h+=row('🔪 Closest Game Ever',closest.W,closest.season,closest.marg.toFixed(2),`over ${closest.L} (Wk ${closest.wk})`);
+  if(highLoss)  h+=row('😤 Highest Score in a Loss',highLoss.L,highLoss.season,highLoss.ls.toFixed(1),`lost to ${highLoss.W} (${highLoss.ws.toFixed(1)})`);
+  if(lowWin)    h+=row('🍀 Lowest Score in a Win',lowWin.W,lowWin.season,lowWin.ws.toFixed(1),`beat ${lowWin.L} (${lowWin.ls.toFixed(1)})`);
+  if(streakBest)h+=row('🔥 Longest Win Streak',streakBest.n,streakBest.end,streakBest.v+' straight','consecutive wins');
+  if(streakWorst)h+=row('🥶 Longest Losing Streak',streakWorst.n,streakWorst.end,streakWorst.v+' straight','consecutive losses');
+  return h;
+}
+
+</script>
+</body>
+</html>
