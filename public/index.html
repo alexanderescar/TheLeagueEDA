@@ -1674,8 +1674,9 @@ function renderPlayoffPicture(src, played) {
   const curWeek = src.status?.currentMatchupPeriod || 1;
   const map = getTeamsMapFor(src);
 
-  // Team strength: actual scoring so far, shrunk toward the league mean early on
-  // when a couple of weeks tell you very little.
+  // Team strength = the draft-day projection as a prior, updated by actual scoring
+  // as it accumulates. Before Week 1 this is exactly the draft-day estimate, so the
+  // Playoff Picture and the Draft Recap tab agree instead of contradicting each other.
   const weekly = pwWeeklyScores(src.schedule, regWeeks);
   const teams = src.teams || [];
   const ppg = {}, gamesPlayed = {};
@@ -1686,16 +1687,35 @@ function renderPlayoffPicture(src, played) {
     const sum = g.reduce((a,x) => a + x.pts, 0);
     if (g.length) { ppg[t.id] = sum / g.length; leagueTotal += sum; leagueGames += g.length; }
   });
-  const leagueMean = leagueGames ? leagueTotal / leagueGames : 122.1;
+  const leagueMean = leagueGames ? leagueTotal / leagueGames
+    : (typeof LEAGUE_MEAN_PPG !== 'undefined' ? LEAGUE_MEAN_PPG : 122.1);
+
+  // Prior: projected roster strength, shrunk by how much projections are actually
+  // worth in this league (see recap.js — measured r = 0.07).
+  const prior = {};
+  let projRows = null;
+  if (typeof drBuild === 'function') {
+    const dr = drBuild();
+    if (dr && dr.season === src.season) projRows = dr.rows;
+  }
+  if (projRows) {
+    const vals = projRows.map(r => r.projPPG);
+    const m = vals.reduce((a,b)=>a+b,0) / vals.length;
+    const sd = Math.sqrt(vals.reduce((a,b)=>a+(b-m)*(b-m),0) / vals.length) || 1;
+    const rel = (typeof PROJECTION_RELIABILITY !== 'undefined') ? PROJECTION_RELIABILITY : 0.10;
+    const btw = (typeof BETWEEN_TEAM_SD !== 'undefined') ? BETWEEN_TEAM_SD : 10.4;
+    projRows.forEach(r => { prior[r.teamId] = leagueMean + ((r.projPPG - m) / sd) * btw * rel; });
+  }
 
   const means = {};
   teams.forEach(t => {
+    const base = prior[t.id] != null ? prior[t.id] : leagueMean;
     const n = gamesPlayed[t.id] || 0;
-    if (!n) { means[t.id] = leagueMean; return; }
-    // Shrink toward the mean: about 6 games before we mostly trust the average.
+    if (!n) { means[t.id] = base; return; }
+    // About six games before real scoring outweighs the draft-day prior.
     const k = 6;
     const w = n / (n + k);
-    means[t.id] = leagueMean + w * (ppg[t.id] - leagueMean);
+    means[t.id] = base + w * (ppg[t.id] - base);
   });
 
   // Remaining schedule only; results already banked become fixed wins.
@@ -1731,7 +1751,9 @@ function renderPlayoffPicture(src, played) {
   rows.forEach((r, i) => {
     const pct = r.pct == null ? 0 : r.pct;
     const state = pct >= 99.5 ? 'in' : pct <= 0.5 ? 'out' : i < spots ? 'hold' : 'chase';
-    const label = pct >= 99.5 ? 'CLINCHED' : pct <= 0.5 ? 'ELIMINATED' : i < spots ? 'IN THE FIELD' : 'ON THE OUTSIDE';
+    const label = !played
+      ? (i < spots ? 'PROJECTED FIELD' : 'PROJECTED OUT')
+      : pct >= 99.5 ? 'CLINCHED' : pct <= 0.5 ? 'ELIMINATED' : i < spots ? 'IN THE FIELD' : 'ON THE OUTSIDE';
     h += `<div class="pp-item ${state}">
       <div class="pp-seed">${i + 1}</div>
       <div class="pp-body">
