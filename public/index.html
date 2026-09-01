@@ -698,6 +698,78 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
 .h2h-self{color:var(--border-bright)}
 .h2h-note{font-size:11px;color:var(--muted);padding:10px 4px}
 
+/* ── Draft Recap (current season) ──────────────────────────── */
+.dr-hero{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.dr-herocard{flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.dr-herolab{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:5px}
+.dr-heroval{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1.15}
+.dr-herosub{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.45}
+
+.dr-team{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:0;margin-bottom:14px;overflow:hidden}
+.dr-thead{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.dr-rank{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);min-width:22px}
+.dr-name{font-weight:700;font-size:16px;flex:1;min-width:110px}
+.dr-teamname{font-size:11px;color:var(--muted);font-weight:400;display:block;margin-top:1px}
+.dr-tier{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;letter-spacing:.3px}
+.dr-t1{background:rgba(59,214,106,.16);color:#4fe07d;border:1px solid rgba(59,214,106,.4)}
+.dr-t2{background:rgba(120,200,255,.13);color:#7cc4f5;border:1px solid rgba(120,200,255,.35)}
+.dr-t3{background:rgba(240,192,64,.13);color:var(--gold);border:1px solid rgba(240,192,64,.35)}
+.dr-t4{background:rgba(224,85,85,.13);color:#f06a6a;border:1px solid rgba(224,85,85,.35)}
+.dr-odds{text-align:right;min-width:74px}
+.dr-oddsval{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:800}
+.dr-oddsdelta{font-size:10px;color:var(--muted)}
+.dr-body{padding:14px 16px}
+.dr-writeup{font-size:13px;line-height:1.65;margin-bottom:12px}
+.dr-advice{background:rgba(240,192,64,.06);border-left:2px solid var(--gold);padding:9px 12px;border-radius:0 6px 6px 0;font-size:12px;line-height:1.6;margin-bottom:12px}
+.dr-advice strong{color:var(--gold)}
+.dr-posbars{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.dr-posbar{flex:1;min-width:64px}
+.dr-posname{font-size:10px;color:var(--muted);letter-spacing:.5px;margin-bottom:3px}
+.dr-postrack{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.dr-posfill{height:100%;border-radius:3px}
+.dr-posrank{font-size:10px;color:var(--muted);margin-top:3px}
+.dr-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.dr-chip{font-size:10px;padding:3px 8px;border-radius:5px;border:1px solid var(--border);color:var(--muted)}
+.dr-chip.warn{border-color:rgba(224,85,85,.4);color:#f06a6a;background:rgba(224,85,85,.07)}
+.dr-chip.good{border-color:rgba(59,214,106,.4);color:#4fe07d;background:rgba(59,214,106,.07)}
+.dr-toggle{font-size:11px;color:var(--gold);cursor:pointer;user-select:none;border:none;background:none;padding:4px 0}
+.dr-toggle:hover{text-decoration:underline}
+
+/* superlatives */
+.dr-sups{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.dr-sup{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:9px;padding:11px 13px}
+.dr-suplab{font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:5px}
+.dr-supname{font-weight:700;font-size:13px}
+.dr-supsub{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.45}
+
+/* colour-coded board */
+.dr-board{border-collapse:separate;border-spacing:3px;font-size:10px;width:100%}
+.dr-board th{font-size:9px;color:var(--muted);font-weight:600;padding:3px;text-align:center;white-space:nowrap}
+.dr-board td{padding:0}
+.dr-cell{border-radius:5px;padding:5px 6px;min-height:38px;border:1px solid rgba(255,255,255,.07);line-height:1.3}
+.dr-cellpick{font-size:8px;opacity:.65;font-family:'JetBrains Mono',monospace}
+.dr-cellname{font-weight:600;font-size:10px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-p-qb{background:rgba(236,88,124,.20);border-color:rgba(236,88,124,.45)}
+.dr-p-rb{background:rgba(59,214,106,.18);border-color:rgba(59,214,106,.42)}
+.dr-p-wr{background:rgba(94,168,255,.18);border-color:rgba(94,168,255,.42)}
+.dr-p-te{background:rgba(255,159,64,.18);border-color:rgba(255,159,64,.42)}
+.dr-p-k{background:rgba(180,140,255,.16);border-color:rgba(180,140,255,.38)}
+.dr-p-dst{background:rgba(140,150,165,.16);border-color:rgba(140,150,165,.38)}
+.dr-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:10px;color:var(--muted)}
+.dr-legkey{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.dr-steal-mark{color:var(--green);font-weight:700}
+.dr-reach-mark{color:var(--red);font-weight:700}
+
+@media (max-width:760px){
+  .dr-thead{gap:8px;padding:12px}
+  .dr-name{font-size:15px}
+  .dr-oddsval{font-size:17px}
+  .dr-heroval{font-size:19px}
+  .dr-board{font-size:9px}
+  .dr-cellname{font-size:9px}
+  .dr-posbar{min-width:52px}
+}
+
 /* ── Draft Grades ─────────────────────────────────────────── */
 .dg-wrap{margin-bottom:20px}
 .dg-grade{display:inline-flex;align-items:center;justify-content:center;min-width:40px;padding:3px 8px;border-radius:6px;font-weight:800;font-size:14px;letter-spacing:.5px;font-family:'JetBrains Mono',monospace}
@@ -1187,6 +1259,7 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
       <button onclick="switchTab(event,'scores')">Matchups</button>
       <button onclick="switchTab(event,'awards')">Weekly Awards</button>
       <button onclick="switchTab(event,'recaps')">Recaps</button>
+      <button onclick="switchTab(event,'draftrecap')">Draft Recap</button>
     </div>
     <span class="nav-sep"></span>
     <div class="nav-col">
@@ -1204,6 +1277,7 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
     <div id="tab-scores"    class="tab-content"></div>
     <div id="tab-awards"    class="tab-content"></div>
     <div id="tab-recaps"    class="tab-content"></div>
+    <div id="tab-draftrecap" class="tab-content"></div>
     <div id="tab-history"   class="tab-content"></div>
     <div id="tab-champions" class="tab-content"></div>
     <div id="tab-managers" class="tab-content"></div>
@@ -1212,6 +1286,7 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
 
 </div>
 <script src="/grades.js"></script>
+<script src="/recap.js"></script>
 <script>
 // ══════════════════════════════════════════════
 //  STATE
@@ -1285,6 +1360,7 @@ function renderAll() {
   renderManagers();
   renderHistory();
   renderDraft();
+  renderDraftRecap();
 }
 
 // ══════════════════════════════════════════════
@@ -2174,6 +2250,354 @@ function renderDraft() {
   window._draftSeasonMaps = {};
   drafts.forEach(s => { window._draftSeasonMaps[s.season] = getMap(s); });
   renderDraftSeason();
+}
+
+// ══════════════════════════════════════════════
+//  CURRENT-SEASON DRAFT RECAP
+// ══════════════════════════════════════════════
+
+function drCurrentSeason() {
+  if (!allSeasons.length) return null;
+  // The newest season that has a completed draft.
+  return allSeasons.find(s => ((s.draftDetail || {}).picks || []).length) || null;
+}
+
+function drRegWeeks(s) {
+  return (s.settings && s.settings.scheduleSettings && s.settings.scheduleSettings.matchupPeriodCount) || 13;
+}
+
+let _drCache = null;
+function drBuild() {
+  if (_drCache) return _drCache;
+  if (typeof buildRecap !== 'function') return null;
+  const s = drCurrentSeason();
+  if (!s) return null;
+
+  const picks = ((s.draftDetail || {}).picks || []).map(p => ({
+    teamId: p.teamId, pick: p.overallPickNumber, pos: p.playerPosition, name: p.playerName,
+    espnProj: p.projPoints != null ? p.projPoints : null,
+    espnRank: p.preDraftRank != null ? p.preDraftRank : null,
+    fpEcr: p.fpEcr != null ? p.fpEcr : null,
+    fpStd: p.fpStd != null ? p.fpStd : null,
+    fpTier: p.fpTier != null ? p.fpTier : null,
+    bye: p.bye != null ? p.bye : null,
+    auction: p.auction != null ? p.auction : null,
+    keeper: !!p.keeper,
+  }));
+  const teams = (s.teams || []).map(t => ({ id: t.id, manager: mgr(t), teamName: tName(t) }));
+  const regWeeks = drRegWeeks(s);
+  const schedule = (s.schedule || [])
+    .filter(m => m.home && m.away && m.matchupPeriodId <= regWeeks)
+    .map(m => ({ week: m.matchupPeriodId, home: m.home.teamId, away: m.away.teamId }));
+  const spots = (s.settings && s.settings.scheduleSettings && s.settings.scheduleSettings.playoffTeamCount) || 6;
+
+  const res = buildRecap(picks, teams, schedule, spots);
+  if (!res) return null;
+  res.season = s.season;
+  res.sources = s.preseasonSources || null;
+  res.hasStarted = (s.schedule || []).some(m => (m.home && m.home.totalPoints > 0));
+  return (_drCache = res);
+}
+
+// ── Write-ups. Data-driven, so they say something specific or nothing at all. ──
+function drWriteup(r, all) {
+  const bits = [];
+  const strong = ['QB','RB','WR','TE'].filter(p => r.pos[p].rank <= 3);
+  const weak   = ['QB','RB','WR','TE'].filter(p => r.pos[p].rank >= 10);
+  const best = r.bestPick, worst = r.worstPick;
+
+  // Opening line keyed to how the draft graded.
+  if (r.gradeZ >= 0.75)      bits.push(`Hard to find much wrong here. ${r.manager} came out of this draft with the ${r.gradeRank === 1 ? 'best' : 'one of the best'} value hauls in the league.`);
+  else if (r.gradeZ >= 0.15) bits.push(`A solid, unspectacular draft. ${r.manager} didn't reach much and didn't need to.`);
+  else if (r.gradeZ >= -0.45) bits.push(`Middling. ${r.manager} mostly took players about where they were supposed to go.`);
+  else                        bits.push(`This one's going to need some work. ${r.manager} paid above the going rate more than once.`);
+
+  if (strong.length) bits.push(`The roster's real strength is ${drList(strong.map(p => `${p} (${ordinal(r.pos[p].rank)} in the league)`))}.`);
+  if (weak.length)   bits.push(`${strong.length ? 'But ' : ''}${drList(weak.map(p => `${p} (${ordinal(r.pos[p].rank)})`))} ${weak.length > 1 ? 'are' : 'is'} a genuine problem.`);
+
+  if (r.shape === 'Zero-RB')      bits.push(`Zero-RB by design or by accident, they didn't take a back in the first four rounds.`);
+  else if (r.shape === 'RB-heavy') bits.push(`They hammered running backs early, which is either conviction or stubbornness depending on how it goes.`);
+  else if (r.shape === 'Hero-RB')  bits.push(`One anchor back and then receivers — the whole thing leans on that one player.`);
+
+  if (r.topHeavy >= 32) bits.push(`Roughly ${Math.round(r.topHeavy)}% of the projected starting output comes from just two players, which is a lot of eggs in a very small basket.`);
+
+  return bits.join(' ');
+}
+
+function drAdvice(r) {
+  const needs = [];
+  const weak = ['RB','WR','TE','QB'].filter(p => r.pos[p].rank >= 10);
+  const strong = ['RB','WR','TE','QB'].filter(p => r.pos[p].rank <= 3);
+
+  if (weak.length) {
+    needs.push(`<strong>Work the wire early at ${weak.join(' and ')}.</strong> You're bottom-three there, and waiting until someone gets hurt to address it is how this roster misses the playoffs.`);
+  }
+  if (r.topHeavy >= 32) {
+    needs.push(`<strong>Handcuff your top two.</strong> ${Math.round(r.topHeavy)}% of your projected starting points sit with two players — one injury and the season changes shape.`);
+  }
+  if (r.byeTrouble.length) {
+    const b = r.byeTrouble[0];
+    needs.push(`<strong>Week ${b.week} is a landmine.</strong> ${b.count} projected starters are on bye together (${b.players.slice(0,3).join(', ')}). Plan that roster two weeks out, not the morning of.`);
+  }
+  if (strong.length && !weak.length) {
+    needs.push(`<strong>You can afford to be patient.</strong> With ${strong.join(' and ')} this strong, resist streaming away depth for short-term matchups.`);
+  }
+  if (r.tierRank >= 3) {
+    needs.push(`<strong>You'll need to out-manage the room.</strong> The roster alone doesn't get there — this is a season where waiver aggression and start/sit calls have to do the heavy lifting.`);
+  }
+  if (!needs.length) {
+    needs.push(`<strong>Don't overthink it.</strong> Balanced roster, no glaring hole. Set the lineup, take the free wins, and don't trade away depth chasing a name.`);
+  }
+  return needs.slice(0, 3).join('<br>');
+}
+
+function drList(arr) {
+  if (!arr.length) return '';
+  if (arr.length === 1) return arr[0];
+  if (arr.length === 2) return arr[0] + ' and ' + arr[1];
+  return arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1];
+}
+function ordinal(n) {
+  const s = ['th','st','nd','rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+function drPosClass(pos) {
+  const p = (pos || '').toUpperCase().replace(/[^A-Z]/g, '');
+  if (p === 'QB') return 'dr-p-qb';
+  if (p === 'RB') return 'dr-p-rb';
+  if (p === 'WR') return 'dr-p-wr';
+  if (p === 'TE') return 'dr-p-te';
+  if (p === 'K' || p === 'PK') return 'dr-p-k';
+  if (p === 'DST' || p === 'DEF') return 'dr-p-dst';
+  return '';
+}
+
+function renderDraftRecap() {
+  const tab = document.getElementById('tab-draftrecap');
+  if (!tab) return;
+
+  if (typeof buildRecap !== 'function') {
+    tab.innerHTML = `<div class="card"><div class="empty-msg"><div class="eicon">📋</div>
+      <h3>Recap module didn't load</h3><p>recap.js failed to load — try a hard refresh.</p></div></div>`;
+    return;
+  }
+
+  const res = drBuild();
+  if (!res) {
+    tab.innerHTML = `<div class="card"><div class="empty-msg"><div class="eicon">📋</div>
+      <h3>No draft on file yet</h3>
+      <p>Once this season's draft is complete and the data has been refreshed,<br>
+      grades, the board and playoff projections will appear here.</p></div></div>`;
+    return;
+  }
+
+  const rows = res.rows;
+  const cal  = res.calibration;
+  const sup  = res.superlatives;
+  const src  = res.sources;
+  const fpNote = src && src.fantasyPros
+    ? `${src.fantasyPros.matched} of ${src.fantasyPros.of} picks matched to FantasyPros (${src.fantasyPros.experts} experts, half PPR)`
+    : 'FantasyPros unavailable — grades are ESPN-only';
+
+  const best = rows[0], worst = rows[rows.length - 1];
+  const oddsSpread = Math.max(...rows.map(r => r.playoffPct || 50)) - Math.min(...rows.map(r => r.playoffPct || 50));
+
+  let h = `
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-header">
+      <div class="card-title">${res.season} Draft Recap</div>
+      <div class="card-sub">${rows.length} teams &middot; ESPN + FantasyPros consensus</div>
+    </div>
+    <div class="dr-hero">
+      <div class="dr-herocard">
+        <div class="dr-herolab">Best draft</div>
+        <div class="dr-heroval" style="color:var(--green)">${best.manager}</div>
+        <div class="dr-herosub">Graded ${best.grade}. Best combination of value against the board and projected points.</div>
+      </div>
+      <div class="dr-herocard">
+        <div class="dr-herolab">Roughest draft</div>
+        <div class="dr-heroval" style="color:var(--red)">${worst.manager}</div>
+        <div class="dr-herosub">Graded ${worst.grade}. Reached most often relative to where players were ranked.</div>
+      </div>
+      <div class="dr-herocard">
+        <div class="dr-herolab">Spread in playoff odds</div>
+        <div class="dr-heroval" style="color:var(--gold)">${oddsSpread.toFixed(0)} pts</div>
+        <div class="dr-herosub">Best to worst, against a ${cal.baseline}% baseline. Narrow on purpose — see below.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-header">
+      <div class="card-title">Draft Superlatives</div>
+      <div class="card-sub">Across all ${rows.reduce((a,r)=>a+r.picks.length,0)} picks</div>
+    </div>
+    <div class="dr-sups">
+      ${sup.steal ? `<div class="dr-sup"><div class="dr-suplab">Biggest Steal</div>
+        <div class="dr-supname">${sup.steal.name}</div>
+        <div class="dr-supsub">${sup.steal.manager} at pick ${sup.steal.pick} &middot; consensus had him ${sup.steal.consensus}.<br><span class="dr-steal-mark">${sup.steal.slotValue} picks of value</span></div></div>` : ''}
+      ${sup.reach ? `<div class="dr-sup"><div class="dr-suplab">Biggest Reach</div>
+        <div class="dr-supname">${sup.reach.name}</div>
+        <div class="dr-supsub">${sup.reach.manager} at pick ${sup.reach.pick} &middot; consensus had him ${sup.reach.consensus}.<br><span class="dr-reach-mark">${Math.abs(sup.reach.slotValue)} picks early</span></div></div>` : ''}
+      ${sup.splitPick && sup.splitPick.disagreement != null ? `<div class="dr-sup"><div class="dr-suplab">Sources Disagree Most</div>
+        <div class="dr-supname">${sup.splitPick.name}</div>
+        <div class="dr-supsub">ESPN ranks him ${sup.splitPick.espnRank}, FantasyPros ${sup.splitPick.fpEcr} &mdash; a ${sup.splitPick.disagreement}-spot gap. ${sup.splitPick.manager} bet on it at ${sup.splitPick.pick}.</div></div>` : ''}
+      ${sup.controversial && sup.controversial.std != null ? `<div class="dr-sup"><div class="dr-suplab">Experts Can't Agree</div>
+        <div class="dr-supname">${sup.controversial.name}</div>
+        <div class="dr-supsub">Highest disagreement among the expert panel (&plusmn;${sup.controversial.std} spots). ${sup.controversial.manager} took him at ${sup.controversial.pick}.</div></div>` : ''}
+    </div>
+  </div>`;
+
+  // ── Team cards ──
+  h += rows.map(r => {
+    const tierCls = 'dr-t' + r.tierRank;
+    const oddsColor = r.oddsEdge == null ? 'var(--muted)' : r.oddsEdge > 3 ? 'var(--green)' : r.oddsEdge < -3 ? 'var(--red)' : 'var(--gold)';
+    const posBars = ['QB','RB','WR','TE'].map(p => {
+      const d = r.pos[p];
+      const pct = Math.max(4, Math.min(100, 50 + d.z * 25));
+      const col = d.rank <= 3 ? 'var(--green)' : d.rank >= 10 ? 'var(--red)' : 'var(--gold)';
+      return `<div class="dr-posbar">
+        <div class="dr-posname">${p}</div>
+        <div class="dr-postrack"><div class="dr-posfill" style="width:${pct}%;background:${col}"></div></div>
+        <div class="dr-posrank">${ordinal(d.rank)}</div>
+      </div>`;
+    }).join('');
+
+    return `
+    <div class="dr-team">
+      <div class="dr-thead">
+        <span class="dr-rank">#${r.gradeRank}</span>
+        <span class="dr-name">${r.manager}<span class="dr-teamname">${r.teamName || ''}</span></span>
+        <span class="dg-grade ${dgGradeClass(r.grade)}">${r.grade}</span>
+        <span class="dr-tier ${tierCls}">${r.tier}</span>
+        <span class="dr-odds">
+          <div class="dr-oddsval" style="color:${oddsColor}">${r.playoffPct == null ? '—' : r.playoffPct + '%'}</div>
+          <div class="dr-oddsdelta">${r.oddsEdge == null ? '' : (r.oddsEdge > 0 ? '+' : '') + r.oddsEdge + ' vs ' + cal.baseline + '%'}</div>
+        </span>
+      </div>
+      <div class="dr-body">
+        <div class="dr-chips">
+          <span class="dr-chip">${r.shape}</span>
+          <span class="dr-chip">${r.projPPG} proj PPG</span>
+          <span class="dr-chip">Title odds ${r.titlePct == null ? '—' : r.titlePct + '%'}</span>
+          ${r.byeTrouble.length ? `<span class="dr-chip warn">Week ${r.byeTrouble[0].week} bye crunch</span>` : ''}
+          ${r.topHeavy >= 32 ? `<span class="dr-chip warn">Top-heavy (${Math.round(r.topHeavy)}%)</span>` : ''}
+          ${r.gradeRank <= 3 ? `<span class="dr-chip good">Top-3 draft</span>` : ''}
+        </div>
+        <div class="dr-writeup">${drWriteup(r, rows)}</div>
+        <div class="dr-posbars">${posBars}</div>
+        <div class="dr-advice">${drAdvice(r)}</div>
+        <button class="dr-toggle" onclick="drTogglePicks(${r.teamId})">Show all ${r.picks.length} picks &darr;</button>
+        <div id="dr-picks-${r.teamId}" style="display:none;margin-top:10px">${drTeamPicks(r)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Colour-coded board ──
+  h += drBoard(res);
+
+  // ── Method / honesty note ──
+  h += `
+  <div class="card">
+    <div class="card-header"><div class="card-title">How these numbers were built</div></div>
+    <div class="dg-note">
+      <strong>Grades</strong> blend two things: value against the board (ESPN's pre-draft ranks averaged with
+      FantasyPros' expert consensus) and projected points over replacement at each position. A team can grade
+      well and still be projected badly &mdash; drafting efficiently from a weak slot is not the same as having
+      the best roster, which is why grade and tier sometimes disagree.
+      <br><br>
+      <strong>Playoff odds</strong> come from simulating this season's actual schedule ${cal.simulations.toLocaleString()} times.
+      They are deliberately conservative. Measured across 96 team-seasons of this league since 2018:
+      week-to-week scoring swings by <strong>${cal.weeklyNoiseSd} points</strong>, while real differences between
+      teams are only <strong>${cal.betweenTeamSd}</strong>. Draft grade predicts final finish at r&nbsp;=&nbsp;0.18;
+      projected roster strength predicts actual scoring at r&nbsp;=&nbsp;0.07; manager skill year-over-year
+      is r&nbsp;=&nbsp;0.00. What players <em>actually do</em> predicts finish at r&nbsp;=&nbsp;0.50 &mdash; but nobody
+      can know that in September.
+      <br><br>
+      So projected strength is shrunk to ${Math.round(cal.reliability * 100)}% before simulating, and the odds land in a narrow band
+      around ${cal.baseline}%. A model that told you someone had a 78% shot would be more fun and would be lying.
+      The honest read: your draft moved your odds a handful of points, and the rest is the waiver wire, health,
+      and who you happen to play.
+      <br><br>
+      <span style="color:var(--muted)">${fpNote}. Keepers are included.</span>
+    </div>
+  </div>`;
+
+  tab.innerHTML = h;
+}
+
+function drTeamPicks(r) {
+  return `<table class="dg-picks">
+    <thead><tr><th>Pick</th><th>Player</th><th>Pos</th><th style="text-align:right">Proj</th><th style="text-align:right">ESPN</th><th style="text-align:right">FP</th><th style="text-align:right">Value</th></tr></thead>
+    <tbody>${r.picks.map(p => {
+      const v = p.slotValue;
+      const cls = v > 12 ? 'dg-steal' : v < -12 ? 'dg-bust' : '';
+      return `<tr>
+        <td style="color:var(--muted)">${p.pick}</td>
+        <td>${p.name || '—'}${p.keeper ? '<span class="dg-keeper">KEPT</span>' : ''}</td>
+        <td style="color:var(--muted)">${(p.pos || '—')}</td>
+        <td style="text-align:right">${p.proj == null ? '—' : p.proj.toFixed(0)}</td>
+        <td style="text-align:right;color:var(--muted)">${p.espnRank == null ? '—' : p.espnRank}</td>
+        <td style="text-align:right;color:var(--muted)">${p.fpEcr == null ? '—' : p.fpEcr}</td>
+        <td style="text-align:right" class="${cls}">${v > 0 ? '+' + v : v}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function drTogglePicks(teamId) {
+  const el = document.getElementById('dr-picks-' + teamId);
+  if (!el) return;
+  const showing = el.style.display !== 'none';
+  el.style.display = showing ? 'none' : '';
+  const btn = el.previousElementSibling;
+  if (btn) btn.innerHTML = showing ? `Show all ${el.querySelectorAll('tbody tr').length} picks &darr;` : 'Hide picks &uarr;';
+}
+
+function drBoard(res) {
+  const rows = res.rows;
+  const teamCount = rows.length;
+  const byPick = {};
+  rows.forEach(r => r.picks.forEach(p => { byPick[p.pick] = { p, manager: r.manager }; }));
+  const totalPicks = Object.keys(byPick).length;
+  const rounds = Math.ceil(totalPicks / teamCount);
+
+  // Column order follows round 1, and the snake is unwound so each column is one team.
+  const round1 = [];
+  for (let i = 1; i <= teamCount; i++) if (byPick[i]) round1.push(byPick[i].manager);
+
+  let html = `<div class="card" style="margin-bottom:18px">
+    <div class="card-header">
+      <div class="card-title">The Board</div>
+      <div class="card-sub">${totalPicks} picks &middot; ${rounds} rounds &middot; colour by position</div>
+    </div>
+    <div class="dr-legend">
+      ${[['QB','dr-p-qb'],['RB','dr-p-rb'],['WR','dr-p-wr'],['TE','dr-p-te'],['K','dr-p-k'],['D/ST','dr-p-dst']]
+        .map(([lab, cls]) => `<span><span class="dr-legkey ${cls}"></span>${lab}</span>`).join('')}
+      <span style="margin-left:auto">Snake order &mdash; each column is one manager</span>
+    </div>
+    <div class="table-wrap"><table class="dr-board"><thead><tr><th></th>${round1.map(m => `<th>${m}</th>`).join('')}</tr></thead><tbody>`;
+
+  for (let rd = 0; rd < rounds; rd++) {
+    html += `<tr><th>R${rd + 1}</th>`;
+    for (let col = 0; col < teamCount; col++) {
+      // Snake: even rounds run left-to-right, odd rounds reverse.
+      const posInRound = (rd % 2 === 0) ? col : (teamCount - 1 - col);
+      const pickNo = rd * teamCount + posInRound + 1;
+      const cell = byPick[pickNo];
+      if (!cell) { html += '<td></td>'; continue; }
+      const p = cell.p;
+      const short = (p.name || '').replace(/\s(Jr\.?|Sr\.?|III|II|IV)$/i, '');
+      const val = p.slotValue;
+      const mark = val > 20 ? ' <span class="dr-steal-mark">▲</span>' : val < -20 ? ' <span class="dr-reach-mark">▼</span>' : '';
+      html += `<td><div class="dr-cell ${drPosClass(p.pos)}" title="${(p.name||'')} · ${p.pos||''} · pick ${p.pick}${p.espnRank?' · ESPN '+p.espnRank:''}${p.fpEcr?' · FP '+p.fpEcr:''}">
+        <span class="dr-cellpick">${p.pick}</span>${mark}
+        <span class="dr-cellname">${short}</span>
+      </div></td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table></div></div>';
+  return html;
 }
 
 // ══════════════════════════════════════════════

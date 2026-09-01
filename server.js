@@ -12,6 +12,12 @@ const SWID        = process.env.SWID        || '';
 const TURSO_URL   = process.env.TURSO_URL   || '';
 const TURSO_TOKEN = process.env.TURSO_TOKEN || '';
 const SCRAPE_KEY  = process.env.SCRAPE_KEY  || 'theleague';
+// The NFL season rolls over in the spring, so anything before ~June still belongs
+// to the previous fantasy year.
+const CURRENT_SEASON = process.env.CURRENT_SEASON || (() => {
+    const d = new Date();
+    return d.getMonth() >= 5 ? d.getFullYear() : d.getFullYear() - 1;
+})();
 
 const DATA_FILE = path.join(__dirname, 'data', 'league_data.json');
 
@@ -112,7 +118,7 @@ app.get('/api/league', async (req, res) => {
             fix: 'Visit /admin/scrape?key=YOUR_SCRAPE_KEY to trigger a scrape',
             hasFile: fs.existsSync(DATA_FILE), hasTurso: !!(TURSO_URL && TURSO_TOKEN), hasCookies: !!(ESPN_S2 && SWID),
         });
-        res.json(annotateDraftStats(annotateManagers(withInaugural(data))));
+        res.json(annotatePreseason(annotateDraftStats(annotateManagers(withInaugural(data)))));
     } catch (err) {
         console.error('[API]', err);
         res.status(500).json({ error: err.message });
@@ -208,6 +214,31 @@ app.get('/admin/playerstats', async (req, res) => {
     res.end('</body></html>');
 });
 
+// ── Admin: rebuild the current-season draft recap data (ESPN + FantasyPros)
+app.get('/admin/preseason', async (req, res) => {
+    if (req.query.key !== SCRAPE_KEY) return res.status(403).send('Forbidden — wrong key');
+    const year = req.query.year || CURRENT_SEASON;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    res.write(`<!DOCTYPE html><html><head><title>Preseason ${year}</title>
+    <style>body{background:#111;color:#0f0;font-family:monospace;padding:2em;white-space:pre-wrap}
+    .err{color:#f66}.done{color:#ff0;font-size:1.4em}</style></head><body>`);
+    const log = (m) => { console.log('[Preseason]', m); res.write(m + '\n'); };
+    try {
+        log(`Building ${year} draft recap data — ESPN projections + FantasyPros consensus\n`);
+        const out = await require('./preseason').buildPreseason(year, null, log);
+        const fp = out.sources.fantasyPros;
+        log(`\n<span class="done">Done.</span>`);
+        log(`ESPN matched ${out.sources.espn.matched}/${out.sources.espn.of}`);
+        log(fp ? `FantasyPros matched ${fp.matched}/${fp.of} (${fp.experts} experts, ${fp.scoring})`
+               : 'FantasyPros unavailable — grades will use ESPN only');
+        log('\n<a href="/" style="color:#0af">← Back to the app</a>');
+    } catch (err) {
+        log(`\n<span class="err">Failed: ${err.message}</span>`);
+    }
+    res.end('</body></html>');
+});
+
 if (!fs.existsSync(DATA_FILE) && ESPN_S2 && SWID && !TURSO_URL) {
     console.log('[Boot] No data file - running background scrape');
     Promise.resolve()
@@ -222,6 +253,15 @@ if (!fs.existsSync(DATA_FILE) && ESPN_S2 && SWID && !TURSO_URL) {
         .catch(e => console.error('[Boot] player stats failed', e.message));
 }
 
+// Current-season draft recap data (ESPN + FantasyPros), rebuilt if missing.
+if (!fs.existsSync(path.join(__dirname, 'data', `preseason_${CURRENT_SEASON}.json`))) {
+    console.log(`[Boot] No preseason_${CURRENT_SEASON} file - building in background`);
+    setTimeout(() => {
+        require('./preseason').buildPreseason(CURRENT_SEASON, null, console.log)
+            .catch(e => console.error('[Boot] preseason failed', e.message));
+    }, 20000);   // let any boot scrape finish writing league_data.json first
+}
+
 app.get('/health', (req, res) => res.json({ ok: true }));
 
 let _mgrs=null;
@@ -229,6 +269,7 @@ function loadManagers(){ if(_mgrs) return _mgrs; try{ _mgrs=JSON.parse(fs.readFi
 function annotateManagers(d){ if(!d||!Array.isArray(d.seasons)) return d; const M=loadManagers(); d.seasons.forEach(s=>{ (s.teams||[]).forEach(t=>{ const g=t.owners&&t.owners[0]; const info=(typeof g==='string')?M[g]:null; if(info){ t.managerKey=info.key; t.managerNick=info.nick; t.managerName=info.name; } else { t.managerKey='t:'+(t.name||t.id); t.managerNick=t.name||('Team '+t.id); t.managerName=t.managerNick; } }); }); return d; }
 
 function annotateDraftStats(d){ try { return require('./playerstats').annotateDraftStats(d); } catch(e) { console.warn('[DraftStats]', e.message); return d; } }
+function annotatePreseason(d){ try { return require('./preseason').annotatePreseason(d); } catch(e) { console.warn('[Preseason]', e.message); return d; } }
 
 app.listen(PORT, () => {
     console.log(`The League on :${PORT} · League ${LEAGUE_ID}`);

@@ -14,7 +14,7 @@ const LEAGUE_ID   = process.env.LEAGUE_ID || '119089';
 const ESPN_S2_RAW = process.env.ESPN_S2 || process.env.ESPN_2 || '';
 const ESPN_S2     = ESPN_S2_RAW ? decodeURIComponent(ESPN_S2_RAW) : '';
 const SWID        = process.env.SWID || '';
-const SEASONS     = (process.env.SEASONS || '2025,2024,2023,2022,2021,2020,2019,2018,2017,2016,2015,2014,2013,2012,2011').split(',').map(s => s.trim());
+const SEASONS     = (process.env.SEASONS || '2026,2025,2024,2023,2022,2021,2020,2019,2018,2017,2016,2015,2014,2013,2012,2011').split(',').map(s => s.trim());
 const OUT_FILE    = path.join(__dirname, 'data', 'league_data.json');
 const ESPN_API    = 'https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl';
 
