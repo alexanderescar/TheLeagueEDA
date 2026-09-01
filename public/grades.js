@@ -107,6 +107,25 @@ function gradeSeason(picks, teamCount, finish) {
 
     const hasProj = usable.filter(p => p.proj != null).length / usable.length;
     const hasAct  = usable.filter(p => p.act  != null).length / usable.length;
+    const hasRank = usable.filter(p => p.rank != null).length / usable.length;
+
+    // ESPN dropped its stored projections for some seasons (2023) but kept the
+    // pre-draft ranks. Where that happens, grade the paper draft on board position
+    // instead of projected points: you're measured on how far each player slid
+    // relative to where the board had him. Different unit, same idea, and because
+    // grades are z-scored within the season the letters stay comparable.
+    const paperMode = hasProj >= 0.5 ? 'proj' : (hasRank >= 0.5 ? 'rank' : null);
+
+    let boardPos = null;
+    if (paperMode === 'rank') {
+        const ranked = usable.slice().sort((a, b) => {
+            const ra = a.rank == null ? Infinity : a.rank;
+            const rb = b.rank == null ? Infinity : b.rank;
+            return ra - rb || a.pick - b.pick;
+        });
+        boardPos = new Map();
+        ranked.forEach((p, i) => boardPos.set(p, i + 1));
+    }
 
     const projVor = vorFor(usable, teamCount, p => p.proj);
     const actVor  = vorFor(usable, teamCount, p => p.act);
@@ -132,9 +151,14 @@ function gradeSeason(picks, teamCount, finish) {
         const pv = projVor.vor.get(p) || 0;
         const av = actVor.vor.get(p) || 0;
         const slot = p.pick - 1;
-        t.projGot += pv;
+        if (paperMode === 'rank') {
+            t.projGot += p.pick;                 // the slot he cost you
+            t.projExp += boardPos.get(p);        // where the board actually had him
+        } else {
+            t.projGot += pv;
+            t.projExp += projCurve[slot] != null ? projCurve[slot] : 0;
+        }
         t.actGot  += av;
-        t.projExp += projCurve[slot] != null ? projCurve[slot] : 0;
         t.actExp  += actCurve[slot]  != null ? actCurve[slot]  : 0;
         t.picks.push({
             name: p.name, pos: normPos(p.pos), pick: p.pick, keeper: !!p.keeper,
@@ -167,7 +191,8 @@ function gradeSeason(picks, teamCount, finish) {
 
     return {
         rows,
-        coverage: { proj: round(hasProj * 100), act: round(hasAct * 100) },
+        paperMode,
+        coverage: { proj: round(hasProj * 100), act: round(hasAct * 100), rank: round(hasRank * 100) },
         replacement: { proj: projVor.levels, act: actVor.levels },
         correlation: spearman(
             rows.map(r => -r.paperScore),          // negate: better score -> better (lower) rank

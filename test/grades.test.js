@@ -123,6 +123,48 @@ console.log('\nPICK-LEVEL STEALS AND BUSTS');
     ok('best pick beats worst pick', r0.bestPick.delta >= r0.worstPick.delta);
 }
 
+console.log('\nRANK FALLBACK  (2023: ESPN kept pre-draft ranks but dropped projections)');
+{
+    const picks = makeSeason({ seed: 13 });
+    // Ranks track true value; then wipe the projections the way ESPN did for 2023.
+    const order = picks.slice().sort((a, b) => b.proj - a.proj);
+    order.forEach((p, i) => { p.rank = i + 1; });
+    picks.forEach(p => { p.proj = null; });
+
+    const res = gradeSeason(picks, 12, null);
+    ok('falls back to rank mode', res.paperMode === 'rank', 'mode=' + res.paperMode);
+    ok('zero-sum still holds in rank mode',
+        near(res.rows.reduce((a, r) => a + r.paperScore, 0), 0, 0.6),
+        'sum=' + res.rows.reduce((a, r) => a + r.paperScore, 0));
+    ok('grades still vary', new Set(res.rows.map(r => r.paperGrade)).size >= 3);
+    ok('reality grade unaffected by the projection gap',
+        res.rows.every(r => isFinite(r.realityScore)));
+    ok('coverage reports the gap honestly',
+        res.coverage.proj === 0 && res.coverage.rank === 100,
+        JSON.stringify(res.coverage));
+
+    // A manager who reached on every pick must grade badly under rank mode.
+    const reachPicks = makeSeason({ seed: 13 });
+    const ord2 = reachPicks.slice().sort((a, b) => b.proj - a.proj);
+    ord2.forEach((p, i) => { p.rank = i + 1; });
+    // Team 5 takes the worst-ranked player available at each of his slots.
+    reachPicks.filter(p => p.teamId === 5).forEach(p => { p.rank = 190; });
+    reachPicks.forEach(p => { p.proj = null; });
+    const res2 = gradeSeason(reachPicks, 12, null);
+    const worst = res2.rows.slice().sort((a, b) => a.paperScore - b.paperScore)[0];
+    ok('the manager who reached on everyone grades worst', worst.teamId === 5, 'worst=' + worst.teamId);
+}
+
+console.log('\nMODE SELECTION');
+{
+    const picks = makeSeason({ seed: 2 });
+    ok('uses projections when they exist', gradeSeason(picks, 12, null).paperMode === 'proj');
+    const none = makeSeason({ seed: 2 });
+    none.forEach(p => { p.proj = null; });
+    ok('no projections and no ranks = no paper grade possible',
+        gradeSeason(none, 12, null).paperMode === null);
+}
+
 console.log('\nPOSITION NORMALISATION');
 {
     ok('DST spelling variants collapse', normPos('DST') === 'D/ST' && normPos('D/ST') === 'D/ST');

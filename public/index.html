@@ -697,6 +697,50 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
 .h2h-loss{color:var(--red)}
 .h2h-self{color:var(--border-bright)}
 .h2h-note{font-size:11px;color:var(--muted);padding:10px 4px}
+
+/* ── Draft Grades ─────────────────────────────────────────── */
+.dg-wrap{margin-bottom:20px}
+.dg-grade{display:inline-flex;align-items:center;justify-content:center;min-width:40px;padding:3px 8px;border-radius:6px;font-weight:800;font-size:14px;letter-spacing:.5px;font-family:'JetBrains Mono',monospace}
+.dg-a{background:rgba(59,214,106,.16);color:#4fe07d;border:1px solid rgba(59,214,106,.35)}
+.dg-b{background:rgba(120,200,255,.13);color:#7cc4f5;border:1px solid rgba(120,200,255,.3)}
+.dg-c{background:rgba(240,192,64,.13);color:var(--gold);border:1px solid rgba(240,192,64,.3)}
+.dg-d{background:rgba(255,150,70,.13);color:#ff9a4a;border:1px solid rgba(255,150,70,.3)}
+.dg-f{background:rgba(224,85,85,.15);color:#f06a6a;border:1px solid rgba(224,85,85,.35)}
+.dg-verdict{font-size:11px;padding:2px 8px;border-radius:20px;white-space:nowrap;border:1px solid var(--border)}
+.dg-v-good{background:rgba(59,214,106,.1);color:#4fe07d;border-color:rgba(59,214,106,.3)}
+.dg-v-bad{background:rgba(224,85,85,.1);color:#f06a6a;border-color:rgba(224,85,85,.3)}
+.dg-v-over{background:rgba(240,192,64,.1);color:var(--gold);border-color:rgba(240,192,64,.3)}
+.dg-v-flat{color:var(--muted)}
+.dg-row{cursor:pointer}
+.dg-row:hover td{background:rgba(255,255,255,.03)}
+.dg-caret{color:var(--muted);font-size:10px;margin-left:6px}
+.dg-detail td{background:rgba(0,0,0,.22);padding:0!important}
+.dg-detail-inner{padding:14px 16px}
+.dg-picks{width:100%;border-collapse:collapse;font-size:12px}
+.dg-picks th{text-align:left;color:var(--muted);font-weight:600;font-size:10px;letter-spacing:.6px;text-transform:uppercase;padding:4px 8px;border-bottom:1px solid var(--border)}
+.dg-picks td{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.04)}
+.dg-steal{color:var(--green);font-weight:600}
+.dg-bust{color:var(--red)}
+.dg-keeper{font-size:9px;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:0 4px;margin-left:5px;vertical-align:middle}
+.dg-note{font-size:11px;color:var(--muted);padding:10px 2px;line-height:1.55}
+.dg-corr{display:flex;gap:12px;flex-wrap:wrap;margin:4px 0 14px}
+.dg-corrcard{flex:1;min-width:160px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.dg-corrval{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1.1}
+.dg-corrlab{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:5px}
+.dg-corrsub{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.45}
+.dg-quad{position:relative;width:100%;max-width:560px;margin:6px auto 0;aspect-ratio:1/1;border:1px solid var(--border);border-radius:10px;background:rgba(0,0,0,.18)}
+.dg-quad-line{position:absolute;background:var(--border)}
+.dg-qlabel{position:absolute;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);opacity:.75;pointer-events:none}
+.dg-dot{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;background:var(--card);border:1.5px solid var(--gold);color:var(--chalk);cursor:default}
+.dg-dot.champ{border-color:var(--gold);background:rgba(240,192,64,.3);color:#fff}
+.dg-axis{font-size:10px;color:var(--muted);text-align:center;margin-top:6px}
+.dg-axis-y{font-size:10px;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg);position:absolute;left:-20px;top:50%;margin-top:-40px}
+@media (max-width:760px){
+  .dg-quad{max-width:100%}
+  .dg-dot{width:22px;height:22px;margin:-11px 0 0 -11px;font-size:8px}
+  .dg-corrcard{min-width:130px;padding:10px}
+  .dg-corrval{font-size:21px}
+}
 .wk-awards{padding:10px 16px;border-top:1px solid var(--border)}
 .wk-awards-h{font-weight:700;color:var(--gold);font-size:13px;margin-bottom:6px}
 .wk-awards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
@@ -1167,6 +1211,7 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
   </main>
 
 </div>
+<script src="/grades.js"></script>
 <script>
 // ══════════════════════════════════════════════
 //  STATE
@@ -2118,6 +2163,9 @@ function renderDraft() {
         </select>
       </div>
     </div>
+  </div>
+  <div id="draft-grades"></div>
+  <div class="card">
     <div id="draft-content"></div>
   </div>`;
 
@@ -2126,6 +2174,255 @@ function renderDraft() {
   window._draftSeasonMaps = {};
   drafts.forEach(s => { window._draftSeasonMaps[s.season] = getMap(s); });
   renderDraftSeason();
+}
+
+// ══════════════════════════════════════════════
+//  DRAFT GRADES
+//  Paper Grade  = preseason projections (what you should have known on draft day)
+//  Reality Grade = actual season points (what those picks did)
+//  The gap between them separates "drafted badly" from "players got hurt".
+// ══════════════════════════════════════════════
+
+const DG_FIRST_YEAR = 2018;   // ESPN has no player projections/actuals before this
+
+// Build the pick list gradeSeason() expects for one season.
+function dgPicksFor(season) {
+  const picks = (season && season.draftDetail && season.draftDetail.picks) || [];
+  return picks.map(p => ({
+    teamId: p.teamId,
+    pick:   p.overallPickNumber,
+    pos:    p.playerPosition,
+    name:   p.playerName,
+    proj:   p.projPoints   != null ? p.projPoints   : null,
+    act:    p.actualPoints != null ? p.actualPoints : null,
+    rank:   p.preDraftRank != null ? p.preDraftRank : null,
+    keeper: !!p.keeper,
+  }));
+}
+
+let _dgCache = null;
+function dgAll() {
+  if (_dgCache) return _dgCache;
+  if (typeof gradeSeason !== 'function') return (_dgCache = []);
+  const out = [];
+  allSeasons.forEach(s => {
+    if (s.season < DG_FIRST_YEAR) return;
+    const picks = dgPicksFor(s);
+    if (!picks.length) return;
+    const finish = new Map();
+    (s.teams || []).forEach(t => { if (t.rankCalculatedFinal) finish.set(t.id, t.rankCalculatedFinal); });
+    const res = gradeSeason(picks, (s.teams || []).length || 12, finish);
+    if (!res) return;
+    const map = getTeamsMapFor(s.season) || {};
+    res.rows.forEach(r => {
+      const t = (s.teams || []).find(x => x.id === r.teamId);
+      r.manager  = t ? mgr(t) : ('Team ' + r.teamId);
+      r.teamName = t ? tName(t) : '';
+    });
+    out.push({ season: s.season, ...res });
+  });
+  return (_dgCache = out);
+}
+
+function dgGradeClass(g) {
+  if (!g) return '';
+  const c = g.charAt(0);
+  return c === 'A' ? 'dg-a' : c === 'B' ? 'dg-b' : c === 'C' ? 'dg-c' : c === 'D' ? 'dg-d' : 'dg-f';
+}
+function dgVerdictClass(v) {
+  if (v === 'Delivered') return 'dg-v-good';
+  if (v === 'Bad draft, good year') return 'dg-v-over';
+  if (v === 'Wasted a great draft' || v === 'Never had a chance') return 'dg-v-bad';
+  return 'dg-v-flat';
+}
+function dgFmt(n, d) { return n == null ? '—' : (n > 0 ? '+' : '') + n.toFixed(d == null ? 1 : d); }
+
+// Pooled Spearman across every graded team-season.
+function dgPooled(seasons) {
+  const paper = [], reality = [], finish = [];
+  seasons.forEach(s => s.rows.forEach(r => {
+    if (r.finish == null) return;
+    // Negate: a better grade should line up with a better (lower) finishing rank.
+    paper.push(r.paperGradeZ == null ? null : -r.paperGradeZ);
+    reality.push(r.realityGradeZ == null ? null : -r.realityGradeZ);
+    finish.push(r.finish);
+  }));
+  return {
+    paper:   spearman(paper, finish),
+    reality: spearman(reality, finish),
+    n: finish.length,
+  };
+}
+
+function renderDraftGrades(seasonVal) {
+  const el = document.getElementById('draft-grades');
+  if (!el) return;
+
+  if (typeof gradeSeason !== 'function') {
+    el.innerHTML = `<div class="dg-note">Draft grades unavailable — grading module failed to load.</div>`;
+    return;
+  }
+
+  const all = dgAll();
+  const cur = all.find(g => g.season === seasonVal);
+
+  if (!cur) {
+    el.innerHTML = `<div class="card dg-wrap"><div class="card-header">
+        <div class="card-title">Draft Grades</div>
+        <div class="card-sub">${seasonVal} &middot; not graded</div>
+      </div>
+      <div class="dg-note">ESPN keeps preseason projections and final player scoring only back to ${DG_FIRST_YEAR}.
+      Seasons before that have full draft boards but nothing to grade them against, so no grade is shown
+      rather than a made-up one.</div></div>`;
+    return;
+  }
+
+  const rows = cur.rows.slice().sort((a, b) => b.paperScore - a.paperScore);
+  const pooled = dgPooled(all);
+  const modeNote = cur.paperMode === 'rank'
+    ? `Paper grade for ${cur.season} is built from ESPN's pre-draft ranks — it did not retain projections for this season.`
+    : '';
+
+  const corr = cur.correlation, rcorr = cur.realityCorrelation;
+
+  el.innerHTML = `
+  <div class="card dg-wrap">
+    <div class="card-header">
+      <div class="card-title">Draft Grades &middot; ${cur.season}</div>
+      <div class="card-sub">Graded on the board, not on raw points</div>
+    </div>
+
+    <div class="dg-corr">
+      <div class="dg-corrcard">
+        <div class="dg-corrlab">Draft &rarr; Finish, ${cur.season}</div>
+        <div class="dg-corrval" style="color:${corr == null ? 'var(--muted)' : corr > 0.3 ? 'var(--green)' : corr < -0.3 ? 'var(--red)' : 'var(--gold)'}">${corr == null ? '—' : dgFmt(corr, 2)}</div>
+        <div class="dg-corrsub">How well the paper grade predicted where people actually finished this season.</div>
+      </div>
+      <div class="dg-corrcard">
+        <div class="dg-corrlab">All-time, ${pooled.n} team-drafts</div>
+        <div class="dg-corrval" style="color:var(--gold)">${pooled.paper == null ? '—' : dgFmt(pooled.paper, 2)}</div>
+        <div class="dg-corrsub">Paper grade vs. finish across every graded season since ${DG_FIRST_YEAR}.</div>
+      </div>
+      <div class="dg-corrcard">
+        <div class="dg-corrlab">What the picks actually did</div>
+        <div class="dg-corrval" style="color:var(--green)">${pooled.reality == null ? '—' : dgFmt(pooled.reality, 2)}</div>
+        <div class="dg-corrsub">Same picks scored on real production. The gap is how much of this is out of your hands.</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+    <table class="std-table">
+      <thead><tr>
+        <th>Manager</th>
+        <th style="text-align:center">Paper</th>
+        <th style="text-align:center">Reality</th>
+        <th class="num">Proj</th>
+        <th class="num">Actual</th>
+        <th style="text-align:center">Finish</th>
+        <th>Verdict</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map((r, i) => `
+          <tr class="dg-row" onclick="dgToggle(${cur.season},${r.teamId})">
+            <td><strong>${r.manager}</strong>${r.teamName ? `<div style="font-size:11px;color:var(--muted)">${r.teamName}</div>` : ''}</td>
+            <td style="text-align:center"><span class="dg-grade ${dgGradeClass(r.paperGrade)}">${r.paperGrade}</span></td>
+            <td style="text-align:center"><span class="dg-grade ${dgGradeClass(r.realityGrade)}">${r.realityGrade}</span></td>
+            <td class="num">${cur.paperMode === 'rank' ? '—' : dgFmt(r.paperScore, 0)}</td>
+            <td class="num">${dgFmt(r.realityScore, 0)}</td>
+            <td style="text-align:center">${r.finish == null ? '—' : (r.finish === 1 ? '🏆 1st' : r.finish)}</td>
+            <td><span class="dg-verdict ${dgVerdictClass(r.verdict)}">${r.verdict || '—'}</span><span class="dg-caret">▾</span></td>
+          </tr>
+          <tr class="dg-detail" id="dg-d-${cur.season}-${r.teamId}" style="display:none"><td colspan="7">
+            <div class="dg-detail-inner">${dgPickTable(r, cur.paperMode)}</div>
+          </td></tr>`).join('')}
+      </tbody>
+    </table>
+    </div>
+
+    <div class="dg-note">
+      <strong>How this works.</strong> Every player is scored above the replacement player at his position,
+      so a QB's points and an RB's points are comparable. Your picks are then measured against what the
+      draft slot itself was worth &mdash; sort the whole board by value and the 1st pick "should" land the best
+      player, the 50th the 50th-best. Beating that is a good draft.
+      Because it's a differential, the twelve scores cancel to zero every year.
+      ${modeNote ? `<br><br><strong>Note.</strong> ${modeNote}` : ''}
+      <br><br>Grades measure a player's full season, not the points he scored while on your roster &mdash;
+      ESPN doesn't expose historical transactions, so a player you drafted and cut still counts. Keepers are included.
+    </div>
+  </div>
+
+  <div class="card dg-wrap">
+    <div class="card-header">
+      <div class="card-title">Draft vs. Reality &middot; ${cur.season}</div>
+      <div class="card-sub">Where a good draft actually got you</div>
+    </div>
+    ${dgQuadrant(cur)}
+  </div>`;
+}
+
+function dgPickTable(row, mode) {
+  const picks = row.picks.slice();
+  const best = row.bestPick, worst = row.worstPick;
+  return `
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">
+      ${best  ? `<strong style="color:var(--green)">Steal:</strong> ${best.name} (pick ${best.pick}, finished #${best.actualRank} on the board)` : ''}
+      ${worst ? ` &nbsp;&nbsp; <strong style="color:var(--red)">Bust:</strong> ${worst.name} (pick ${worst.pick}, finished #${worst.actualRank})` : ''}
+    </div>
+    <table class="dg-picks">
+      <thead><tr><th>Pick</th><th>Player</th><th>Pos</th><th style="text-align:right">Proj</th><th style="text-align:right">Actual</th><th style="text-align:right">Board finish</th></tr></thead>
+      <tbody>
+        ${picks.map(p => {
+          const cls = p.delta > 25 ? 'dg-steal' : p.delta < -25 ? 'dg-bust' : '';
+          return `<tr>
+            <td style="color:var(--muted)">${p.pick}</td>
+            <td>${p.name || '—'}${p.keeper ? '<span class="dg-keeper">KEPT</span>' : ''}</td>
+            <td style="color:var(--muted)">${p.pos || '—'}</td>
+            <td style="text-align:right">${p.proj == null ? '—' : p.proj.toFixed(0)}</td>
+            <td style="text-align:right">${p.act == null ? '—' : p.act.toFixed(0)}</td>
+            <td style="text-align:right" class="${cls}">#${p.actualRank}${p.delta > 0 ? ` (+${p.delta})` : p.delta < 0 ? ` (${p.delta})` : ''}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function dgToggle(season, teamId) {
+  const el = document.getElementById(`dg-d-${season}-${teamId}`);
+  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
+// Scatter: paper grade (x) against final finish (y). Corners are labelled so the
+// four interesting outcomes read at a glance.
+function dgQuadrant(cur) {
+  const rows = cur.rows.filter(r => r.finish != null);
+  if (!rows.length) return `<div class="dg-note">No final standings for this season yet.</div>`;
+  const n = rows.length;
+  const zs = rows.map(r => r.paperGradeZ);
+  const maxAbs = Math.max(1, ...zs.map(Math.abs));
+
+  const dots = rows.map(r => {
+    // x: worst draft (left) -> best draft (right).  y: 1st place at the top.
+    const x = 50 + (r.paperGradeZ / maxAbs) * 42;
+    const y = 8 + ((r.finish - 1) / Math.max(1, n - 1)) * 84;
+    const label = (r.manager || '').slice(0, 3);
+    const title = `${r.manager} — ${r.paperGrade} on paper, finished ${r.finish}`;
+    return `<div class="dg-dot${r.finish === 1 ? ' champ' : ''}" style="left:${x}%;top:${y}%" title="${title}">${label}</div>`;
+  }).join('');
+
+  return `
+  <div style="position:relative;padding-left:22px">
+    <div class="dg-axis-y">Finish &nbsp;1st &rarr; last</div>
+    <div class="dg-quad">
+      <div class="dg-quad-line" style="left:50%;top:0;bottom:0;width:1px"></div>
+      <div class="dg-quad-line" style="top:50%;left:0;right:0;height:1px"></div>
+      <div class="dg-qlabel" style="left:8px;top:8px">Bad draft, good year</div>
+      <div class="dg-qlabel" style="right:8px;top:8px;text-align:right">Delivered</div>
+      <div class="dg-qlabel" style="left:8px;bottom:8px">Never had a chance</div>
+      <div class="dg-qlabel" style="right:8px;bottom:8px;text-align:right">Wasted a great draft</div>
+      ${dots}
+    </div>
+    <div class="dg-axis">Paper draft grade &nbsp;worst &rarr; best</div>
+  </div>`;
 }
 
 function posClass(pos) {
@@ -2166,6 +2463,8 @@ function renderDraftSeason() {
     ? enriched.filter(p => (p.playerPoolEntry?.onTeamId !== undefined) &&
         getPlayerPos(p) === posFilter)
     : enriched;
+
+  renderDraftGrades(seasonVal);
 
   const el = document.getElementById('draft-content');
   if (!el) return;
