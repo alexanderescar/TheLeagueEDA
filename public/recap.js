@@ -17,12 +17,14 @@
  * spit out confident 25%-75% splits that this league's own history does not support.
  *
  * PROJECTION_RELIABILITY below is the shrinkage applied to projected roster strength
- * before simulating. The measured value is 0.07; we use 0.20, the top of its 95%
- * confidence interval, on the grounds that the historical measurement is attenuated
- * (old ESPN projections are lower quality, and rosters churn all season). That is a
- * judgement call, made generous on purpose — the honest number would be flatter still.
+ * before simulating: our best estimate of true team quality has SD = reliability x 10.4.
+ * The measured value is 0.074. We use 0.10 — a slight round up, on the grounds that the
+ * historical measurement is somewhat attenuated (older ESPN projections are lower
+ * quality and rosters churn all season) — but deliberately NOT much higher than what
+ * the data supports. Raising it to 0.20 stretches the odds to 34-71%, which looks far
+ * more authoritative than this league's history can justify.
  *
- * The result is odds roughly in the 40-60% band against a 50% baseline (6 of 12 make
+ * The result is odds roughly in the 42-62% band against a 50% baseline (6 of 12 make
  * the playoffs). If that feels boringly narrow, that IS the finding.
  */
 
@@ -34,7 +36,7 @@ var FLEX_POS     = ['RB', 'WR', 'TE'];
 var WEEKLY_NOISE_SD          = 23.4;
 var BETWEEN_TEAM_SD          = 10.4;
 var LEAGUE_MEAN_PPG          = 122.1;
-var PROJECTION_RELIABILITY   = 0.20;
+var PROJECTION_RELIABILITY   = 0.10;
 var SIMULATIONS              = 10000;
 
 function rcNormPos(p) {
@@ -197,11 +199,21 @@ function simulatePlayoffs(teamMeans, schedule, playoffSpots, opts) {
     return out;
 }
 
-function oddsTier(pct) {
-    if (pct >= 58) return { tier: 'Contender',        rank: 1 };
-    if (pct >= 51) return { tier: 'In the mix',       rank: 2 };
-    if (pct >= 44) return { tier: 'Needs some breaks',rank: 3 };
-    return                { tier: 'Long shot',        rank: 4 };
+/**
+ * Tiers are measured against the baseline (6 of 12 = 50%), not against absolute
+ * cutoffs, and the bands are deliberately wide. With ~10k simulations the odds carry
+ * roughly +/-1 point of noise, so narrow bands would let two effectively identical
+ * teams land in different tiers — which is worse than no tier at all. Anything inside
+ * +/-3 points of the baseline is called what it is: a coin flip.
+ */
+function oddsTier(pct, baseline) {
+    var base = baseline == null ? 50 : baseline;
+    var edge = pct - base;
+    if (edge >= 7)  return { tier: 'Contender',         rank: 1 };
+    if (edge >= 3)  return { tier: 'In the mix',        rank: 2 };
+    if (edge > -3)  return { tier: 'Coin flip',         rank: 3 };
+    if (edge > -8)  return { tier: 'Needs some breaks', rank: 4 };
+    return             { tier: 'Long shot',         rank: 5 };
 }
 
 /**
@@ -351,7 +363,7 @@ function buildRecap(picks, teams, schedule, playoffSpots) {
         r.avgSeed    = s ? s.avgSeed    : null;
         r.baseline   = Math.round((spots / teamCount) * 1000) / 10;
         r.oddsEdge   = (r.playoffPct != null) ? Math.round((r.playoffPct - r.baseline) * 10) / 10 : null;
-        var t = oddsTier(r.playoffPct == null ? r.baseline : r.playoffPct);
+        var t = oddsTier(r.playoffPct == null ? r.baseline : r.playoffPct, r.baseline);
         r.tier = t.tier; r.tierRank = t.rank;
     });
 

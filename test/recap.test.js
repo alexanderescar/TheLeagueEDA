@@ -68,14 +68,39 @@ console.log('\nCALIBRATION  (odds must stay honest, not confident)');
     const res = R.buildRecap(picks, teams, schedule, 6);
     const pcts = res.rows.map(r => r.playoffPct);
     const spread = Math.max(...pcts) - Math.min(...pcts);
-    ok('a huge talent gap still produces a modest spread', spread < 45, 'spread=' + spread.toFixed(1));
-    ok('no team is given a near-lock', Math.max(...pcts) < 90, 'max=' + Math.max(...pcts));
-    ok('no team is written off entirely', Math.min(...pcts) > 8, 'min=' + Math.min(...pcts));
+    ok('a huge talent gap still produces a modest spread', spread < 32, 'spread=' + spread.toFixed(1));
+    ok('no team is given a near-lock', Math.max(...pcts) < 75, 'max=' + Math.max(...pcts));
+    ok('no team is written off entirely', Math.min(...pcts) > 25, 'min=' + Math.min(...pcts));
     ok('reliability shrinkage is applied', R.PROJECTION_RELIABILITY <= 0.25, 'r=' + R.PROJECTION_RELIABILITY);
     // The better roster should still be favoured, just not wildly.
     const best = res.rows.find(r => r.teamId === 0), worst = res.rows.find(r => r.teamId === 11);
     ok('the stronger roster is still favoured', best.playoffPct > worst.playoffPct,
         `${best.playoffPct} vs ${worst.playoffPct}`);
+}
+
+console.log('\nTIER BANDS  (must not split effectively identical teams)');
+{
+    // Two teams a coin-flip apart must not land in different tiers.
+    const a = R.oddsTier(50.4, 50), b = R.oddsTier(51.1, 50);
+    ok('50.4% and 51.1% get the same tier', a.tier === b.tier, `${a.tier} vs ${b.tier}`);
+    ok('a team at the baseline is called a coin flip', R.oddsTier(50, 50).tier === 'Coin flip');
+    ok('+1 point is still a coin flip', R.oddsTier(51, 50).tier === 'Coin flip');
+    ok('+8 is a contender', R.oddsTier(58, 50).tier === 'Contender');
+    ok('-10 is a long shot', R.oddsTier(40, 50).tier === 'Long shot');
+    // Bands must be wider than simulation noise (~1pt at 10k iterations).
+    let flips = 0;
+    for (let p = 30; p <= 70; p += 0.1) {
+        if (R.oddsTier(p, 50).tier !== R.oddsTier(p + 1, 50).tier) flips++;
+    }
+    ok('at most 4 tier boundaries across the whole range', flips <= 45, 'boundary crossings=' + flips);
+    ok('tiers respect a non-50 baseline', R.oddsTier(57, 50).tier !== R.oddsTier(57, 64).tier);
+}
+
+console.log('\nCALIBRATION IS NOT OVERCONFIDENT');
+{
+    ok('reliability stays close to the measured 0.074',
+        R.PROJECTION_RELIABILITY <= 0.12,
+        'reliability=' + R.PROJECTION_RELIABILITY + ' (0.20 stretches odds to 34-71%, unsupported)');
 }
 
 console.log('\nDETERMINISM  (same input must give the same odds every page load)');
