@@ -136,16 +136,22 @@ function normalPair(rng) {
 }
 
 /**
- * Simulate the real schedule. Returns playoff probability per team.
- * schedule: [{ week, home, away }]  (regular season only)
+ * Simulate the schedule. Returns playoff probability per team.
+ *
+ * schedule: [{ week, home, away }] — the games still to be played.
+ * opts.banked: { teamId: { w, pf } } — wins and points already in the bank, so
+ *              mid-season odds start from the real standings rather than 0-0.
  */
 function simulatePlayoffs(teamMeans, schedule, playoffSpots, opts) {
     opts = opts || {};
     var iters = opts.iterations || SIMULATIONS;
     var noise = opts.noiseSd || WEEKLY_NOISE_SD;
+    var banked = opts.banked || null;
     var ids = Object.keys(teamMeans);
     var n = ids.length;
-    if (!n || !schedule.length) return null;
+    if (!n) return null;
+    // With no games left the season is decided; fall out to the banked standings.
+    if (!schedule.length && !banked) return null;
 
     var idx = {}; ids.forEach(function (id, i) { idx[id] = i; });
     var means = ids.map(function (id) { return teamMeans[id]; });
@@ -158,9 +164,12 @@ function simulatePlayoffs(teamMeans, schedule, playoffSpots, opts) {
         return idx[m.home] != null && idx[m.away] != null;
     });
 
+    var baseWins = ids.map(function (id) { return banked && banked[id] ? (banked[id].w || 0) : 0; });
+    var basePts  = ids.map(function (id) { return banked && banked[id] ? (banked[id].pf || 0) : 0; });
+
     for (var it = 0; it < iters; it++) {
-        var wins = new Array(n).fill(0);
-        var pts  = new Array(n).fill(0);
+        var wins = baseWins.slice();
+        var pts  = basePts.slice();
         for (var g = 0; g < games.length; g++) {
             var h = idx[games[g].home], a = idx[games[g].away];
             var pair = normalPair(rng);

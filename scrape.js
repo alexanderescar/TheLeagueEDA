@@ -18,6 +18,11 @@ const SEASONS     = (process.env.SEASONS || '2026,2025,2024,2023,2022,2021,2020,
 const OUT_FILE    = path.join(__dirname, 'data', 'league_data.json');
 const ESPN_API    = 'https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl';
 
+const CURRENT_SEASON = parseInt(process.env.CURRENT_SEASON || (() => {
+    const d = new Date();
+    return d.getMonth() >= 5 ? d.getFullYear() : d.getFullYear() - 1;
+})());
+
 const POSITION_MAP = { 1:'QB', 2:'RB', 3:'WR', 4:'TE', 5:'K', 16:'D/ST' };
 const SLOT_MAP     = { 0:'QB', 2:'RB', 4:'WR', 6:'TE', 16:'D/ST', 17:'K', 20:'Bench', 21:'IR', 23:'FLEX' };
 
@@ -112,6 +117,38 @@ async function scrapeSeason(season, log) {
           log(`  ⚠️  Draft unavailable for ${season}: ${e.message}`);
     }
 
+  // Current rosters + injuries, for the live power rankings. Only worth pulling for
+  // the season in progress — past seasons' rosters are frozen and unused.
+  let rosters = null;
+  if (parseInt(season) >= CURRENT_SEASON) {
+        try {
+              const rd = await fetchView(season, ['mRoster']);
+              if (rd?.teams) {
+                    rosters = {};
+                    for (const t of rd.teams) {
+                          const entries = (t.roster?.entries) || [];
+                          rosters[t.id] = entries.map(e => {
+                                const p = e.playerPoolEntry?.player || {};
+                                return {
+                                      playerId: p.id,
+                                      name:     p.fullName || `Player ${p.id}`,
+                                      position: POSITION_MAP[p.defaultPositionId] || null,
+                                      slot:     SLOT_MAP[e.lineupSlotId] || null,
+                                      injured:  !!p.injured,
+                                      status:   p.injuryStatus || 'ACTIVE',
+                                      acquired: e.acquisitionType || null,
+                                };
+                          });
+                    }
+                    const hurt = Object.values(rosters).flat()
+                          .filter(p => ['OUT','INJURY_RESERVE','DOUBTFUL'].includes(p.status)).length;
+                    log(`  ✓ ${season} rosters: ${Object.keys(rosters).length} teams, ${hurt} players out/IR`);
+              }
+        } catch (e) {
+              log(`  ⚠️  Rosters unavailable for ${season}: ${e.message}`);
+        }
+  }
+
   return {
         season:     parseInt(season),
         settings:   main.settings   || {},
@@ -119,6 +156,7 @@ async function scrapeSeason(season, log) {
         schedule:   main.schedule   || [],
         status:     main.status     || {},
         draftDetail,
+        rosters,
         scrapedAt: new Date().toISOString(),
   };
 }
