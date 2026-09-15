@@ -1667,7 +1667,11 @@ function renderPowerSection(src, week, played) {
 
 /** Live playoff odds and the in/out picture. */
 function renderPlayoffPicture(src, played) {
+  // Both guards matter: this function draws on recap.js and power.js. If either
+  // fails to load, drop this section rather than taking the whole Standings tab
+  // down with it — the ESPN table above is the part people actually need.
   if (typeof simulatePlayoffs !== 'function') return '';
+  if (typeof pwWeeklyScores !== 'function') return '';
   const spots = (src.settings?.scheduleSettings?.playoffTeamCount) || 6;
   const regWeeks = regWeeksFor(src);
   const curWeek = src.status?.currentMatchupPeriod || 1;

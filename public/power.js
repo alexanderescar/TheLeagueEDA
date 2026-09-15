@@ -690,7 +690,20 @@ function pwFacts(r, ctx) {
     }
 
     // ── Why the model has them where it does (carries the early weeks) ──
-    if (r.zForm != null) {
+    //
+    // Careful with the timeframe. Through one game, recent form, season scoring and
+    // all-play are all computed from the SAME single score — they are perfectly
+    // correlated, so naming one of them as "the reason" is noise dressed as analysis,
+    // and any line about "the last three weeks" is describing weeks that have not
+    // happened. Below two games we say the only honest thing: this is Week 1.
+    if (r.zForm != null && ctx.played && r.played <= 1) {
+        add('driver', 'driver', 20, [
+            'One week in, this ranking is just that score and the roster behind it.',
+            'There is exactly one game of evidence here. Treat the number accordingly.',
+            'Too early for this to mean much — it is Week 1 and a projection.',
+            'A single week of data. The ranking will look very different by October.',
+        ]);
+    } else if (r.zForm != null) {
         var comps = [
             { k: 'form', v: r.zForm * PW_WEIGHTS.form },
             { k: 'season', v: r.zPpg * PW_WEIGHTS.season },
@@ -700,27 +713,42 @@ function pwFacts(r, ctx) {
         var top = comps[0];
         if (Math.abs(top.v) > 0.18) {
             var pos = top.v > 0;
+            var few = r.played < 4;   // "three weeks" is a lie until there are three
             var pools = {
-                form: pos ? [
+                form: pos ? (few ? [
+                    'The ranking leans on the most recent week more than the rest.',
+                    'This spot is bought with the latest scoring, not the whole body of work.',
+                    'Whatever they did last time out is what the model is rewarding.',
+                ] : [
                     'The ranking is mostly recent form — lately they have been the better version of themselves.',
                     'This spot is bought with recent scoring, not the season as a whole.',
                     'Whatever changed a few weeks ago is still working.',
                     'The last three weeks are carrying this ranking.',
+                ]) : (few ? [
+                    'The most recent week is what is dragging this ranking down.',
+                    'The model is docking them for how they just looked.',
+                    'Nothing in the latest scoring argues for a higher spot.',
                 ] : [
                     'Recent form is what is dragging this ranking down.',
                     'The last few weeks are the worst thing on their résumé right now.',
                     'The model is docking them for how they have looked lately, not how they started.',
                     'Nothing in the recent scoring argues for a higher spot.',
-                ],
-                season: pos ? [
+                ]),
+                season: pos ? (few ? [
+                    'The scoring so far is what holds this spot up.',
+                    'Ranked here on what little there is, and what there is looks good.',
+                ] : [
                     'The season-long scoring is what holds this spot up.',
                     'Ranked here on the long view — the body of work is real.',
                     'A full season of scoring says this is who they are.',
+                ]) : (few ? [
+                    'The scoring so far is the anchor here, and not in a good way.',
+                    'What little they have put up is what keeps them this low.',
                 ] : [
                     'The season-long scoring is the anchor here, and not in a good way.',
                     'The cumulative numbers are what keep them this low.',
                     'One good week would not move this — the season average is the problem.',
-                ],
+                ]),
                 allPlay: pos ? [
                     'Ranked this high largely on all-play: ' + r.allPlay.w + '–' + r.allPlay.l + ' against the field.',
                     'Against the whole league they are ' + r.allPlay.w + '–' + r.allPlay.l + ', and that is what the model trusts.',
@@ -816,6 +844,31 @@ function pwFacts(r, ctx) {
             add('draft-miss', 'draft', 40, [
                 pace.worst.name + ' was a round-' + pace.worst.round + ' pick and is at ' + pwInt(pace.worst.ratio * 100) + '% of his expected pace. That one hurts.',
                 'The ' + pace.worst.name + ' pick is not working — ' + pwNum(pace.worst.actual) + ' points where the projection wanted ' + pwNum(pace.worst.expected) + '.',
+            ]);
+        }
+    }
+
+    // ── Scored well and lost, or scored badly and won ──
+    // This needs only one game, so unlike the all-play luck fact above it works from
+    // Week 1. Same 'context' category as the plain above/below-average line below, and
+    // weighted well above it, so the interesting version wins when both apply — losing
+    // with a good score is the story, not a footnote next to it.
+    if (ctx.played && g && ctx.weekAvg > 0) {
+        var edge = g.pts - ctx.weekAvg;
+        var lostIt = g.pts < g.oppPts;
+        var wonIt = g.pts > g.oppPts;
+        if (lostIt && edge >= 8) {
+            add('unlucky', 'context', Math.min(72, 38 + 2.2 * edge), [
+                'Scored ' + pwNum(edge) + ' above the week\'s average and still lost. Nothing to fix, just a bad draw.',
+                name + ' put up an above-average score and got nothing for it — ' + oppName + ' simply had more.',
+                'A ' + pwNum(g.pts) + ' in a week that averaged ' + pwNum(ctx.weekAvg) + ', and it bought them exactly zero wins.',
+                'Good enough to beat most of the league that week. Unfortunately they played ' + oppName + '.',
+            ]);
+        } else if (wonIt && edge <= -8) {
+            add('unlucky', 'context', Math.min(64, 34 + 2.2 * -edge), [
+                'Won with ' + pwNum(g.pts) + ' in a week that averaged ' + pwNum(ctx.weekAvg) + '. Take it and say nothing.',
+                'A below-average score and a win in the same box. The schedule did them a favour.',
+                'They were outscored by most of the league and still got the W. That is the schedule working for you.',
             ]);
         }
     }

@@ -118,7 +118,7 @@ app.get('/api/league', async (req, res) => {
             fix: 'Visit /admin/scrape?key=YOUR_SCRAPE_KEY to trigger a scrape',
             hasFile: fs.existsSync(DATA_FILE), hasTurso: !!(TURSO_URL && TURSO_TOKEN), hasCookies: !!(ESPN_S2 && SWID),
         });
-        res.json(annotatePreseason(annotateDraftStats(annotateManagers(withInaugural(data)))));
+        res.json(annotateBoxscores(annotatePreseason(annotateDraftStats(annotateManagers(withInaugural(data))))));
     } catch (err) {
         console.error('[API]', err);
         res.status(500).json({ error: err.message });
@@ -181,6 +181,15 @@ app.get('/admin/scrape', async (req, res) => {
             log('   (The site still works — the Draft Grades tab will just be empty.)');
         }
 
+        // Per-player weekly scoring — what the power-ranking commentary is built on.
+        try {
+            log('\n📋 Pulling weekly boxscores (per-player scoring)...');
+            await require('./boxscores').buildBoxscores(CURRENT_SEASON, result, log);
+        } catch (e) {
+            log(`<span class="err">⚠️  Boxscores failed: ${e.message}</span>`);
+            log('   (Power rankings fall back to team-level commentary.)');
+        }
+
         log('\nNext: <a href="/" style="color:#0af">← Back to the app</a> (refresh to see new data)');
     } catch (err) {
         log(`\n<span class="err">❌ Scrape failed: ${err.message}</span>`);
@@ -210,6 +219,28 @@ app.get('/admin/playerstats', async (req, res) => {
         log('\n<a href="/" style="color:#0af">← Back to the app</a>');
     } catch (err) {
         log(`\n<span class="err">❌ Failed: ${err.message}</span>`);
+    }
+    res.end('</body></html>');
+});
+
+// ── Admin: pull per-player weekly boxscores for the current season
+app.get('/admin/boxscores', async (req, res) => {
+    if (req.query.key !== SCRAPE_KEY) return res.status(403).send('Forbidden — wrong key');
+    const year = req.query.year || CURRENT_SEASON;
+    const force = req.query.force === '1';
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    res.write(`<!DOCTYPE html><html><head><title>Boxscores ${year}</title>
+    <style>body{background:#111;color:#0f0;font-family:monospace;padding:2em;white-space:pre-wrap}
+    .err{color:#f66}.done{color:#ff0;font-size:1.4em}</style></head><body>`);
+    const log = (m) => { console.log('[Boxscores]', m); res.write(m + '\n'); };
+    try {
+        log(`Pulling per-player weekly scoring for ${year}${force ? ' (forced refresh)' : ''}\n`);
+        const out = await require('./boxscores').buildBoxscores(year, null, log, { force });
+        log(`\n<span class="done">Done — ${Object.keys(out.weeks || {}).length} week(s) cached.</span>`);
+        log('\n<a href="/" style="color:#0af">← Back to the app</a>');
+    } catch (err) {
+        log(`\n<span class="err">Failed: ${err.message}</span>`);
     }
     res.end('</body></html>');
 });
@@ -262,6 +293,16 @@ if (!fs.existsSync(path.join(__dirname, 'data', `preseason_${CURRENT_SEASON}.jso
     }, 20000);   // let any boot scrape finish writing league_data.json first
 }
 
+// Weekly boxscores. Railway's disk is ephemeral, so a redeploy loses these and the
+// commentary would silently fall back to team-level lines — rebuild them on boot.
+if (!fs.existsSync(path.join(__dirname, 'data', `boxscores_${CURRENT_SEASON}.json`))) {
+    console.log(`[Boot] No boxscores_${CURRENT_SEASON} file - building in background`);
+    setTimeout(() => {
+        require('./boxscores').buildBoxscores(CURRENT_SEASON, null, console.log)
+            .catch(e => console.error('[Boot] boxscores failed', e.message));
+    }, 30000);
+}
+
 app.get('/health', (req, res) => res.json({ ok: true }));
 
 let _mgrs=null;
@@ -270,6 +311,7 @@ function annotateManagers(d){ if(!d||!Array.isArray(d.seasons)) return d; const 
 
 function annotateDraftStats(d){ try { return require('./playerstats').annotateDraftStats(d); } catch(e) { console.warn('[DraftStats]', e.message); return d; } }
 function annotatePreseason(d){ try { return require('./preseason').annotatePreseason(d); } catch(e) { console.warn('[Preseason]', e.message); return d; } }
+function annotateBoxscores(d){ try { return require('./boxscores').annotateBoxscores(d); } catch(e) { console.warn('[Boxscores]', e.message); return d; } }
 
 app.listen(PORT, () => {
     console.log(`The League on :${PORT} · League ${LEAGUE_ID}`);
