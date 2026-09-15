@@ -118,7 +118,7 @@ app.get('/api/league', async (req, res) => {
             fix: 'Visit /admin/scrape?key=YOUR_SCRAPE_KEY to trigger a scrape',
             hasFile: fs.existsSync(DATA_FILE), hasTurso: !!(TURSO_URL && TURSO_TOKEN), hasCookies: !!(ESPN_S2 && SWID),
         });
-        res.json(annotateBoxscores(annotatePreseason(annotateDraftStats(annotateManagers(withInaugural(data))))));
+        res.json(annotateBlurbs(annotateBoxscores(annotatePreseason(annotateDraftStats(annotateManagers(withInaugural(data)))))));
     } catch (err) {
         console.error('[API]', err);
         res.status(500).json({ error: err.message });
@@ -223,6 +223,42 @@ app.get('/admin/playerstats', async (req, res) => {
     res.end('</body></html>');
 });
 
+// ── The weekly brief: everything Claude needs to write the power-ranking blurbs.
+// Includes the full season to date, not just this week, so the writing can reference
+// what happened in earlier weeks instead of treating each week as a blank slate.
+app.get('/api/brief', async (req, res) => {
+    if (req.query.key !== SCRAPE_KEY) return res.status(403).json({ error: 'Forbidden — wrong key' });
+    try {
+        const raw = await getAllData();
+        if (!raw) return res.status(502).json({ error: 'No league data available' });
+        const data = annotateBoxscores(annotatePreseason(annotateDraftStats(annotateManagers(withInaugural(raw)))));
+        const year = req.query.year || CURRENT_SEASON;
+        const week = req.query.week != null ? Number(req.query.week) : null;
+        res.json(require('./brief').buildBrief(data, year, week));
+    } catch (err) {
+        console.error('[Brief]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ── Save the written blurbs back. Body: { year, week, blurbs: { "<teamId>": "..." } }
+app.post('/admin/blurbs', express.json({ limit: '1mb' }), (req, res) => {
+    if (req.query.key !== SCRAPE_KEY) return res.status(403).json({ error: 'Forbidden — wrong key' });
+    try {
+        const { year, week, blurbs } = req.body || {};
+        if (!year || !week || !blurbs || typeof blurbs !== 'object') {
+            return res.status(400).json({ error: 'Need year, week and a blurbs object keyed by teamId.' });
+        }
+        const store = require('./brief').saveBlurbs(year, week, blurbs);
+        const n = Object.keys(blurbs).length;
+        console.log(`[Blurbs] saved ${n} for ${year} week ${week}`);
+        res.json({ ok: true, year: Number(year), week: Number(week), saved: n, weeksOnFile: Object.keys(store.weeks) });
+    } catch (err) {
+        console.error('[Blurbs]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ── Admin: pull per-player weekly boxscores for the current season
 app.get('/admin/boxscores', async (req, res) => {
     if (req.query.key !== SCRAPE_KEY) return res.status(403).send('Forbidden — wrong key');
@@ -312,6 +348,7 @@ function annotateManagers(d){ if(!d||!Array.isArray(d.seasons)) return d; const 
 function annotateDraftStats(d){ try { return require('./playerstats').annotateDraftStats(d); } catch(e) { console.warn('[DraftStats]', e.message); return d; } }
 function annotatePreseason(d){ try { return require('./preseason').annotatePreseason(d); } catch(e) { console.warn('[Preseason]', e.message); return d; } }
 function annotateBoxscores(d){ try { return require('./boxscores').annotateBoxscores(d); } catch(e) { console.warn('[Boxscores]', e.message); return d; } }
+function annotateBlurbs(d){ try { return require('./brief').annotateBlurbs(d); } catch(e) { console.warn('[Blurbs]', e.message); return d; } }
 
 app.listen(PORT, () => {
     console.log(`The League on :${PORT} · League ${LEAGUE_ID}`);

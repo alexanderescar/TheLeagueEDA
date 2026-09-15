@@ -1361,6 +1361,7 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
 <script src="/grades.js"></script>
 <script src="/recap.js"></script>
 <script src="/power.js"></script>
+<script src="/boxscore.js"></script>
 <script>
 // ══════════════════════════════════════════════
 //  STATE
@@ -1579,6 +1580,18 @@ function renderStandings() {
   document.getElementById('tab-standings').innerHTML = h;
 }
 
+/**
+ * A blurb written for this exact week, if one has been generated.
+ * Stored server-side as season.blurbs[week].blurbs[teamId].
+ */
+function drWrittenBlurb(src, week, teamId) {
+  if (!src || !src.blurbs || week == null) return null;
+  const wk = src.blurbs[String(week)];
+  if (!wk || !wk.blurbs) return null;
+  const txt = wk.blurbs[String(teamId)];
+  return (typeof txt === 'string' && txt.trim()) ? txt.trim() : null;
+}
+
 /** Projected points per player, for the roster-health component. */
 function pwProjMap(src) {
   const map = {};
@@ -1624,7 +1637,11 @@ function renderPowerSection(src, week, played) {
     const t = map[r.teamId] || r.team;
     const name = mgr(t);
     const oppTeam = r.lastGame ? map[r.lastGame.opp] : null;
-    const blurb = pwBlurb(r, Object.assign({}, pctx, {
+    // Prefer the written blurb for this week when one exists. The template engine is
+    // the fallback for weeks that haven't been generated — a missing week should read
+    // as slightly plainer, never as an empty card.
+    const written = drWrittenBlurb(src, pctx.week, r.teamId);
+    const blurb = written || pwBlurb(r, Object.assign({}, pctx, {
       name,
       oppName: oppTeam ? mgr(oppTeam) : null,
       oppTeam,
@@ -2448,6 +2465,10 @@ function renderWeek() {
 
   h += isPlayed ? wkPlayedView(src, sel, byWeek[sel]) : wkPreviewView(src, sel, byWeek[sel]);
 
+  // Awards for the selected week, then the running season totals.
+  if (isPlayed) h += wkAwards(src, sel);
+  h += wkShameTable(src);
+
   // Season highs — the old Weekly Awards, folded in.
   h += wkSeasonHighs(src);
 
@@ -2622,6 +2643,144 @@ function wkPreviewView(src, wk, matchups) {
     ${noise}-point weekly variance — the real spread in this league since 2018. Almost nothing here
     will be far from a coin flip, because almost nothing in fantasy football is.</div></div>`;
   return h;
+}
+
+/**
+ * Per-team boxscore facts for one week, built from the cached per-player data.
+ * Drafted-vs-added comes from the draft board rather than ESPN's acquisitionType,
+ * which comes back null in the boxscore view.
+ */
+function wkBoxesFor(src, week) {
+  if (typeof bxTeamWeek !== 'function') return [];
+  const weeks = src.boxscores || {};
+  const rec = weeks[String(week)];
+  if (!rec) return [];
+  const map = getTeamsMapFor(src);
+  const draftedBy = {};
+  (((src.draftDetail || {}).picks) || []).forEach(p => {
+    (draftedBy[p.teamId] = draftedBy[p.teamId] || {})[p.playerId] = p.overallPickNumber;
+  });
+  return Object.keys(rec).map(tid => {
+    const t = map[tid];
+    const entries = (rec[tid].entries || []).map(e => Object.assign({}, e, {
+      acquired: (draftedBy[tid] && draftedBy[tid][e.playerId]) ? 'DRAFT' : 'ADD',
+    }));
+    const box = bxTeamWeek(entries, { actual: rec[tid].total });
+    return {
+      teamId: Number(tid),
+      manager: t ? mgr(t) : ('Team ' + tid),
+      teamName: t ? tName(t) : '',
+      box,
+      margin: rec[tid].margin,
+      won: rec[tid].margin > 0,
+    };
+  }).filter(x => x.box);
+}
+
+/** Weekly awards — the stuff worth arguing about. */
+function wkAwards(src, week) {
+  if (typeof bxWeeklyAwards !== 'function') return '';
+  const teams = wkBoxesFor(src, week);
+  if (!teams.length) return '';
+  const a = bxWeeklyAwards(teams);
+  if (!a) return '';
+
+  const cards = [];
+  if (a.worstStartSit && a.worstStartSit.box.blunder) {
+    const b = a.worstStartSit.box.blunder;
+    const cost = bxCostThem(a.worstStartSit.box, a.worstStartSit.margin);
+    cards.push({
+      lab: 'Worst Start/Sit', name: a.worstStartSit.manager,
+      sub: `Benched ${b.benched.name} (${b.benched.pts}) to start ${b.started.name} (${b.started.pts}). `
+         + `A ${b.swing}-point swing${cost ? ' — and they lost by ' + Math.abs(a.worstStartSit.margin) + '.' : '.'}`,
+      bad: true,
+    });
+  }
+  if (a.mostLeftOnBench) {
+    cards.push({
+      lab: 'Most Left on the Bench', name: a.mostLeftOnBench.manager,
+      sub: `${a.mostLeftOnBench.box.left} points sat out. Optimal lineup was `
+         + `${a.mostLeftOnBench.box.optimal} against the ${a.mostLeftOnBench.box.actual} they actually scored.`,
+      bad: true,
+    });
+  }
+  if (a.topPlayer) {
+    cards.push({
+      lab: 'Player of the Week', name: a.topPlayer.player.name,
+      sub: `${a.topPlayer.player.pts} for ${a.topPlayer.team.manager}`
+         + (a.topPlayer.team.box.heroShare ? ` — ${a.topPlayer.team.box.heroShare}% of their whole lineup.` : '.'),
+    });
+  }
+  if (a.biggestZero) {
+    cards.push({
+      lab: 'Goose Egg', name: a.biggestZero.player.name,
+      sub: `Started at ${a.biggestZero.player.pos} by ${a.biggestZero.team.manager} and scored nothing at all.`,
+      bad: true,
+    });
+  }
+  if (a.unluckiestLoss) {
+    cards.push({
+      lab: 'Unluckiest Loss', name: a.unluckiestLoss.manager,
+      sub: `${a.unluckiestLoss.box.actual} points and still lost by ${Math.abs(a.unluckiestLoss.margin)}.`,
+    });
+  }
+  if (a.luckiestWin) {
+    cards.push({
+      lab: 'Luckiest Win', name: a.luckiestWin.manager,
+      sub: `Won with just ${a.luckiestWin.box.actual}. Right place, right week.`,
+    });
+  }
+  if (!cards.length) return '';
+
+  return `<div class="card" style="margin-bottom:18px">
+    <div class="card-header"><div class="card-title">Week ${week} Awards</div>
+      <div class="card-sub">Decisions, not just scores</div></div>
+    <div class="dr-sups">
+      ${cards.map(c => `<div class="dr-sup">
+        <div class="dr-suplab">${c.lab}</div>
+        <div class="dr-supname"${c.bad ? ' style="color:#f06a6a"' : ''}>${c.name}</div>
+        <div class="dr-supsub">${c.sub}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/** The season-long shame table: who keeps leaving points on the bench. */
+function wkShameTable(src) {
+  if (typeof bxSeasonTotals !== 'function') return '';
+  const weeks = Object.keys(src.boxscores || {}).map(Number).sort((a,b) => a-b);
+  if (!weeks.length) return '';
+  const byWeek = {};
+  weeks.forEach(w => { byWeek[w] = wkBoxesFor(src, w); });
+  const rows = bxSeasonTotals(byWeek);
+  if (!rows.length) return '';
+  const many = weeks.length > 1;
+
+  return `<div class="card" style="margin-bottom:18px">
+    <div class="card-header">
+      <div class="card-title">The Shame Table</div>
+      <div class="card-sub">Points left on the bench${many ? `, weeks 1–${weeks[weeks.length-1]}` : ', so far'}</div>
+    </div>
+    <div class="table-wrap">
+    <table class="std-table"><thead><tr>
+      <th>Manager</th><th class="num">Left on Bench</th><th class="num">Per Week</th>
+      <th class="num">Lineup Efficiency</th><th class="num">Zeros Started</th><th class="num">Perfect Weeks</th>
+    </tr></thead><tbody>
+      ${rows.map((r, i) => `<tr>
+        <td><strong>${r.manager}</strong>${r.worstBlunder
+          ? `<div style="font-size:10.5px;color:var(--muted)">Worst: benched ${r.worstBlunder.benched} in Week ${r.worstBlunder.week} (${r.worstBlunder.swing})</div>`
+          : ''}</td>
+        <td class="num" style="color:${i === 0 ? 'var(--red)' : 'var(--chalk-dim)'}">${r.left}</td>
+        <td class="num">${r.leftPerWeek}</td>
+        <td class="num" style="color:${r.efficiency >= 95 ? 'var(--green)' : r.efficiency < 85 ? 'var(--red)' : 'var(--gold)'}">${r.efficiency == null ? '—' : r.efficiency + '%'}</td>
+        <td class="num">${r.zeros || '—'}</td>
+        <td class="num">${r.optimalWeeks || '—'}</td>
+      </tr>`).join('')}
+    </tbody></table></div>
+    <div class="pw-note">Lineup efficiency is what you actually scored as a share of the best lineup
+      your roster could have produced. Nobody hits 100% often — but the gap between the top and the
+      bottom of this table is usually worth more than a draft pick.</div>
+  </div>`;
 }
 
 /** Season-long superlatives — the old Weekly Awards tab. */
