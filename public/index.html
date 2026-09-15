@@ -1520,7 +1520,10 @@ function renderStandings() {
     return (b.record?.overall?.pointsFor ?? b.points ?? 0) - (a.record?.overall?.pointsFor ?? a.points ?? 0);
   });
 
-  const week = src.status?.currentMatchupPeriod || src.scoringPeriodId || '?';
+  // ESPN's currentMatchupPeriod is the week in progress, not the last one played,
+  // so "Through Week N" has to come from the schedule or it reads a week ahead.
+  const week = (typeof pwLastCompletedWeek === 'function' ? pwLastCompletedWeek(src) : 0)
+    || src.status?.currentMatchupPeriod || src.scoringPeriodId || '?';
   const played = getCompletedMatchups(src).length > 0;
 
   // ── 1. The standings, straight from ESPN. Not editorialised. ──
@@ -1587,9 +1590,9 @@ function pwProjMap(src) {
 
 function renderPowerSection(src, week, played) {
   if (typeof powerWithMovement !== 'function') return '';
-  const throughWeek = played ? week : 0;
-  const pr = powerWithMovement(src, throughWeek, pwProjMap(src));
+  const pr = powerWithMovement(src, played ? week : 0, pwProjMap(src));
   if (!pr) return '';
+  const throughWeek = pr.throughWeek;   // authoritative: resolved against the schedule
 
   const map = getTeamsMapFor(src);
   const standingsRank = {};
@@ -1599,14 +1602,10 @@ function renderPowerSection(src, week, played) {
     return (b.record?.overall?.pointsFor ?? 0) - (a.record?.overall?.pointsFor ?? 0);
   }).forEach((t,i) => { standingsRank[t.id] = i + 1; });
 
-  // Week context for the commentary.
-  const weekScores = [];
-  (src.schedule || []).forEach(m => {
-    if (!m.home || !m.away || m.matchupPeriodId !== throughWeek) return;
-    if ((m.home.totalPoints||0) <= 0 && (m.away.totalPoints||0) <= 0) return;
-    weekScores.push(m.home.totalPoints||0, m.away.totalPoints||0);
-  });
-  const weekHigh = weekScores.length ? Math.max(...weekScores) : 0;
+  // Week context for the commentary. pwContext resolves the week against the
+  // schedule itself, so it is immune to ESPN reporting a week that is still in
+  // progress, and it carries every season's history for the cross-season lines.
+  const pctx = pwContext(src, allSeasons, throughWeek);
 
   let h = `<div class="card">
     <div class="card-header">
@@ -1625,11 +1624,11 @@ function renderPowerSection(src, week, played) {
     const t = map[r.teamId] || r.team;
     const name = mgr(t);
     const oppTeam = r.lastGame ? map[r.lastGame.opp] : null;
-    const blurb = pwBlurb(r, {
-      name, week: throughWeek, played,
+    const blurb = pwBlurb(r, Object.assign({}, pctx, {
+      name,
       oppName: oppTeam ? mgr(oppTeam) : null,
-      weekHigh,
-    });
+      oppTeam,
+    }));
 
     const sRank = standingsRank[r.teamId];
     const gap = sRank != null ? sRank - r.rank : 0;   // + means power sees them better than record

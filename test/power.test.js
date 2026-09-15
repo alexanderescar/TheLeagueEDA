@@ -183,5 +183,106 @@ console.log('\nLUCK DETECTION IN COPY');
     ok('power rank beats their standings position', unlucky.rank <= 3, 'rank=' + unlucky.rank);
 }
 
+console.log('\nWHICH WEEK IS IT');
+{
+    // ESPN's currentMatchupPeriod is the week IN PROGRESS. A season with three
+    // finished weeks and a fourth on the schedule must rank through three.
+    const scores = [...Array(12).keys()].map(() => flat(100, 3));
+    const season = makeSeason(scores, 3);
+    for (let i = 0; i < 6; i++) {
+        season.schedule.push({ matchupPeriodId: 4, home: { teamId: i, totalPoints: 0 }, away: { teamId: 11 - i, totalPoints: 0 } });
+    }
+    ok('last completed week ignores the unplayed week', P.pwLastCompletedWeek(season) === 3,
+        P.pwLastCompletedWeek(season));
+    ok('a too-high week is clamped', P.pwResolveWeek(season, 4) === 3);
+    ok('a lower week is honoured', P.pwResolveWeek(season, 2) === 2);
+    ok('powerRankings reports the clamped week', P.powerRankings(season, 4, null).throughWeek === 3);
+    ok('a half-played week does not count as complete', (() => {
+        const s = makeSeason([...Array(12).keys()].map(() => flat(100, 2)), 2);
+        s.schedule.filter(m => m.matchupPeriodId === 2).slice(0, 3)
+            .forEach(m => { m.home.totalPoints = 0; m.away.totalPoints = 0; });
+        return P.pwLastCompletedWeek(s) === 1;
+    })());
+    const st = P.pwWeekStats(season, 4);
+    ok('week stats on an unplayed week are empty', st.n === 0 && st.high === 0);
+}
+
+console.log('\nNOBODY FALSELY CLAIMS THE LEAGUE HIGH');
+{
+    // The regression. weekHigh of 0 (or missing) used to make `pts >= weekHigh`
+    // true for every losing team, so all six losers were told they led the league.
+    const scores = [...Array(12).keys()].map((i) => flat(100 + i, 4));
+    const pr = P.powerWithMovement(makeSeason(scores, 4), 4, null);
+    const claim = /league-best|most points in the league|Led the week in scoring/i;
+
+    const zero = pr.rows.map(r => P.pwBlurb(r, { name: 'M' + r.teamId, week: 4, played: true, oppName: 'Opp', weekHigh: 0 }));
+    ok('weekHigh of 0 produces no league-high claims', zero.filter(b => claim.test(b)).length === 0,
+        zero.filter(b => claim.test(b))[0]);
+
+    const missing = pr.rows.map(r => P.pwBlurb(r, { name: 'M' + r.teamId, week: 4, played: true, oppName: 'Opp' }));
+    ok('a missing weekHigh produces no league-high claims', missing.filter(b => claim.test(b)).length === 0,
+        missing.filter(b => claim.test(b))[0]);
+
+    // And with a real high, exactly the team that scored it may claim it.
+    const high = Math.max(...scores.map(s => s[3]));
+    const real = pr.rows.map(r => ({
+        id: r.teamId, pts: r.lastGame.pts,
+        b: P.pwBlurb(r, { name: 'M' + r.teamId, week: 4, played: true, oppName: 'Opp', weekHigh: high }),
+    }));
+    const claimants = real.filter(x => claim.test(x.b));
+    ok('at most one team claims the league high', claimants.length <= 1, claimants.length + ' claimants');
+    ok('and it is the team that actually scored it',
+        claimants.every(x => Math.abs(x.pts - high) < 0.01));
+}
+
+console.log('\nORDINALS');
+{
+    ok('1st/2nd/3rd/4th', ['1st','2nd','3rd','4th'].every((s,i) => P.pwOrd(i+1) === s));
+    ok('11th/12th/13th are not 11st/12nd/13rd',
+        P.pwOrd(11) === '11th' && P.pwOrd(12) === '12th' && P.pwOrd(13) === '13th');
+    ok('21st/22nd/23rd', P.pwOrd(21) === '21st' && P.pwOrd(22) === '22nd' && P.pwOrd(23) === '23rd');
+}
+
+console.log('\nBLURBS HAVE SUBSTANCE AND VARIETY');
+{
+    const scores = [...Array(12).keys()].map((i) => flat(95 + i * 4, 4));
+    const season = makeSeason(scores, 4);
+    const pr = P.powerWithMovement(season, 4, null);
+    const ctx = P.pwContext(season, [season], 4);
+    const blurbs = pr.rows.map(r => P.pwBlurb(r, Object.assign({}, ctx, { name: 'M' + r.teamId, oppName: 'Opp' })));
+
+    ok('every team gets a distinct blurb', new Set(blurbs).size === blurbs.length,
+        new Set(blurbs).size + '/' + blurbs.length);
+    const sentences = blurbs.map(b => b.split(/(?<=[.!?])\s+/).filter(Boolean).length);
+    ok('no blurb is a lone sentence', Math.min(...sentences) >= 2, 'min=' + Math.min(...sentences));
+    ok('no blurb runs on forever', Math.max(...sentences) <= 9, 'max=' + Math.max(...sentences));
+
+    // No team should be handed the same filler sentence as most of the league.
+    const allSentences = [];
+    blurbs.forEach(b => b.split(/(?<=[.!?])\s+/).forEach(s => allSentences.push(s.trim())));
+    const counts = {};
+    allSentences.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
+    const worst = Math.max(...Object.values(counts));
+    ok('no single sentence is reused across most of the league', worst <= 4, 'worst repeat=' + worst);
+}
+
+console.log('\nDRAFT VERDICTS WAIT FOR A REAL SAMPLE');
+{
+    // One bad game must not get a first-rounder called a bust.
+    const scores = [...Array(12).keys()].map(() => flat(100, 1));
+    const season = makeSeason(scores, 1);
+    season.draftDetail = { picks: [{ teamId: 0, playerId: 1, playerName: 'Bust Guy', playerPosition: 'RB',
+        roundId: 1, overallPickNumber: 1, projPoints: 280, actualPoints: 1 }] };
+    const pr = P.powerWithMovement(season, 1, null);
+    const ctx = P.pwContext(season, [season], 1);
+    const r0 = pr.rows.find(r => r.teamId === 0);
+    const b = P.pwBlurb(r0, Object.assign({}, ctx, { name: 'M0', oppName: 'Opp' }));
+    ok('no draft verdict in week 1', !/Bust Guy/.test(b), b);
+
+    const facts = P.pwFacts(r0, Object.assign({}, ctx, { name: 'M0', oppName: 'Opp', week: 5 }));
+    ok('draft verdicts appear once there is a sample',
+        facts.some(f => f.cat === 'draft'), facts.map(f => f.cat).join(','));
+}
+
 console.log(`\n${passes} passed, ${fails} failed\n`);
 process.exit(fails ? 1 : 0);
