@@ -699,6 +699,14 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
 .h2h-note{font-size:11px;color:var(--muted);padding:10px 4px}
 
 /* ── Weekly Highs ──────────────────────────────────────────── */
+/* Weekly Highs lives inside All-Time, which is already a card. Flatten any nested
+   cards so its sections read as parts of one page instead of boxes inside a box. */
+.hist-sub .card{background:none;border:none;border-radius:0;margin-bottom:26px;padding:0}
+.hist-sub .card:last-child{margin-bottom:0}
+.hist-sub .card-header{padding-left:0;padding-right:0;border-bottom:1px solid var(--border)}
+.hist-sub .pw-note,.hist-sub .dg-note{padding-left:0;padding-right:0}
+.hist-sub .dr-hero{padding:0!important}
+.hist-sub .hs-syear{padding-left:0;padding-right:0}
 .hs-tag{font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:4px;margin-left:6px;border:1px solid var(--border);color:var(--muted);white-space:nowrap}
 .hs-tag.bad{border-color:rgba(224,85,85,.35);color:#f06a6a;background:rgba(224,85,85,.07)}
 .hs-season{border-bottom:1px solid var(--border)}
@@ -1445,7 +1453,6 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
       <button onclick="switchTab(event,'champions')">Champion's Alley</button>
       <button onclick="switchTab(event,'managers')">Managers</button>
       <button onclick="switchTab(event,'draft')">Draft History</button>
-      <button onclick="switchTab(event,'highs')">Weekly Highs</button>
     </div>
   </nav>
 
@@ -1458,7 +1465,6 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
     <div id="tab-champions" class="tab-content"></div>
     <div id="tab-managers" class="tab-content"></div>
     <div id="tab-draft"     class="tab-content"></div>
-    <div id="tab-highs"     class="tab-content"></div>
   </main>
 
 </div>
@@ -1538,7 +1544,6 @@ function renderAll() {
   renderHistory();
   renderDraft();
   renderDraftRecap();
-  renderHighs();
   renderRules();
 }
 
@@ -2001,6 +2006,7 @@ function renderHistory() {
       <button class="hist-tab-btn" onclick="histSubTab(event,'h2h')">Head-to-Head</button>
       <button class="hist-tab-btn" onclick="histSubTab(event,'rivalries')">Rivalries</button>
       <button class="hist-tab-btn" onclick="histSubTab(event,'dna')">Draft DNA</button>
+      <button class="hist-tab-btn" onclick="histSubTab(event,'highs')">Weekly Highs</button>
       <button class="hist-tab-btn" onclick="histSubTab(event,'matchups')">Matchup Browser</button>
       <button class="hist-tab-btn" onclick="histSubTab(event,'records')">Records</button>
     </div>
@@ -2011,6 +2017,7 @@ function renderHistory() {
     <div id="hist-sub-h2h"          class="hist-sub"></div>
     <div id="hist-sub-rivalries"    class="hist-sub"></div>
     <div id="hist-sub-dna"          class="hist-sub"></div>
+    <div id="hist-sub-highs"        class="hist-sub"></div>
     <div id="hist-sub-matchups"     class="hist-sub"></div>
     <div id="hist-sub-records"      class="hist-sub"></div>
   </div>`;
@@ -2024,6 +2031,7 @@ function renderHistory() {
   renderHistH2HAll();
   renderHistRivalries();
   renderHistDNA();
+  renderHighs();
   renderHistMatchups();
   renderHistRecords(crossStats);
 }
@@ -2057,6 +2065,7 @@ else if (view === 'standings-all') renderHistAllStandings(crossStats);
 else if (view === 'allplay') renderHistAllPlay();
 else if (view === 'rivalries') renderHistRivalries();
 else if (view === 'dna') renderHistDNA();
+else if (view === 'highs') renderHighs();
 else if (view === 'h2h') renderHistH2HAll();
 else if (view === 'matchups') renderHistMatchups();
 else renderHistRecords(crossStats);
@@ -2546,7 +2555,9 @@ function hsBuild() {
 function money(n) { return n == null ? '—' : '$' + (Number(n) % 1 === 0 ? n : n.toFixed(2)); }
 
 function renderHighs() {
-  const el = document.getElementById('tab-highs');
+  // Lives as a sub-tab inside All-Time rather than a tab of its own — it's a
+  // historical record, not a section people navigate to directly.
+  const el = document.getElementById('hist-sub-highs');
   if (!el) return;
   const d = hsBuild();
   if (!d || !d.weeks.length) {
