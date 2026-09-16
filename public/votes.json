@@ -51,7 +51,22 @@
         "Section 4 renumbered: Draft, Free Agency, Trades, Rosters, Active Ownership"
       ],
       "current": true,
-      "gaps": "Three proposals that passed in Aug 2026 are not yet written in: the incomplete-lineup penalty, locking eliminated teams' rosters, and the Sacko PowerPoint replacing the $50 food contribution. Everything else in v5 matches how the league voted."
+      "gaps": "Superseded by the version 6 draft, which applies the passed-but-uncodified votes and records the end of keepers."
+    },
+    {
+      "version": "v6",
+      "dated": "2026 (draft)",
+      "effectiveFrom": 2027,
+      "draft": true,
+      "highlights": [
+        "Sacko presents at the draft instead of paying $50 toward food (Aug 2026, 7-5)",
+        "Penalty exists for failing to set a lineup; the penalty itself is still undecided (Aug 2026, 12-0)",
+        "Eliminated teams have rosters locked, elimination determined by ESPN (Aug 2026, 10-2)",
+        "Draft order randomized every season; lottery and consolation bracket retired with keepers",
+        "Moratorium (The Peter Rule) limited to Keeper Seasons only",
+        "Playoff matchups decided on points if a game is cancelled (Aug 2023, 6-3)",
+        "Any league matter may be revisited annually; the two-year cycle is gone (Aug 2023, 7-3)"
+      ]
     }
   ],
   "votes": [
@@ -2982,8 +2997,7 @@
   ],
   "_method": "Google Forms pie charts: the percentage labels are positioned by slice geometry, NOT legend order, so text extraction cannot tell you which option won. Every Forms result here was read from the rendered chart (blue = first legend item, red = second). WhatsApp polls print an explicit vote count beside each option, so those are read directly - but the green check marks the screenshotter's own vote, not the winning option.",
   "_openQuestions": [
-    "The 2018 and 2019 dues votes both required unanimity and both fell one to three votes short, yet the fee rose from $125 to $150 in constitution v2. How that happened is not recorded in the archive.",
-    "The 2023 vote to allow annual re-voting (7-3) is not reflected in constitution 1.1, which still describes a two-year cycle.",
-    "Three proposals that passed in Aug 2026 are not yet written into the constitution: the incomplete-lineup penalty, locking eliminated teams, and the Sacko PowerPoint."
+    "The 2018 and 2019 dues votes both required unanimity and both fell short (9-3 and 11-1), yet the fee rose from $125 to $150 in constitution v2. How that happened is not recorded in the archive.",
+    "The August 2026 vote created a penalty for failing to set a lineup but explicitly deferred what the penalty is. The league has not decided yet, so no specific penalty is enforceable."
   ]
 }

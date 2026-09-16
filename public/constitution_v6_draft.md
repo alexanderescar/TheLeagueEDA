@@ -5,10 +5,10 @@
 > This draft applies league votes that were passed but never written into version 5,
 > and records the end of keepers. Every change below cites the vote that authorises it.
 >
-> Five items are marked **Open for the league to settle**, either because the vote that
-> passed them did not specify enough detail to write an enforceable rule, or because
-> practice has moved ahead of any recorded vote. Nothing here takes effect until the
-> league adopts it.
+> One item is marked **Open for the league to settle** — the August 2026 vote created a
+> penalty for not setting a lineup but explicitly deferred what the penalty is, and the
+> league has not decided yet. Everything else is settled. Nothing here takes effect
+> until the league adopts it.
 
 ## 1.0 League Overview
 
@@ -42,7 +42,7 @@ The owner who finishes last in the regular season is the Sacko. The Sacko must d
 
 This replaces the previous penalty, in which the last-place owner contributed up to $50 toward food and drink at the following draft. *(Presentation adopted by league vote, August 2026, 7–5. The $50 food contribution it replaced was adopted unanimously in August 2015 but was never written into any prior version of this constitution.)*
 
-> **Open for the league to settle:** the vote established that the presentation replaces the food contribution, but did not state when or where it is delivered. The draft is the obvious occasion, since that is when the food was provided, but the league should confirm this.
+The presentation is delivered at the following season's draft.
 
 ## 3.0 League Setup And Competition
 
@@ -76,9 +76,7 @@ The commissioner will designate a draft date and location each season. Owners ar
 
 The draft order is randomized every season. Every owner has an equal chance at every position, regardless of the previous season's finish.
 
-With keepers retired from 2026 onward, the mechanisms that previously set draft position no longer apply: the draft lottery for the first six picks *(adopted August 2019, 8–4)* and the consolation bracket determining picks 1–6 *(adopted August 2019, 8–4, two days later)* are both superseded and no longer in force.
-
-> **Open for the league to settle:** the move to a fully random draft follows from ending keepers, but there is no separate vote on record adopting it. The league may want to ratify it explicitly so the two 2019 mechanisms are formally repealed rather than left dormant.
+The draft lottery and the consolation bracket that previously set draft position are retired along with keepers, and are no longer in force.
 
 The draft will be a serpentine order, where the person with the first pick in Round 1 will have the last pick in Round 2 and the first pick in Round 3. When it is the owner's turn to draft, they will have ninety (90) seconds to make their pick. The commissioner will designate a timekeeper and when the timer expires, the next owner may make their selection. The skipped owner will auto draft/have highest player on personal cue or highest player based on ESPN’s rankings.
 
@@ -98,9 +96,11 @@ The league reserves the right to vote on all/any trade (including pre-draft trad
 
 ### 4.4 Moratorium Period — aka “The Peter Rule”
 
-All transactions – including waiver claims and free agent pickups – will be halted and disallowed at the end of the fantasy football season. This will be a moratorium period in which no owners will be allowed to modify their teams in any way. The freeze on activity will be lifted on the day following the draft order being set, at noon (12:00PM) – marking the start of The League’s free agency period.
+**This section applies only during a designated Keeper Season.** With no keepers, there is no offseason roster to protect, so transactions stay open year-round. The Peter Rule is dormant rather than repealed — it returns automatically in any season the league designates as a Keeper Season.
 
-> **Open for the league to settle:** this clause previously keyed the end of the moratorium to the draft lottery. With the lottery retired and the draft order simply randomized, the league needs to name a concrete trigger — the date the order is drawn, or a fixed calendar date. If the league is in a designated “Keeper Season,” keeper selections must be finalized prior to this date in accordance with the keeper rules established for that season.
+During a Keeper Season, all transactions – including waiver claims and free agent pickups – are halted and disallowed at the end of the fantasy football season. No owner may modify their team in any way during this period. The freeze is lifted the day after the draft order is set, at noon (12:00PM), marking the start of The League's free agency period. Keeper selections must be finalized before that date, in accordance with the keeper rules established for that season.
+
+*(Adopted by league vote, July 2017, 8–2, and reaffirmed August 2023, 8–2. Limited to Keeper Seasons following the retirement of keepers from 2026.)*
 
 ### 4.5 Rosters
 
@@ -120,7 +120,7 @@ Owners are required to field a complete and legal starting lineup every week. Fa
 
 Once a team is mathematically eliminated from playoff contention, that team's roster is locked. The owner may not add, drop, or trade players for the remainder of the regular season. *(Adopted by league vote, August 2026, 10–2.)*
 
-> **Open for the league to settle:** the vote did not state who determines the point of mathematical elimination, or whether the lock lifts for the offseason moratorium period described in 4.2. The commissioner should confirm both.
+Elimination is determined by ESPN's own playoff calculation, not by the commissioner's judgement. The lock holds through the end of the regular season.
 
 ### 4.6 Active Ownership Requirements
 

@@ -111,9 +111,10 @@ console.log('\nTRADES');
 console.log('\nCONSTITUTION VERSIONS');
 {
     const vs = store.versions;
-    ok('five versions on record', vs.length === 5, vs.length + '');
+    ok('six versions on record (v1-v5 plus the v6 draft)', vs.length === 6, vs.length + '');
     ok('exactly one marked current', vs.filter(v => v.current).length === 1);
     ok('effective years increase', vs.every((v, i) => i === 0 || vs[i - 1].effectiveFrom < v.effectiveFrom));
+    ok('exactly one draft version', vs.filter(v => v.draft).length === 1);
     ok('open questions recorded', Array.isArray(store._openQuestions) && store._openQuestions.length > 0);
 }
 
