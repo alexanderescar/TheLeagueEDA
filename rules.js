@@ -36,6 +36,21 @@ function readFaq() {
     } catch { return null; }
 }
 
+/**
+ * A proposed next version, if one is sitting in the folder.
+ *
+ * Deliberately NOT fed to the bot. The bot answers from the ratified constitution;
+ * quoting unratified text in a dispute would be worse than saying nothing. It is
+ * shown in the app, clearly labelled, so the league can read and adopt it.
+ */
+function readDraft() {
+    try {
+        const f = path.join(PUB, 'constitution_v6_draft.md');
+        if (!fs.existsSync(f)) return null;
+        return fs.readFileSync(f, 'utf8');
+    } catch { return null; }
+}
+
 function readVotes() {
     try {
         const f = path.join(PUB, 'votes.json');
@@ -208,4 +223,4 @@ async function ask(question, history) {
     }
 }
 
-module.exports = { ask, status, readConstitution, readFaq, readVotes, voteDigest, hasKey };
+module.exports = { ask, status, readConstitution, readDraft, readFaq, readVotes, voteDigest, hasKey };

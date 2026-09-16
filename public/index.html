@@ -789,6 +789,7 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
 .rl-q{width:100%;text-align:left;background:none;border:none;color:var(--chalk);padding:11px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;justify-content:space-between;gap:10px;align-items:center}
 .rl-q:hover{background:rgba(255,255,255,.03)}
 .rl-a{padding:0 16px 13px;font-size:12.5px;line-height:1.65;color:var(--chalk-dim)}
+.rl-toggle{display:flex;gap:6px;padding:12px 16px 4px;flex-wrap:wrap}
 .rl-doc{padding:6px 18px 18px;max-height:640px;overflow-y:auto}
 .rl-h{color:var(--gold);margin:18px 0 8px;line-height:1.35}
 .rl-h1{font-size:18px;border-bottom:1px solid var(--border);padding-bottom:6px}
@@ -2698,7 +2699,7 @@ function hsToggle(year) {
 //  CONSTITUTION & RULES
 // ══════════════════════════════════════════════
 
-let _rulesData = null, _rulesChat = [];
+let _rulesData = null, _rulesChat = [], _rulesShowDraft = false;
 
 function renderRules() {
   const el = document.getElementById('tab-rules');
@@ -2811,7 +2812,20 @@ function rulesHTML(d) {
       <div class="card-sub">${has ? 'The governing document' : 'Not uploaded yet'}</div>
     </div>`;
   if (has) {
-    h += `<div class="rl-doc">${mdToHtml(d.constitution)}</div>
+    const showingDraft = !!(d.draft && _rulesShowDraft);
+    if (d.draft) {
+      h += `<div class="rl-toggle">
+        <button class="vt-chip${showingDraft ? '' : ' active'}" onclick="rulesDraft(false)">Version 5 — in force</button>
+        <button class="vt-chip${showingDraft ? ' active' : ''}" onclick="rulesDraft(true)">Version 6 — proposed</button>
+      </div>`;
+      h += showingDraft
+        ? `<div class="vt-gap" style="margin:0 16px 12px">This draft is <strong>not in force</strong>. It applies votes
+             that passed but were never written down, and flags three places where the vote didn't say enough to
+             write an enforceable rule. The bot still answers from version 5.</div>`
+        : `<div class="pw-note" style="padding-bottom:0">A version 6 draft exists, applying
+             ${''}four passed votes that were never codified. Switch above to read it.</div>`;
+    }
+    h += `<div class="rl-doc">${mdToHtml(showingDraft ? d.draft : d.constitution)}</div>
       <div class="pw-note"><a href="/constitution.pdf" class="rl-dl" download>Download the original PDF</a></div>`;
   } else {
     h += `<div class="empty-msg"><div class="eicon">📜</div>
@@ -3001,6 +3015,8 @@ function vtSearch(val) {
     if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
   }, 220);
 }
+
+function rulesDraft(show){ _rulesShowDraft = !!show; renderRules(); }
 
 function rulesToggle(id) {
   const el = document.getElementById(id);

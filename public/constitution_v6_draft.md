@@ -1,6 +1,14 @@
 # The League — Constitution
 
-*Version 5*
+*Version 6 — DRAFT, not yet ratified*
+
+> This draft applies league votes that were passed but never written into version 5,
+> and records the end of keepers. Every change below cites the vote that authorises it.
+>
+> Five items are marked **Open for the league to settle**, either because the vote that
+> passed them did not specify enough detail to write an enforceable rule, or because
+> practice has moved ahead of any recorded vote. Nothing here takes effect until the
+> league adopts it.
 
 ## 1.0 League Overview
 
@@ -14,7 +22,7 @@ Please remember that the overall goal of this league is to have fun and enjoy th
 
 ### 1.1 Living Constitution
 
-It is important to note that this is a living, breathing constitution that will change and evolve over the lifetime of this league. Changes will happen between seasons as often as necessary and will be effective from that point moving forward. If you have suggestions for changes, additions or omissions please submit them to the Commissioner. Once a change is made via league vote, the result will stand for two years/seasons after which the league will revisit said topic and re-vote.
+It is important to note that this is a living, breathing constitution that will change and evolve over the lifetime of this league. Changes will happen between seasons as often as necessary and will be effective from that point moving forward. If you have suggestions for changes, additions or omissions please submit them to the Commissioner. Once a change is made via league vote, the result stands for the following season. Any league matter may be raised again in any subsequent offseason; there is no waiting period. *(Amended by league vote, August 2023, 7–3, which lifted the previous two-year cycle adopted in July 2016.)*
 
 ## 2.0 League Financing
 
@@ -27,6 +35,14 @@ If an owner has not paid their league dues by Week 4 of the regular season, said
 League prize money will be paid out within seven days of the completion of The League Final. Money will be held in a safe place by The League commissioner and will be paid out in the following manner:
 
 League Champion receives $1,750 League Runner-Up receives $300 Weekly high scorer during the regular season (through week 14) receives $25
+
+### 2.2 The Sacko
+
+The owner who finishes last in the regular season is the Sacko. The Sacko must deliver a presentation to the league explaining why his team was the worst in the league that season.
+
+This replaces the previous penalty, in which the last-place owner contributed up to $50 toward food and drink at the following draft. *(Presentation adopted by league vote, August 2026, 7–5. The $50 food contribution it replaced was adopted unanimously in August 2015 but was never written into any prior version of this constitution.)*
+
+> **Open for the league to settle:** the vote established that the presentation replaces the food contribution, but did not state when or where it is delivered. The draft is the obvious occasion, since that is when the food was provided, but the league should confirm this.
 
 ## 3.0 League Setup And Competition
 
@@ -48,6 +64,8 @@ After the completion of the regular season, six teams with the best records will
 
 Tie-breaker in the playoffs will be Total Points Scored by Starters in the regular season.
 
+If an NFL game is cancelled or rescheduled such that a playoff matchup cannot be completed as scheduled, the owner with the most points at that time wins the matchup, regardless of the reschedule or cancellation. *(Adopted by league vote, August 2023, 6–3.)*
+
 ## 4.0 Rosters And Lineups
 
 Each roster will consist of 16 active players from any NFL team. Only players from the active roster may be used as part of a team's starting lineup.
@@ -56,7 +74,11 @@ Each roster will consist of 16 active players from any NFL team. Only players fr
 
 The commissioner will designate a draft date and location each season. Owners are expected to attend the draft in person, and must have all league fees paid before the draft.
 
-The draft order will be determined by a random lottery draw or a creative selection method voted on and approved by the league as a whole.
+The draft order is randomized every season. Every owner has an equal chance at every position, regardless of the previous season's finish.
+
+With keepers retired from 2026 onward, the mechanisms that previously set draft position no longer apply: the draft lottery for the first six picks *(adopted August 2019, 8–4)* and the consolation bracket determining picks 1–6 *(adopted August 2019, 8–4, two days later)* are both superseded and no longer in force.
+
+> **Open for the league to settle:** the move to a fully random draft follows from ending keepers, but there is no separate vote on record adopting it. The league may want to ratify it explicitly so the two 2019 mechanisms are formally repealed rather than left dormant.
 
 The draft will be a serpentine order, where the person with the first pick in Round 1 will have the last pick in Round 2 and the first pick in Round 3. When it is the owner's turn to draft, they will have ninety (90) seconds to make their pick. The commissioner will designate a timekeeper and when the timer expires, the next owner may make their selection. The skipped owner will auto draft/have highest player on personal cue or highest player based on ESPN’s rankings.
 
@@ -76,7 +98,9 @@ The league reserves the right to vote on all/any trade (including pre-draft trad
 
 ### 4.4 Moratorium Period — aka “The Peter Rule”
 
-All transactions – including waiver claims and free agent pickups – will be halted and disallowed at the end of the fantasy football season. This will be a moratorium period in which no owners will be allowed to modify their teams in any way. The freeze on activity will be lifted on the day following the draft lottery at noon (12:00PM) – marking the start of The League’s free agency period. If the league is in a designated “Keeper Season,” keeper selections must be finalized prior to this date in accordance with the keeper rules established for that season.
+All transactions – including waiver claims and free agent pickups – will be halted and disallowed at the end of the fantasy football season. This will be a moratorium period in which no owners will be allowed to modify their teams in any way. The freeze on activity will be lifted on the day following the draft order being set, at noon (12:00PM) – marking the start of The League’s free agency period.
+
+> **Open for the league to settle:** this clause previously keyed the end of the moratorium to the draft lottery. With the lottery retired and the draft order simply randomized, the league needs to name a concrete trigger — the date the order is drawn, or a fixed calendar date. If the league is in a designated “Keeper Season,” keeper selections must be finalized prior to this date in accordance with the keeper rules established for that season.
 
 ### 4.5 Rosters
 
@@ -85,6 +109,18 @@ Rosters in the league will consist of 16 maximum spots with 10 starters and 6 be
 Position          Starters       Maximums QB              1                  3 RB              2                  7 WR              2                  7 TE              1                  3 FLEX            2                  N/A DEF/SP          1                  3 K               1                  3 BENCH           6                  N/A IR              1                  N/A
 
 Owners must submit their starting lineup each week. Players may be added or removed from the starting lineup up until the start time of their respective matches that week. Owners may not change a player that has already played. For example, if you started your quarterback on Thursday night and he has a bad game, you cannot switch him out for a quarterback who has not played. Also, if you did not start a wide receiver who played on Thursday night and he scored three touchdowns, you cannot add him to your lineup on Friday. Once the Thursday game begins, players from that game may not be started or benched. If an owner needs a lineup change after the lineups have been locked, they may contact the commissioner prior to player takes the field and ask for the player to get changed in. If the player has not built any stats the commissioner can make the last-minute change. In unusual circumstances, The League will vote to insert or remove players from lineups.
+
+### 4.5.1 Failure to Set a Lineup
+
+Owners are required to field a complete and legal starting lineup every week. Failing to do so carries a league penalty. *(Adopted unanimously by league vote, August 2026, 12–0.)*
+
+> **Open for the league to settle:** the August 2026 vote decided only that a penalty should exist. The vote explicitly deferred the punishment itself to a separate decision, and that decision has not yet been recorded. Until the league sets it, no specific penalty is enforceable under this constitution.
+
+### 4.5.2 Eliminated Teams
+
+Once a team is mathematically eliminated from playoff contention, that team's roster is locked. The owner may not add, drop, or trade players for the remainder of the regular season. *(Adopted by league vote, August 2026, 10–2.)*
+
+> **Open for the league to settle:** the vote did not state who determines the point of mathematical elimination, or whether the lock lifts for the offseason moratorium period described in 4.2. The commissioner should confirm both.
 
 ### 4.6 Active Ownership Requirements
 
