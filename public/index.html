@@ -2699,7 +2699,7 @@ function hsToggle(year) {
 //  CONSTITUTION & RULES
 // ══════════════════════════════════════════════
 
-let _rulesData = null, _rulesChat = [], _rulesShowDraft = false;
+let _rulesData = null, _rulesChat = [];
 
 function renderRules() {
   const el = document.getElementById('tab-rules');
@@ -2812,21 +2812,8 @@ function rulesHTML(d) {
       <div class="card-sub">${has ? 'The governing document' : 'Not uploaded yet'}</div>
     </div>`;
   if (has) {
-    const showingDraft = !!(d.draft && _rulesShowDraft);
-    if (d.draft) {
-      h += `<div class="rl-toggle">
-        <button class="vt-chip${showingDraft ? '' : ' active'}" onclick="rulesDraft(false)">Version 5 — in force</button>
-        <button class="vt-chip${showingDraft ? ' active' : ''}" onclick="rulesDraft(true)">Version 6 — proposed</button>
-      </div>`;
-      h += showingDraft
-        ? `<div class="vt-gap" style="margin:0 16px 12px">This draft is <strong>not in force</strong>. It applies votes
-             that passed but were never written down, and flags three places where the vote didn't say enough to
-             write an enforceable rule. The bot still answers from version 5.</div>`
-        : `<div class="pw-note" style="padding-bottom:0">A version 6 draft exists, applying
-             ${''}four passed votes that were never codified. Switch above to read it.</div>`;
-    }
-    h += `<div class="rl-doc">${mdToHtml(showingDraft ? d.draft : d.constitution)}</div>
-      <div class="pw-note"><a href="/constitution.pdf" class="rl-dl" download>Download the original PDF</a></div>`;
+    h += `<div class="rl-doc">${mdToHtml(d.constitution)}</div>
+      <div class="pw-note"><a href="/constitution_v6.pdf" class="rl-dl" download>Download the constitution (PDF)</a></div>`;
   } else {
     h += `<div class="empty-msg"><div class="eicon">📜</div>
       <h3>No constitution on file</h3>
@@ -3015,8 +3002,6 @@ function vtSearch(val) {
     if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
   }, 220);
 }
-
-function rulesDraft(show){ _rulesShowDraft = !!show; renderRules(); }
 
 function rulesToggle(id) {
   const el = document.getElementById(id);

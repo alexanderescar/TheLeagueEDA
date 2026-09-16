@@ -230,7 +230,6 @@ app.get('/api/rules', (req, res) => {
         const votes = R.readVotes();
         res.json({
             constitution: R.readConstitution(),
-            draft: R.readDraft(),
             faq: R.readFaq() || [],
             votes: votes ? votes.votes : [],
             versions: votes ? votes.versions : [],

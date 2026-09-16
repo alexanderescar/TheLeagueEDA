@@ -36,21 +36,6 @@ function readFaq() {
     } catch { return null; }
 }
 
-/**
- * A proposed next version, if one is sitting in the folder.
- *
- * Deliberately NOT fed to the bot. The bot answers from the ratified constitution;
- * quoting unratified text in a dispute would be worse than saying nothing. It is
- * shown in the app, clearly labelled, so the league can read and adopt it.
- */
-function readDraft() {
-    try {
-        const f = path.join(PUB, 'constitution_v6_draft.md');
-        if (!fs.existsSync(f)) return null;
-        return fs.readFileSync(f, 'utf8');
-    } catch { return null; }
-}
-
 function readVotes() {
     try {
         const f = path.join(PUB, 'votes.json');
@@ -140,8 +125,9 @@ Rules for your answers:
   * Proposals often failed several times before passing. If asked when something was
     decided, give the vote that actually passed, and mention the earlier attempts only
     if they are relevant.
-  * Three things passed in 2026 that are not yet written into the constitution, and a
-    couple of older votes were never codified. These are listed under UNRESOLVED.
+  * The constitution is version 6, adopted September 2026, and now includes the 2026
+    votes. One thing is still open: a penalty for failing to set a lineup exists, but
+    the league has not decided what it is. Anything else unresolved is under UNRESOLVED.
 - If the constitution and a vote disagree, say so and give both rather than choosing.
 - Be brief. Two or three sentences is usually right. These are people settling an
   argument on their phone, not reading a legal brief.
@@ -223,4 +209,4 @@ async function ask(question, history) {
     }
 }
 
-module.exports = { ask, status, readConstitution, readDraft, readFaq, readVotes, voteDigest, hasKey };
+module.exports = { ask, status, readConstitution, readFaq, readVotes, voteDigest, hasKey };

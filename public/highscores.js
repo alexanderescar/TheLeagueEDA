@@ -18,11 +18,35 @@
  * Ties split the prize, so a season's payout always equals weeks x $25.
  */
 
-var HS_PRIZE = 25;
+/**
+ * The weekly prize has three eras, traced through the constitution versions and the
+ * votes that created them. Treating it as a flat $25 would credit people for money
+ * that did not exist, and would overpay the 2019-2023 seasons by 25%.
+ *
+ *   before 2019   no weekly prize at all. v1 paid a $100 season-long scoring champion
+ *                 instead. A weekly prize was proposed and rejected in 2014, 2015 and
+ *                 2017 before it finally passed.
+ *   2019-2023     $20, regular season through week 13. Created by the August 2019 vote
+ *                 (11-1) that replaced the season scoring champion, and recorded in
+ *                 constitution v2.
+ *   2024 onward   $25, regular season through week 14, per constitution v4 and v6 2.1.
+ *
+ * Eligible weeks follow each season's own regular season rather than a fixed number,
+ * which happens to line up: the league ran 13-week regular seasons through 2020 and
+ * 14 from 2021.
+ */
+var HS_ERAS = [
+    { from: 2024, prize: 25 },
+    { from: 2019, prize: 20 },
+];
 
-// Set this to the first season the $25 weekly prize actually existed.
-// null = money tracking off; scores still shown for every season.
-var HS_MONEY_FROM = null;
+/** What the weekly high score paid in a given season. 0 means no prize existed. */
+function hsPrizeFor(season) {
+    for (var i = 0; i < HS_ERAS.length; i++) {
+        if (Number(season) >= HS_ERAS[i].from) return HS_ERAS[i].prize;
+    }
+    return 0;
+}
 
 function hsRound(n) { return Math.round(n * 100) / 100; }
 
@@ -57,13 +81,15 @@ function hsWeeklyWinners(allSeasons, resolve) {
             if (!rows.length) return;
             var top = rows[0].pts;
             var winners = rows.filter(function (r) { return Math.abs(r.pts - top) < 0.001; });
-            var paid = (HS_MONEY_FROM != null && Number(s.season) >= HS_MONEY_FROM);
+            var prize = hsPrizeFor(s.season);
+            var paid = prize > 0;
             out.push({
                 season: Number(s.season),
                 week: w,
                 score: hsRound(top),
                 tie: winners.length > 1,
-                money: paid ? hsRound(HS_PRIZE / winners.length) : null,
+                money: paid ? hsRound(prize / winners.length) : null,
+                prize: paid ? prize : null,
                 paid: paid,
                 winners: winners.map(function (r) {
                     return {
@@ -121,7 +147,7 @@ function hsBySeason(weeks) {
     (weeks || []).forEach(function (wk) {
         var a = acc[wk.season] = acc[wk.season] || { season: wk.season, weeks: [], money: 0 };
         a.weeks.push(wk);
-        if (wk.paid) a.money = hsRound(a.money + HS_PRIZE);
+        if (wk.paid) a.money = hsRound(a.money + (wk.prize || 0));
     });
     return Object.keys(acc).map(function (k) { return acc[k]; })
         .sort(function (a, b) { return b.season - a.season; })
@@ -203,8 +229,6 @@ function hsRecords(weeks) {
 if (typeof module !== 'undefined') {
     module.exports = {
         hsWeeklyWinners, hsByManager, hsBySeason, hsRecords, hsRegWeeks,
-        HS_PRIZE: HS_PRIZE,
-        get HS_MONEY_FROM() { return HS_MONEY_FROM; },
-        set HS_MONEY_FROM(v) { HS_MONEY_FROM = v; },
+        hsPrizeFor, HS_ERAS,
     };
 }
