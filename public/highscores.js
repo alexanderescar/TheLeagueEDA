@@ -1,21 +1,14 @@
 /**
  * highscores.js — the weekly high-score prize, tracked properly.
  *
- * Constitution 2.1: "Weekly high scorer during the regular season receives $25."
+ * Constitution 2.1: the weekly high scorer during the regular season receives a prize.
+ * The amount has changed over the years — see HS_ERAS below.
  *
- * Two things worth knowing about how this counts:
+ * Eligible weeks follow each season's own regular season, not a fixed number. The league
+ * ran 13-week regular seasons through 2020 and 14 from 2021, so a literal reading of
+ * "through week 14" would have paid regular-season money to a playoff score before 2021.
  *
- * 1. ELIGIBLE WEEKS follow each season's own regular season, not a fixed number.
- *    The league ran 13-week regular seasons through 2020 and 14 from 2021, so a
- *    literal "weeks 1-14" would have handed regular-season money to a playoff score
- *    in every season before 2021.
- *
- * 2. MONEY AND SCORES ARE SEPARATE. Weekly high scores are tracked back to 2011 as a
- *    record book. Dollars are only attached from HS_MONEY_FROM onward, because the
- *    constitution is on version 5 and the prize has not always existed. Crediting
- *    someone $400 for weeks that never paid out would be fiction.
- *
- * Ties split the prize, so a season's payout always equals weeks x $25.
+ * Ties split that season's prize, so a season's payout always equals weeks x the rate.
  */
 
 /**

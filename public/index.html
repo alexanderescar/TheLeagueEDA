@@ -2651,7 +2651,7 @@ function renderHighs() {
     <div class="dr-sups">
       <div class="dr-sup"><div class="dr-suplab">Most Weeks, One Season</div>
         <div class="dr-supname">${r.mostInSeason.name}</div>
-        <div class="dr-supsub">${r.mostInSeason.count} weekly highs in ${r.mostInSeason.season}${moneyOn ? ` — ${money(r.mostInSeason.count * 25)} that year` : ''}.</div></div>
+        <div class="dr-supsub">${r.mostInSeason.count} weekly highs in ${r.mostInSeason.season}${moneyOn && typeof hsPrizeFor==='function' ? ` — ${money(r.mostInSeason.count * hsPrizeFor(r.mostInSeason.season))} that year` : ''}.</div></div>
       ${r.longestStreak ? `<div class="dr-sup"><div class="dr-suplab">Longest Streak</div>
         <div class="dr-supname">${r.longestStreak.name}</div>
         <div class="dr-supsub">${r.longestStreak.run} weeks running, from Week ${r.longestStreak.from} of ${r.longestStreak.season}.</div></div>` : ''}
