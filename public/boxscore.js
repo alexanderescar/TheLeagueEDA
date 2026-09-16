@@ -104,6 +104,23 @@ function bxTeamWeek(entries, opts) {
         }
     });
 
+    // ── Start/sit accuracy ──
+    // Only decisions you actually faced count. If a manager carries one kicker, he
+    // never chose to start him, and giving him credit for that every week drags
+    // everyone into the same 85-95% band where nobody can be told apart. A decision
+    // is contested when at least one benched player was eligible for that slot.
+    var optIds = opt.lineup;
+    var contested = 0, correct = 0;
+    starters.forEach(function (s) {
+        var hasAlternative = bench.some(function (b) {
+            if (b.pos === s.pos) return true;
+            return BX_FLEX_POS.indexOf(b.pos) > -1 && BX_FLEX_POS.indexOf(s.pos) > -1;
+        });
+        if (!hasAlternative) return;
+        contested++;
+        if (optIds.indexOf(s) > -1) correct++;
+    });
+
     var zeros = starters.filter(function (p) { return p.pts <= 0; });
     var hero = starters[0] || null;
     var share = (hero && startedTotal > 0) ? bxRound((hero.pts / startedTotal) * 100) : null;
@@ -124,6 +141,9 @@ function bxTeamWeek(entries, opts) {
         optimalLineup: opt.lineup,
         left: bxRound(opt.total - startedTotal),
         blunder: blunder,
+        decisions: contested,
+        correctDecisions: correct,
+        accuracy: contested ? bxRound((correct / contested) * 100) : null,
         zeros: zeros,
         hero: hero,
         heroShare: share,
@@ -207,8 +227,11 @@ function bxSeasonTotals(byWeek) {
                 teamId: t.teamId, manager: t.manager, weeks: 0,
                 left: 0, zeros: 0, blunders: 0, worstBlunder: null,
                 costlyWeeks: 0, optimalWeeks: 0, actual: 0, optimal: 0,
+                decisions: 0, correctDecisions: 0,
             };
             a.weeks++;
+            a.decisions += t.box.decisions || 0;
+            a.correctDecisions += t.box.correctDecisions || 0;
             a.left = bxRound(a.left + t.box.left);
             a.actual = bxRound(a.actual + t.box.actual);
             a.optimal = bxRound(a.optimal + t.box.optimal);
@@ -229,6 +252,10 @@ function bxSeasonTotals(byWeek) {
         a.leftPerWeek = a.weeks ? bxRound(a.left / a.weeks) : 0;
         // How close they came to playing a perfect lineup all season.
         a.efficiency = a.optimal > 0 ? bxRound((a.actual / a.optimal) * 100) : null;
+        // Hit rate across every contested start/sit call they've faced. Distinct from
+        // efficiency: one ruinous call wrecks efficiency while barely moving accuracy,
+        // and a pile of small misses does the reverse.
+        a.accuracy = a.decisions > 0 ? bxRound((a.correctDecisions / a.decisions) * 100) : null;
         return a;
     });
     rows.sort(function (a, b) { return b.left - a.left; });

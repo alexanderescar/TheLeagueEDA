@@ -223,6 +223,41 @@ app.get('/admin/playerstats', async (req, res) => {
     res.end('</body></html>');
 });
 
+// ── Constitution, FAQ and the rules bot ──
+app.get('/api/rules', (req, res) => {
+    try {
+        const R = require('./rules');
+        res.json({
+            constitution: R.readConstitution(),
+            faq: R.readFaq() || [],
+            bot: R.status(),
+        });
+    } catch (err) {
+        console.error('[Rules]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Simple in-memory throttle. The API key lives here, so an open endpoint is an open
+// tab on someone else's bill — 20 questions a minute across the whole league is
+// plenty for twelve people settling an argument.
+const _rulesHits = [];
+app.post('/api/rules/ask', express.json({ limit: '32kb' }), async (req, res) => {
+    const now = Date.now();
+    while (_rulesHits.length && now - _rulesHits[0] > 60000) _rulesHits.shift();
+    if (_rulesHits.length >= 20) {
+        return res.status(429).json({ error: 'Too many questions at once — give it a minute.' });
+    }
+    _rulesHits.push(now);
+    try {
+        const { question, history } = req.body || {};
+        const out = await require('./rules').ask(question, history);
+        res.json(out);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
 // ── The weekly brief: everything Claude needs to write the power-ranking blurbs.
 // Includes the full season to date, not just this week, so the writing can reference
 // what happened in earlier weeks instead of treating each week as a blank slate.

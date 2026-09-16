@@ -698,6 +698,45 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
 .h2h-self{color:var(--border-bright)}
 .h2h-note{font-size:11px;color:var(--muted);padding:10px 4px}
 
+/* ── Constitution & Rules ──────────────────────────────────── */
+nav button.nav-rules{border-color:rgba(240,192,64,.3)}
+.rl-chat{max-height:340px;overflow-y:auto;padding:12px 16px 4px}
+.rl-msg{margin-bottom:10px;display:flex}
+.rl-msg.user{justify-content:flex-end}
+.rl-bubble{max-width:86%;padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.6}
+.rl-msg.user .rl-bubble{background:var(--gold-dim);border:1px solid rgba(240,192,64,.35);color:var(--chalk)}
+.rl-msg.assistant .rl-bubble{background:rgba(255,255,255,.04);border:1px solid var(--border)}
+.rl-bubble .rl-p{margin:0 0 6px}
+.rl-bubble .rl-p:last-child{margin-bottom:0}
+.rl-ask{display:flex;gap:8px;padding:10px 16px}
+.rl-input{flex:1;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:8px;color:var(--chalk);padding:10px 12px;font-size:13px;font-family:inherit}
+.rl-input:focus{outline:none;border-color:var(--gold)}
+.rl-send{background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold);border-radius:8px;padding:10px 18px;font-weight:700;font-size:13px;cursor:pointer}
+.rl-send:hover{background:rgba(240,192,64,.22)}
+.rl-hint{font-size:11px;color:var(--muted);padding:0 16px 14px}
+.rl-cat{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--gold);padding:14px 16px 6px;font-weight:700}
+.rl-faq{border-bottom:1px solid var(--border)}
+.rl-faq:last-child{border-bottom:none}
+.rl-q{width:100%;text-align:left;background:none;border:none;color:var(--chalk);padding:11px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.rl-q:hover{background:rgba(255,255,255,.03)}
+.rl-a{padding:0 16px 13px;font-size:12.5px;line-height:1.65;color:var(--chalk-dim)}
+.rl-doc{padding:6px 18px 18px;max-height:640px;overflow-y:auto}
+.rl-h{color:var(--gold);margin:18px 0 8px;line-height:1.35}
+.rl-h1{font-size:18px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.rl-h2{font-size:15px}
+.rl-h3{font-size:13.5px;color:var(--chalk)}
+.rl-h4{font-size:12.5px;color:var(--chalk-dim)}
+.rl-p{font-size:13px;line-height:1.7;margin:0 0 10px;color:var(--chalk-dim)}
+.rl-ul,.rl-ol{margin:0 0 12px 20px;font-size:13px;line-height:1.7;color:var(--chalk-dim)}
+.rl-ul li,.rl-ol li{margin-bottom:4px}
+.rl-dl{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(240,192,64,.4)}
+@media (max-width:760px){
+  .rl-chat{max-height:300px;padding:10px 12px 4px}
+  .rl-bubble{max-width:92%;font-size:12.5px}
+  .rl-ask{padding:10px 12px}
+  .rl-doc{padding:6px 14px 16px;max-height:none}
+}
+
 /* ── Power Rankings (inside Standings) ─────────────────────── */
 .pw-row{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border)}
 .pw-row:last-of-type{border-bottom:none}
@@ -1336,6 +1375,7 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
       <button class="active" onclick="switchTab(event,'standings')">Standings</button>
       <button onclick="switchTab(event,'week')">The Week</button>
       <button onclick="switchTab(event,'draftrecap')">Draft Recap</button>
+      <button class="nav-rules" onclick="switchTab(event,'rules')">Constitution &amp; Rules</button>
     </div>
     <span class="nav-sep"></span>
     <div class="nav-col">
@@ -1351,6 +1391,7 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
     <div id="tab-standings" class="tab-content active"></div>
     <div id="tab-week"      class="tab-content"></div>
     <div id="tab-draftrecap" class="tab-content"></div>
+    <div id="tab-rules"     class="tab-content"></div>
     <div id="tab-history"   class="tab-content"></div>
     <div id="tab-champions" class="tab-content"></div>
     <div id="tab-managers" class="tab-content"></div>
@@ -1433,6 +1474,7 @@ function renderAll() {
   renderHistory();
   renderDraft();
   renderDraftRecap();
+  renderRules();
 }
 
 // ══════════════════════════════════════════════
@@ -2416,6 +2458,171 @@ function renderDraft() {
 }
 
 // ══════════════════════════════════════════════
+//  CONSTITUTION & RULES
+// ══════════════════════════════════════════════
+
+let _rulesData = null, _rulesChat = [];
+
+function renderRules() {
+  const el = document.getElementById('tab-rules');
+  if (!el) return;
+  if (_rulesData) { el.innerHTML = rulesHTML(_rulesData); return; }
+  el.innerHTML = `<div class="card"><div class="empty-msg"><p>Loading the rulebook…</p></div></div>`;
+  fetch('/api/rules').then(r => r.json()).then(d => {
+    _rulesData = d;
+    el.innerHTML = rulesHTML(d);
+  }).catch(() => {
+    el.innerHTML = `<div class="card"><div class="empty-msg"><div class="eicon">📜</div>
+      <h3>Couldn't load the rules</h3><p>Try a refresh.</p></div></div>`;
+  });
+}
+
+/** Minimal markdown — enough for a constitution, no library needed. */
+function mdToHtml(md) {
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines = String(md || '').split(/\r?\n/);
+  let out = '', inList = false, inOl = false;
+  const closeLists = () => {
+    if (inList) { out += '</ul>'; inList = false; }
+    if (inOl) { out += '</ol>'; inOl = false; }
+  };
+  const inline = s => esc(s)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+  lines.forEach(raw => {
+    const line = raw.trimEnd();
+    const h = line.match(/^(#{1,4})\s+(.*)$/);
+    if (h) {
+      closeLists();
+      const lvl = h[1].length;
+      const id = h[2].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      out += `<h${lvl + 1} class="rl-h rl-h${lvl}" id="rule-${id}">${inline(h[2])}</h${lvl + 1}>`;
+      return;
+    }
+    const ul = line.match(/^\s*[-*]\s+(.*)$/);
+    if (ul) { if (inOl) { out += '</ol>'; inOl = false; } if (!inList) { out += '<ul class="rl-ul">'; inList = true; } out += `<li>${inline(ul[1])}</li>`; return; }
+    const ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
+    if (ol) { if (inList) { out += '</ul>'; inList = false; } if (!inOl) { out += '<ol class="rl-ol">'; inOl = true; } out += `<li>${inline(ol[1])}</li>`; return; }
+    if (!line.trim()) { closeLists(); return; }
+    closeLists();
+    out += `<p class="rl-p">${inline(line)}</p>`;
+  });
+  closeLists();
+  return out;
+}
+
+function rulesHTML(d) {
+  const has = d && d.constitution;
+  const faq = (d && d.faq) || [];
+  const bot = (d && d.bot) || {};
+
+  let h = '';
+
+  // ── The bot, up top: most people arrive with a specific question ──
+  h += `<div class="card" style="margin-bottom:18px">
+    <div class="card-header">
+      <div class="card-title">Ask the Rulebook</div>
+      <div class="card-sub">${bot.botAvailable
+        ? 'Answers come straight from the constitution, with the clause quoted'
+        : 'Not configured yet'}</div>
+    </div>`;
+  if (bot.botAvailable) {
+    h += `<div class="rl-chat" id="rl-chat">${_rulesChat.map(m => `
+        <div class="rl-msg ${m.role}"><div class="rl-bubble">${m.role === 'assistant' ? mdToHtml(m.content) : escapeHtml(m.content)}</div></div>
+      `).join('')}</div>
+      <div class="rl-ask">
+        <input id="rl-q" class="rl-input" placeholder="e.g. when is the waiver deadline?"
+               onkeydown="if(event.key==='Enter')rulesAsk()" maxlength="500">
+        <button class="rl-send" onclick="rulesAsk()">Ask</button>
+      </div>
+      <div class="rl-hint">If the constitution doesn't cover something, it'll say so rather than guess.</div>`;
+  } else {
+    h += `<div class="pw-note">${bot.reason === 'ANTHROPIC_API_KEY not set'
+      ? 'The rules bot needs an <code>ANTHROPIC_API_KEY</code> set in Railway before it can answer anything.'
+      : 'Once the constitution is uploaded, you\'ll be able to ask it questions here.'}</div>`;
+  }
+  h += `</div>`;
+
+  // ── FAQ ──
+  if (faq.length) {
+    const cats = [];
+    faq.forEach(f => { if (cats.indexOf(f.category || 'General') === -1) cats.push(f.category || 'General'); });
+    h += `<div class="card" style="margin-bottom:18px">
+      <div class="card-header"><div class="card-title">FAQs</div>
+        <div class="card-sub">${faq.length} questions</div></div>`;
+    cats.forEach(cat => {
+      h += `<div class="rl-cat">${cat}</div>`;
+      faq.filter(f => (f.category || 'General') === cat).forEach((f, i) => {
+        const id = 'faq-' + cat.replace(/\W+/g,'') + '-' + i;
+        h += `<div class="rl-faq">
+          <button class="rl-q" onclick="rulesToggle('${id}')">${escapeHtml(f.question)}<span class="dg-caret">▾</span></button>
+          <div class="rl-a" id="${id}" style="display:none">${mdToHtml(f.answer)}</div>
+        </div>`;
+      });
+    });
+    h += `</div>`;
+  }
+
+  // ── The document itself ──
+  h += `<div class="card">
+    <div class="card-header">
+      <div class="card-title">The Constitution</div>
+      <div class="card-sub">${has ? 'The governing document' : 'Not uploaded yet'}</div>
+    </div>`;
+  if (has) {
+    h += `<div class="rl-doc">${mdToHtml(d.constitution)}</div>
+      <div class="pw-note"><a href="/constitution.pdf" class="rl-dl" download>Download the original PDF</a></div>`;
+  } else {
+    h += `<div class="empty-msg"><div class="eicon">📜</div>
+      <h3>No constitution on file</h3>
+      <p>Drop the document in and it'll appear here, fully readable on a phone,<br>
+      with the original PDF still available to download.</p></div>`;
+  }
+  h += `</div>`;
+  return h;
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function rulesToggle(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
+function rulesAsk() {
+  const input = document.getElementById('rl-q');
+  if (!input) return;
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  _rulesChat.push({ role: 'user', content: q });
+  _rulesChat.push({ role: 'assistant', content: '_Checking the constitution…_', pending: true });
+  renderRules();
+
+  fetch('/api/rules/ask', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question: q, history: _rulesChat.filter(m => !m.pending).slice(-6) }),
+  })
+    .then(r => r.json().then(j => ({ ok: r.ok, j })))
+    .then(({ ok, j }) => {
+      _rulesChat = _rulesChat.filter(m => !m.pending);
+      _rulesChat.push({ role: 'assistant', content: ok ? j.answer : (j.error || 'Something went wrong.') });
+      renderRules();
+      const box = document.getElementById('rl-chat');
+      if (box) box.scrollTop = box.scrollHeight;
+    })
+    .catch(() => {
+      _rulesChat = _rulesChat.filter(m => !m.pending);
+      _rulesChat.push({ role: 'assistant', content: 'Could not reach the rules bot.' });
+      renderRules();
+    });
+}
+
+// ══════════════════════════════════════════════
 //  THE WEEK — recap, box scores and previews in one place
 // ══════════════════════════════════════════════
 
@@ -2763,13 +2970,16 @@ function wkShameTable(src) {
     </div>
     <div class="table-wrap">
     <table class="std-table"><thead><tr>
-      <th>Manager</th><th class="num">Left on Bench</th><th class="num">Per Week</th>
+      <th>Manager</th><th class="num">Start/Sit Accuracy</th><th class="num">Left on Bench</th><th class="num">Per Week</th>
       <th class="num">Lineup Efficiency</th><th class="num">Zeros Started</th><th class="num">Perfect Weeks</th>
     </tr></thead><tbody>
       ${rows.map((r, i) => `<tr>
         <td><strong>${r.manager}</strong>${r.worstBlunder
           ? `<div style="font-size:10.5px;color:var(--muted)">Worst: benched ${r.worstBlunder.benched} in Week ${r.worstBlunder.week} (${r.worstBlunder.swing})</div>`
           : ''}</td>
+        <td class="num" style="color:${r.accuracy == null ? 'var(--muted)' : r.accuracy >= 80 ? 'var(--green)' : r.accuracy < 60 ? 'var(--red)' : 'var(--gold)'}">${
+          r.accuracy == null ? '—' : r.accuracy + '%'
+        }${r.decisions ? `<div style="font-size:10px;color:var(--muted);font-weight:400">${r.correctDecisions}/${r.decisions} calls</div>` : ''}</td>
         <td class="num" style="color:${i === 0 ? 'var(--red)' : 'var(--chalk-dim)'}">${r.left}</td>
         <td class="num">${r.leftPerWeek}</td>
         <td class="num" style="color:${r.efficiency >= 95 ? 'var(--green)' : r.efficiency < 85 ? 'var(--red)' : 'var(--gold)'}">${r.efficiency == null ? '—' : r.efficiency + '%'}</td>
@@ -2777,9 +2987,16 @@ function wkShameTable(src) {
         <td class="num">${r.optimalWeeks || '—'}</td>
       </tr>`).join('')}
     </tbody></table></div>
-    <div class="pw-note">Lineup efficiency is what you actually scored as a share of the best lineup
-      your roster could have produced. Nobody hits 100% often — but the gap between the top and the
-      bottom of this table is usually worth more than a draft pick.</div>
+    <div class="pw-note">
+      <strong>Start/sit accuracy</strong> is how often you made the right call, counting only the
+      decisions you actually faced — a slot where the bench held no eligible alternative isn't a
+      decision, so it doesn't count either way.
+      <strong>Lineup efficiency</strong> is what you actually scored as a share of the best lineup your
+      roster could have produced.
+      They measure different things on purpose: one ruinous call wrecks your efficiency while barely
+      touching your accuracy, and a pile of small misses does the reverse. Nobody hits 100% often —
+      but the gap between the top and the bottom of this table is usually worth more than a draft pick.
+    </div>
   </div>`;
 }
 
