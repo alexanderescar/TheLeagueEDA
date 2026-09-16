@@ -227,9 +227,13 @@ app.get('/admin/playerstats', async (req, res) => {
 app.get('/api/rules', (req, res) => {
     try {
         const R = require('./rules');
+        const votes = R.readVotes();
         res.json({
             constitution: R.readConstitution(),
             faq: R.readFaq() || [],
+            votes: votes ? votes.votes : [],
+            versions: votes ? votes.versions : [],
+            openQuestions: votes ? (votes._openQuestions || []) : [],
             bot: R.status(),
         });
     } catch (err) {

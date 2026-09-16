@@ -698,6 +698,67 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
 .h2h-self{color:var(--border-bright)}
 .h2h-note{font-size:11px;color:var(--muted);padding:10px 4px}
 
+/* ── Weekly Highs ──────────────────────────────────────────── */
+.hs-tag{font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:4px;margin-left:6px;border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+.hs-tag.bad{border-color:rgba(224,85,85,.35);color:#f06a6a;background:rgba(224,85,85,.07)}
+.hs-season{border-bottom:1px solid var(--border)}
+.hs-season:last-child{border-bottom:none}
+.hs-syear{width:100%;background:none;border:none;color:var(--chalk);padding:12px 16px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left}
+.hs-syear:hover{background:rgba(255,255,255,.03)}
+.hs-dim{font-size:11px;color:var(--muted);font-weight:400}
+.hs-season .dg-picks{margin-bottom:10px}
+@media (max-width:760px){
+  .hs-syear{padding:11px 12px;font-size:12.5px}
+  .hs-dim{font-size:10px}
+}
+
+/* ── Vote Tracker ──────────────────────────────────────────── */
+.vt-controls{padding:12px 16px 4px}
+.vt-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.vt-chip{background:var(--card);border:1px solid var(--border);color:var(--chalk-dim);border-radius:20px;padding:5px 12px;font-size:11.5px;cursor:pointer;font-family:inherit}
+.vt-chip:hover{border-color:var(--border-bright)}
+.vt-chip.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);font-weight:700}
+.vt-count{font-size:11px;color:var(--muted);padding:6px 16px 2px}
+.vt-list{padding:4px 0}
+.vt-item{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;cursor:pointer;border-bottom:1px solid var(--border)}
+.vt-item:hover{background:rgba(255,255,255,.03)}
+.vt-main{flex:1;min-width:0}
+.vt-top{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:3px}
+.vt-year{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);font-weight:700}
+.vt-cat{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:1px 5px}
+.vt-res{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace}
+.vt-pass{background:rgba(59,214,106,.13);color:#4fe07d}
+.vt-fail{background:rgba(224,85,85,.13);color:#f06a6a}
+.vt-tie{background:rgba(240,192,64,.13);color:var(--gold)}
+.vt-disputed{background:rgba(180,140,255,.14);color:#b78cff}
+.vt-flag{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:1px 5px}
+.vt-flag.warn{color:#f06a6a;border-color:rgba(224,85,85,.35)}
+.vt-title{font-weight:600;font-size:13.5px;line-height:1.4}
+.vt-outcome{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.5}
+.vt-detail{padding:4px 16px 16px;background:rgba(0,0,0,.18);border-bottom:1px solid var(--border)}
+.vt-q{font-size:12.5px;color:var(--chalk-dim);line-height:1.6;margin:8px 0 10px;font-style:italic}
+.vt-opt{margin-bottom:9px}
+.vt-olabel{font-size:12px;margin-bottom:3px}
+.vt-check{color:var(--green);font-weight:700;margin-right:5px}
+.vt-obar{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.vt-ofill{height:100%;background:var(--muted);border-radius:3px}
+.vt-ofill.win{background:var(--green)}
+.vt-ovotes{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.vt-voters{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+.vt-note{font-size:11.5px;color:var(--chalk-dim);background:rgba(240,192,64,.06);border-left:2px solid var(--gold);padding:7px 10px;border-radius:0 5px 5px 0;margin-top:8px;line-height:1.55}
+.vt-note.warn{background:rgba(224,85,85,.06);border-left-color:var(--red)}
+.vt-src{font-size:10px;color:var(--muted);margin-top:6px}
+.vt-ver{padding:11px 16px;border-bottom:1px solid var(--border)}
+.vt-ver:last-child{border-bottom:none}
+.vt-vhead{font-size:13px;margin-bottom:4px;display:flex;gap:8px;align-items:baseline}
+.vt-gap{font-size:11.5px;color:#f06a6a;background:rgba(224,85,85,.06);border-radius:5px;padding:7px 10px;margin-top:6px;line-height:1.55}
+@media (max-width:760px){
+  .vt-item{padding:11px 12px}
+  .vt-title{font-size:13px}
+  .vt-detail{padding:4px 12px 14px}
+  .vt-controls{padding:10px 12px 4px}
+}
+
 /* ── Constitution & Rules ──────────────────────────────────── */
 nav button.nav-rules{border-color:rgba(240,192,64,.3)}
 .rl-chat{max-height:340px;overflow-y:auto;padding:12px 16px 4px}
@@ -1384,6 +1445,7 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
       <button onclick="switchTab(event,'champions')">Champion's Alley</button>
       <button onclick="switchTab(event,'managers')">Managers</button>
       <button onclick="switchTab(event,'draft')">Draft History</button>
+      <button onclick="switchTab(event,'highs')">Weekly Highs</button>
     </div>
   </nav>
 
@@ -1396,6 +1458,7 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
     <div id="tab-champions" class="tab-content"></div>
     <div id="tab-managers" class="tab-content"></div>
     <div id="tab-draft"     class="tab-content"></div>
+    <div id="tab-highs"     class="tab-content"></div>
   </main>
 
 </div>
@@ -1403,6 +1466,7 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
 <script src="/recap.js"></script>
 <script src="/power.js"></script>
 <script src="/boxscore.js"></script>
+<script src="/highscores.js"></script>
 <script>
 // ══════════════════════════════════════════════
 //  STATE
@@ -1474,6 +1538,7 @@ function renderAll() {
   renderHistory();
   renderDraft();
   renderDraftRecap();
+  renderHighs();
   renderRules();
 }
 
@@ -2458,6 +2523,167 @@ function renderDraft() {
 }
 
 // ══════════════════════════════════════════════
+//  WEEKLY HIGHS — the $25-a-week prize (Constitution 2.1)
+// ══════════════════════════════════════════════
+
+let _hsCache = null;
+function hsBuild() {
+  if (_hsCache) return _hsCache;
+  if (typeof hsWeeklyWinners !== 'function') return null;
+  const resolve = (teamId, season) => {
+    const t = (season.teams || []).find(x => x.id === teamId);
+    return t ? mgr(t) : ('Team ' + teamId);
+  };
+  const weeks = hsWeeklyWinners(allSeasons, resolve);
+  return (_hsCache = {
+    weeks,
+    managers: hsByManager(weeks),
+    seasons: hsBySeason(weeks),
+    records: hsRecords(weeks),
+  });
+}
+
+function money(n) { return n == null ? '—' : '$' + (Number(n) % 1 === 0 ? n : n.toFixed(2)); }
+
+function renderHighs() {
+  const el = document.getElementById('tab-highs');
+  if (!el) return;
+  const d = hsBuild();
+  if (!d || !d.weeks.length) {
+    el.innerHTML = `<div class="card"><div class="empty-msg"><div class="eicon">💵</div>
+      <h3>No weekly scores yet</h3><p>Weekly high scores appear once games are played.</p></div></div>`;
+    return;
+  }
+
+  const r = d.records;
+  const moneyOn = d.weeks.some(w => w.paid);
+  const cur = allSeasons[0];
+  const curSeason = d.seasons.find(s => s.season === cur.season);
+
+  let h = `<div class="card" style="margin-bottom:18px">
+    <div class="card-header">
+      <div class="card-title">Weekly Highs</div>
+      <div class="card-sub">Constitution 2.1 &middot; $25 to the regular-season weekly high scorer</div>
+    </div>
+    <div class="dr-hero">
+      <div class="dr-herocard">
+        <div class="dr-herolab">Weeks on record</div>
+        <div class="dr-heroval" style="color:var(--gold)">${r.totalWeeks}</div>
+        <div class="dr-herosub">Regular-season weeks since 2011${moneyOn ? `, ${r.totalPaid} of them paying out` : ''}.</div>
+      </div>
+      <div class="dr-herocard">
+        <div class="dr-herolab">Highest ever</div>
+        <div class="dr-heroval" style="color:var(--green)">${r.highest.pts}</div>
+        <div class="dr-herosub">${r.highest.name}, ${r.highest.season} Week ${r.highest.week}.</div>
+      </div>
+      <div class="dr-herocard">
+        <div class="dr-herolab">Cheapest week to win</div>
+        <div class="dr-heroval">${r.lowestWinning.pts}</div>
+        <div class="dr-herosub">${r.lowestWinning.name} led the whole league with that, ${r.lowestWinning.season} Week ${r.lowestWinning.week}.</div>
+      </div>
+    </div>
+    ${!moneyOn ? `<div class="pw-note">Scores are tracked from 2011. Dollar amounts are switched off until
+      the season the $25 rule was adopted is set — better an empty column than a payout that never happened.</div>` : ''}
+  </div>`;
+
+  // ── This season, week by week ──
+  if (curSeason && curSeason.weeks.length) {
+    h += `<div class="card" style="margin-bottom:18px">
+      <div class="card-header">
+        <div class="card-title">${cur.season}, Week by Week</div>
+        <div class="card-sub">${curSeason.weeks.length} week${curSeason.weeks.length === 1 ? '' : 's'} in the books${moneyOn ? ` &middot; ${money(curSeason.money)} awarded` : ''}</div>
+      </div>
+      <div class="table-wrap"><table class="std-table"><thead><tr>
+        <th style="width:52px">Week</th><th>High Scorer</th><th class="num">Score</th>${moneyOn ? '<th class="num">Won</th>' : ''}
+      </tr></thead><tbody>
+        ${curSeason.weeks.map(w => `<tr>
+          <td class="rank-n">${w.week}</td>
+          <td><strong>${w.winners.map(x => nameLink(x.name)).join(' &amp; ')}</strong>
+            ${w.tie ? '<span class="hs-tag">tie &mdash; split</span>' : ''}
+            ${w.winners.some(x => x.lostAnyway) ? '<span class="hs-tag bad">lost anyway</span>' : ''}</td>
+          <td class="num"><span class="pf">${w.score}</span></td>
+          ${moneyOn ? `<td class="num" style="color:var(--green)">${money(w.money)}</td>` : ''}
+        </tr>`).join('')}
+      </tbody></table></div>
+      ${moneyOn ? `<div class="pw-note">Running tab for ${cur.season}. Ties split the $25, so the season total always
+        comes to weeks &times; $25.</div>` : ''}
+    </div>`;
+  }
+
+  // ── All-time leaderboard ──
+  h += `<div class="card" style="margin-bottom:18px">
+    <div class="card-header">
+      <div class="card-title">All-Time Leaderboard</div>
+      <div class="card-sub">Every weekly high since 2011</div>
+    </div>
+    <div class="table-wrap"><table class="std-table"><thead><tr>
+      <th style="width:40px">#</th><th>Manager</th><th class="num">Weeks Won</th>
+      ${moneyOn ? '<th class="num">Money</th>' : ''}<th class="num">Best Week</th><th class="num">Best Season</th>
+    </tr></thead><tbody>
+      ${d.managers.map((m, i) => `<tr>
+        <td class="rank-n${i < 3 ? ' top' : ''}">${i + 1}</td>
+        <td><div class="tm-name">${nameLink(m.name)}</div>
+          ${m.wonAndLost ? `<div class="tm-owner">${m.wonAndLost} of them lost anyway</div>` : ''}</td>
+        <td class="num"><span class="rec">${m.weeks}</span></td>
+        ${moneyOn ? `<td class="num" style="color:var(--green);font-weight:700">${money(m.money)}</td>` : ''}
+        <td class="num">${m.best.pts}<div style="font-size:10px;color:var(--muted)">${m.best.season} W${m.best.week}</div></td>
+        <td class="num">${m.bestSeasonWeeks}<div style="font-size:10px;color:var(--muted)">in ${m.bestSeason}</div></td>
+      </tr>`).join('')}
+    </tbody></table></div>
+  </div>`;
+
+  // ── Record book ──
+  h += `<div class="card" style="margin-bottom:18px">
+    <div class="card-header"><div class="card-title">Record Book</div>
+      <div class="card-sub">The extremes</div></div>
+    <div class="dr-sups">
+      <div class="dr-sup"><div class="dr-suplab">Most Weeks, One Season</div>
+        <div class="dr-supname">${r.mostInSeason.name}</div>
+        <div class="dr-supsub">${r.mostInSeason.count} weekly highs in ${r.mostInSeason.season}${moneyOn ? ` — ${money(r.mostInSeason.count * 25)} that year` : ''}.</div></div>
+      ${r.longestStreak ? `<div class="dr-sup"><div class="dr-suplab">Longest Streak</div>
+        <div class="dr-supname">${r.longestStreak.name}</div>
+        <div class="dr-supsub">${r.longestStreak.run} weeks running, from Week ${r.longestStreak.from} of ${r.longestStreak.season}.</div></div>` : ''}
+      ${r.wonAndLost.length ? `<div class="dr-sup"><div class="dr-suplab">Led the League and Lost</div>
+        <div class="dr-supname">${r.wonAndLost[0].name}</div>
+        <div class="dr-supsub">${r.wonAndLost[0].pts} in ${r.wonAndLost[0].season} Week ${r.wonAndLost[0].week} — top score in the league, still lost the matchup.
+        It has happened ${r.wonAndLostCount} time${r.wonAndLostCount === 1 ? '' : 's'}.</div></div>` : ''}
+      ${r.ties ? `<div class="dr-sup"><div class="dr-suplab">Dead Heats</div>
+        <div class="dr-supname">${r.ties}</div>
+        <div class="dr-supsub">Week${r.ties === 1 ? '' : 's'} where two teams tied for the league high and split the prize.</div></div>` : ''}
+    </div>
+  </div>`;
+
+  // ── Season by season ──
+  h += `<div class="card">
+    <div class="card-header"><div class="card-title">Season by Season</div>
+      <div class="card-sub">Tap a year for its weekly winners</div></div>
+    ${d.seasons.map(s => `
+      <div class="hs-season">
+        <button class="hs-syear" onclick="hsToggle(${s.season})">
+          <span><strong>${s.season}</strong> <span class="hs-dim">${s.weeks.length} weeks${moneyOn ? ` &middot; ${money(s.money)}` : ''}</span></span>
+          <span class="hs-dim">${s.topEarner ? `${s.topEarner} led with ${s.topEarnerWeeks}` : ''} <span class="dg-caret">▾</span></span>
+        </button>
+        <div id="hs-s-${s.season}" style="display:none">
+          <table class="dg-picks"><thead><tr><th>Week</th><th>Winner</th><th style="text-align:right">Score</th>${moneyOn ? '<th style="text-align:right">Won</th>' : ''}</tr></thead>
+          <tbody>${s.weeks.map(w => `<tr>
+            <td style="color:var(--muted)">${w.week}</td>
+            <td>${w.winners.map(x => x.name).join(' & ')}${w.tie ? ' <span class="hs-tag">tie</span>' : ''}${w.winners.some(x => x.lostAnyway) ? ' <span class="hs-tag bad">lost</span>' : ''}</td>
+            <td style="text-align:right">${w.score}</td>
+            ${moneyOn ? `<td style="text-align:right;color:var(--green)">${money(w.money)}</td>` : ''}
+          </tr>`).join('')}</tbody></table>
+        </div>
+      </div>`).join('')}
+  </div>`;
+
+  el.innerHTML = h;
+}
+
+function hsToggle(year) {
+  const el = document.getElementById('hs-s-' + year);
+  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
+// ══════════════════════════════════════════════
 //  CONSTITUTION & RULES
 // ══════════════════════════════════════════════
 
@@ -2544,6 +2770,9 @@ function rulesHTML(d) {
   }
   h += `</div>`;
 
+  // ── Vote Tracker ──
+  h += voteTrackerHTML(d);
+
   // ── FAQ ──
   if (faq.length) {
     const cats = [];
@@ -2585,6 +2814,181 @@ function rulesHTML(d) {
 
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Vote Tracker ───────────────────────────────────────────────────────────────
+let _vtFilter = { cat: 'all', year: 'all', q: '' };
+
+function vtResultClass(r) {
+  if (r === 'passed' || r === 'upheld') return 'vt-pass';
+  if (r === 'failed' || r === 'vetoed') return 'vt-fail';
+  if (r === 'tied') return 'vt-tie';
+  return 'vt-disputed';
+}
+
+function vtMatches(v) {
+  const f = _vtFilter;
+  if (f.cat === 'trade' && v.category !== 'trade') return false;
+  if (f.cat === 'rules' && v.category === 'trade') return false;
+  if (f.year !== 'all' && String(v.season) !== f.year) return false;
+  if (f.q) {
+    const hay = [v.title, v.question, v.outcome, v.detail, v.note,
+                 (v.parties || []).join(' '),
+                 v.options.map(o => o.label).join(' ')].join(' ').toLowerCase();
+    if (hay.indexOf(f.q.toLowerCase()) === -1) return false;
+  }
+  return true;
+}
+
+function voteTrackerHTML(d) {
+  const votes = (d && d.votes) || [];
+  if (!votes.length) {
+    return `<div class="card" style="margin-bottom:18px">
+      <div class="card-header"><div class="card-title">Vote Tracker</div>
+      <div class="card-sub">Nothing on file yet</div></div>
+      <div class="empty-msg"><div class="eicon">🗳️</div><p>The vote archive hasn't been loaded.</p></div></div>`;
+  }
+
+  const shown = votes.filter(vtMatches);
+  const years = [...new Set(votes.map(v => v.season))].sort((a, b) => b - a);
+  const rules = votes.filter(v => v.category !== 'trade');
+  const trades = votes.filter(v => v.category === 'trade');
+  const passed = rules.filter(v => v.result === 'passed').length;
+  const vetoed = trades.filter(v => v.result === 'vetoed').length;
+
+  const chip = (id, label, on) =>
+    `<button class="vt-chip${on ? ' active' : ''}" onclick="vtSet('${id}')">${label}</button>`;
+
+  let h = `<div class="card" style="margin-bottom:18px">
+    <div class="card-header">
+      <div class="card-title">Vote Tracker</div>
+      <div class="card-sub">${votes.length} votes on record, 2014–2026</div>
+    </div>
+
+    <div class="dr-hero" style="padding:0 16px">
+      <div class="dr-herocard">
+        <div class="dr-herolab">Rule &amp; money votes</div>
+        <div class="dr-heroval" style="color:var(--gold)">${rules.length}</div>
+        <div class="dr-herosub">${passed} passed, ${rules.length - passed} failed, tied or disputed.</div>
+      </div>
+      <div class="dr-herocard">
+        <div class="dr-herolab">Trades put to the league</div>
+        <div class="dr-heroval" style="color:var(--green)">${trades.length}</div>
+        <div class="dr-herosub">${vetoed} vetoed, ${trades.length - vetoed} allowed to stand.</div>
+      </div>
+      <div class="dr-herocard">
+        <div class="dr-herolab">Unanimous decisions</div>
+        <div class="dr-heroval">${votes.filter(v => v.unanimous).length}</div>
+        <div class="dr-herosub">Everything else was argued about.</div>
+      </div>
+    </div>
+
+    <div class="vt-controls">
+      <div class="vt-chips">
+        ${chip('cat:all', 'Everything', _vtFilter.cat === 'all')}
+        ${chip('cat:rules', 'Rules &amp; money', _vtFilter.cat === 'rules')}
+        ${chip('cat:trade', 'Trades', _vtFilter.cat === 'trade')}
+      </div>
+      <div class="vt-chips">
+        ${chip('year:all', 'All years', _vtFilter.year === 'all')}
+        ${years.map(y => chip('year:' + y, y, _vtFilter.year === String(y))).join('')}
+      </div>
+      <input class="rl-input" id="vt-q" placeholder="Search votes — kickers, keepers, buy-in, a player's name…"
+             value="${escapeHtml(_vtFilter.q)}" oninput="vtSearch(this.value)">
+    </div>
+
+    <div class="vt-count">${shown.length === votes.length
+      ? `Showing all ${votes.length}`
+      : `${shown.length} of ${votes.length} votes`}</div>
+
+    <div class="vt-list">${shown.map(vtRow).join('') || '<div class="dg-note">Nothing matches that.</div>'}</div>
+  </div>`;
+
+  // Open questions — things the archive couldn't settle.
+  if (d.openQuestions && d.openQuestions.length) {
+    h += `<div class="card" style="margin-bottom:18px">
+      <div class="card-header"><div class="card-title">Unsettled</div>
+        <div class="card-sub">Where the record and the constitution disagree</div></div>
+      <div class="dg-note">${d.openQuestions.map(q => '• ' + escapeHtml(q)).join('<br><br>')}</div>
+    </div>`;
+  }
+
+  // Constitution version history.
+  if (d.versions && d.versions.length) {
+    h += `<div class="card" style="margin-bottom:18px">
+      <div class="card-header"><div class="card-title">Constitution History</div>
+        <div class="card-sub">What changed in each version</div></div>
+      ${d.versions.slice().reverse().map(v => `
+        <div class="vt-ver">
+          <div class="vt-vhead"><strong>${v.version}</strong>
+            <span class="hs-dim">${v.dated}${v.current ? ' · current' : ''}</span></div>
+          <ul class="rl-ul">${(v.highlights || []).map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+          ${v.gaps ? `<div class="vt-gap">${escapeHtml(v.gaps)}</div>` : ''}
+        </div>`).join('')}
+    </div>`;
+  }
+  return h;
+}
+
+function vtRow(v) {
+  const winner = v.options.find(o => o.winner) || v.options[0];
+  const total = v.turnout || v.options.reduce((a, o) => a + o.votes, 0) || 1;
+  const isTrade = v.category === 'trade';
+  const label = { passed:'Passed', failed:'Failed', tied:'Tied', upheld:'Stood',
+                  vetoed:'Vetoed', disputed:'Disputed' }[v.result] || v.result;
+
+  return `<div class="vt-item" onclick="vtToggle('${v.id}')">
+    <div class="vt-main">
+      <div class="vt-top">
+        <span class="vt-year">${v.season}</span>
+        <span class="vt-cat">${isTrade ? 'trade' : v.category}</span>
+        <span class="vt-res ${vtResultClass(v.result)}">${label} ${v.tally}</span>
+        ${v.unanimous ? '<span class="vt-flag">unanimous</span>' : ''}
+        ${v.threshold ? `<span class="vt-flag warn">needed ${v.threshold}</span>` : ''}
+        ${v.discrepancy ? '<span class="vt-flag warn">disputed</span>' : ''}
+      </div>
+      <div class="vt-title">${escapeHtml(v.title)}</div>
+      <div class="vt-outcome">${escapeHtml(v.outcome || '')}</div>
+    </div>
+    <span class="dg-caret">▾</span>
+  </div>
+  <div class="vt-detail" id="vt-${v.id}" style="display:none">
+    ${v.question ? `<div class="vt-q">${escapeHtml(v.question)}</div>` : ''}
+    ${v.detail ? `<div class="vt-q" style="color:var(--chalk-dim)">${escapeHtml(v.detail)}</div>` : ''}
+    ${v.options.map(o => {
+      const pct = Math.round((o.votes / total) * 100);
+      return `<div class="vt-opt">
+        <div class="vt-olabel">${o.winner ? '<span class="vt-check">✓</span>' : ''}${escapeHtml(o.label)}</div>
+        <div class="vt-obar"><div class="vt-ofill${o.winner ? ' win' : ''}" style="width:${Math.max(pct, 2)}%"></div></div>
+        <div class="vt-ovotes">${o.votes}</div>
+        ${o.voters ? `<div class="vt-voters">${o.voters.map(escapeHtml).join(', ')}</div>` : ''}
+      </div>`;
+    }).join('')}
+    ${v.note ? `<div class="vt-note">${escapeHtml(v.note)}</div>` : ''}
+    ${v.discrepancy ? `<div class="vt-note warn"><strong>Unresolved.</strong> ${escapeHtml(v.discrepancy)}</div>` : ''}
+    ${v.constitutionRef ? `<div class="vt-src">Became constitution §${v.constitutionRef}</div>` : ''}
+    ${v.source ? `<div class="vt-src">Source: ${escapeHtml(v.source)}</div>` : ''}
+  </div>`;
+}
+
+function vtToggle(id) {
+  const el = document.getElementById('vt-' + id);
+  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+function vtSet(token) {
+  const [k, val] = token.split(':');
+  _vtFilter[k] = val;
+  renderRules();
+}
+let _vtTimer = null;
+function vtSearch(val) {
+  _vtFilter.q = val;
+  clearTimeout(_vtTimer);
+  _vtTimer = setTimeout(() => {
+    renderRules();
+    const el = document.getElementById('vt-q');
+    if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  }, 220);
 }
 
 function rulesToggle(id) {

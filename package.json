@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test/grades.test.js && node test/recap.test.js && node test/power.test.js",
+    "test": "node test/grades.test.js && node test/recap.test.js && node test/power.test.js && node test/highscores.test.js && node test/votes.test.js",
     "playerstats": "node playerstats.js"
   },
   "engines": {

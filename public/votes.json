@@ -1,0 +1,2989 @@
+{
+  "_note": "League vote archive. Sources are WhatsApp poll screenshots and Google Forms exports in the league Drive folder. 'winner' is the option with the most votes; in WhatsApp screenshots the green check marks the screenshotter's own vote, not the outcome.",
+  "versions": [
+    {
+      "version": "v1",
+      "dated": "Aug 2017",
+      "effectiveFrom": 2017,
+      "highlights": [
+        "League fee $125",
+        "Champion $1,200 / Runner-up $200 / Season scoring champion $100",
+        "No weekly high-score prize"
+      ]
+    },
+    {
+      "version": "v2",
+      "dated": "Aug 2019",
+      "effectiveFrom": 2019,
+      "highlights": [
+        "League fee raised to $150",
+        "Season scoring champion replaced by a weekly high-score prize: $20 through week 13",
+        "Runner-up raised to $340"
+      ]
+    },
+    {
+      "version": "v3",
+      "dated": "2023",
+      "effectiveFrom": 2023,
+      "highlights": [
+        "Trade Vetoes section added (4.4.1)",
+        "Offseason Rule Change Voting section added (6.1)",
+        "FAAB budget of $100 documented"
+      ]
+    },
+    {
+      "version": "v4",
+      "dated": "2024",
+      "effectiveFrom": 2024,
+      "highlights": [
+        "Weekly high-score prize raised to $25 and extended through week 14",
+        "Champion raised to $1,750, runner-up set to $300",
+        "Keeper phase-out scheduled: 2 keepers in 2024, 1 in 2025, none from 2026"
+      ]
+    },
+    {
+      "version": "v5",
+      "dated": "2025",
+      "effectiveFrom": 2025,
+      "highlights": [
+        "League fee raised to $200 (from the Aug 2024 vote)",
+        "Keepers section retired; only conditional 'Keeper Season' language remains",
+        "Section 4 renumbered: Draft, Free Agency, Trades, Rosters, Active Ownership"
+      ],
+      "current": true,
+      "gaps": "Three proposals that passed in Aug 2026 are not yet written in: the incomplete-lineup penalty, locking eliminated teams' rosters, and the Sacko PowerPoint replacing the $50 food contribution. Everything else in v5 matches how the league voted."
+    }
+  ],
+  "votes": [
+    {
+      "id": "2026-buyin",
+      "season": 2026,
+      "date": "2026-08-27",
+      "category": "money",
+      "title": "Increase the league buy-in for 2026",
+      "question": "Should we increase the league buy-in for the 2026 season?",
+      "options": [
+        {
+          "label": "No — Keep the current buy-in",
+          "votes": 7,
+          "pct": 58.3,
+          "winner": true
+        },
+        {
+          "label": "Yes — Increase the buy-in",
+          "votes": 5,
+          "pct": 41.7
+        }
+      ],
+      "result": "failed",
+      "outcome": "Rejected. Buy-in stays at the $200 set by the 2024 vote.",
+      "tally": "7-5",
+      "turnout": 12,
+      "source": "2026/The League — 2026 Rule Changes"
+    },
+    {
+      "id": "2026-kickers",
+      "season": 2026,
+      "date": "2026-08-27",
+      "category": "rule",
+      "title": "Remove the Kicker position",
+      "question": "Should we keep the Kicker (K) position in our league?",
+      "options": [
+        {
+          "label": "Keep Kickers",
+          "votes": 7,
+          "pct": 58.3,
+          "winner": true
+        },
+        {
+          "label": "Remove Kickers",
+          "votes": 5,
+          "pct": 41.7
+        }
+      ],
+      "result": "failed",
+      "outcome": "Rejected. Kickers stay, which is why the roster table in v5 still lists K.",
+      "tally": "7-5",
+      "turnout": 12,
+      "source": "2026/The League — 2026 Rule Changes"
+    },
+    {
+      "id": "2026-lineup-penalty",
+      "season": 2026,
+      "date": "2026-08-27",
+      "category": "rule",
+      "title": "Penalty for an incomplete starting lineup",
+      "question": "Should there be a league penalty for failing to set a proper/complete starting lineup each week?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 12,
+          "pct": 100,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 0,
+          "pct": 0
+        }
+      ],
+      "result": "passed",
+      "outcome": "Unanimous. A penalty will exist; the punishment itself was left to a separate decision. Not yet in the constitution.",
+      "tally": "12-0",
+      "unanimous": true,
+      "turnout": 12,
+      "source": "2026/The League — 2026 Rule Changes"
+    },
+    {
+      "id": "2026-lock-eliminated",
+      "season": 2026,
+      "date": "2026-08-27",
+      "category": "rule",
+      "title": "Lock rosters of eliminated teams",
+      "question": "Should a team's roster be locked from all adds, drops, and trades once that team is mathematically eliminated from playoff contention?",
+      "options": [
+        {
+          "label": "Yes — Lock eliminated teams",
+          "votes": 10,
+          "pct": 83.3,
+          "winner": true
+        },
+        {
+          "label": "No — Allow roster moves to continue",
+          "votes": 2,
+          "pct": 16.7
+        }
+      ],
+      "result": "passed",
+      "outcome": "Passed decisively. Eliminated teams have their rosters locked. Not yet written into the constitution.",
+      "tally": "10-2",
+      "turnout": 12,
+      "source": "2026/The League — 2026 Rule Changes"
+    },
+    {
+      "id": "2026-median",
+      "season": 2026,
+      "date": "2026-08-27",
+      "category": "rule",
+      "title": "Weekly median win/loss",
+      "question": "Should teams get an additional W or L each week based on whether they score above or below the league median?",
+      "options": [
+        {
+          "label": "No — Keep head-to-head results only",
+          "votes": 7,
+          "pct": 58.3,
+          "winner": true
+        },
+        {
+          "label": "Yes — Add Weekly Median W/L",
+          "votes": 5,
+          "pct": 41.7
+        }
+      ],
+      "result": "failed",
+      "outcome": "Rejected. Head-to-head results only.",
+      "tally": "7-5",
+      "turnout": 12,
+      "source": "2026/The League — 2026 Rule Changes"
+    },
+    {
+      "id": "2026-reseed",
+      "season": 2026,
+      "date": "2026-08-27",
+      "category": "rule",
+      "title": "Re-seed the playoffs each round",
+      "question": "Should the playoffs re-seed after each round so the highest remaining seed always plays the lowest remaining seed?",
+      "options": [
+        {
+          "label": "No — Keep a fixed playoff bracket",
+          "votes": 8,
+          "pct": 66.7,
+          "winner": true
+        },
+        {
+          "label": "Yes — Re-seed after each round",
+          "votes": 4,
+          "pct": 33.3
+        }
+      ],
+      "result": "failed",
+      "outcome": "Rejected. The playoff bracket stays fixed.",
+      "tally": "8-4",
+      "turnout": 12,
+      "source": "2026/The League — 2026 Rule Changes"
+    },
+    {
+      "id": "2026-sacko-powerpoint",
+      "season": 2026,
+      "date": "2026-08-27",
+      "category": "rule",
+      "title": "Replace the $50 Sacko food penalty with a PowerPoint",
+      "question": "Should we replace the current Sacko punishment of contributing $50 toward draft-day food with a PowerPoint presentation explaining why his team was the worst in the league?",
+      "options": [
+        {
+          "label": "Replace it with the Sacko PowerPoint presentation",
+          "votes": 7,
+          "pct": 58.3,
+          "winner": true
+        },
+        {
+          "label": "Keep the $50 draft-day food contribution",
+          "votes": 5,
+          "pct": 41.7
+        }
+      ],
+      "result": "passed",
+      "outcome": "Passed. Last place now presents a PowerPoint on why his team was the worst. Not yet in the constitution.",
+      "tally": "7-5",
+      "turnout": 12,
+      "source": "2026/The League — 2026 Rule Changes"
+    },
+    {
+      "id": "2024-buyin",
+      "season": 2024,
+      "date": "2024-08-30",
+      "category": "money",
+      "title": "Set the league buy-in",
+      "question": "What should The League's buy-in be?",
+      "options": [
+        {
+          "label": "$200 \"I'll dip my toe in\"",
+          "votes": 9,
+          "winner": true,
+          "voters": [
+            "JP",
+            "Nick",
+            "Rob",
+            "Gabe",
+            "Albert",
+            "Peddie",
+            "Peter",
+            "Andy"
+          ]
+        },
+        {
+          "label": "$250 \"I'm committed, LFG\"",
+          "votes": 1,
+          "voters": [
+            "Manny"
+          ]
+        },
+        {
+          "label": "$1,000 \"Fuck you peasants\"",
+          "votes": 1,
+          "voters": [
+            "Jaime"
+          ]
+        },
+        {
+          "label": "$175 (current) \"I'm scared of change\"",
+          "votes": 0
+        }
+      ],
+      "result": "passed",
+      "outcome": "Buy-in set to $200, which is what v5 of the constitution records.",
+      "tally": "9-1-1-0",
+      "constitutionRef": "1.0",
+      "source": "2024/Buy In.png",
+      "turnout": 11
+    },
+    {
+      "id": "2024-late-payment",
+      "season": 2024,
+      "date": "2024-08-30",
+      "category": "money",
+      "title": "Penalty for unpaid league dues",
+      "question": "What should the penalty be for League members that have not paid their League dues by week 4?",
+      "options": [
+        {
+          "label": "5 point deduction for every week they do not pay (starts week 5, continues until they pay)",
+          "votes": 7,
+          "winner": true,
+          "voters": [
+            "Alex",
+            "JP",
+            "Nick",
+            "Rob",
+            "Peddie",
+            "Jaime",
+            "Peter"
+          ]
+        },
+        {
+          "label": "Increased League due for the following season (+$5 per week added to next year's dues)",
+          "votes": 1,
+          "voters": [
+            "Gabe"
+          ]
+        }
+      ],
+      "result": "passed",
+      "outcome": "The 5-point weekly deduction is now constitution 2.0.",
+      "tally": "7-1",
+      "constitutionRef": "2.0",
+      "source": "2024/Late Payment Penalty.png",
+      "verified": "Vote counts cross-checked against the per-person voter list.",
+      "turnout": 8
+    },
+    {
+      "id": "2024-schedule-reset",
+      "season": 2024,
+      "date": "2024-08-30",
+      "category": "rule",
+      "title": "Re-randomize the schedule",
+      "question": "Are you cool with resetting the schedule? Literally just re-randomizing it.",
+      "options": [
+        {
+          "label": "Reset",
+          "votes": 10,
+          "winner": true
+        },
+        {
+          "label": "Leave as is",
+          "votes": 0
+        }
+      ],
+      "result": "passed",
+      "outcome": "Unanimous. Schedule re-randomized.",
+      "tally": "10-0",
+      "unanimous": true,
+      "source": "2024/League Schedule Reset.png",
+      "turnout": 10
+    },
+    {
+      "id": "2024-second-place",
+      "season": 2024,
+      "date": "2024-08-30",
+      "category": "money",
+      "title": "Second-place payout",
+      "question": "Now that buy-in is $200, what should 2nd place get?",
+      "options": [
+        {
+          "label": "$300",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "$250",
+          "votes": 1
+        },
+        {
+          "label": "$200",
+          "votes": 0
+        }
+      ],
+      "result": "passed",
+      "outcome": "Runner-up set to $300, matching constitution 2.1.",
+      "tally": "5-1-0",
+      "constitutionRef": "2.1",
+      "source": "2024/2nd Place Winnings.png",
+      "turnout": 6
+    },
+    {
+      "id": "2023-annual-voting",
+      "season": 2023,
+      "date": "2023-08",
+      "category": "governance",
+      "title": "Vote on league matters every year",
+      "question": "Should we lift the requirement where league matters can only be voted on every other year, or should we be able to vote on the same things every year?",
+      "options": [
+        {
+          "label": "Yes, let's vote every year",
+          "votes": 7,
+          "pct": 70,
+          "winner": true
+        },
+        {
+          "label": "No, let's keep it to every other year",
+          "votes": 3,
+          "pct": 30
+        }
+      ],
+      "result": "passed",
+      "outcome": "The every-other-year restriction was lifted; anything can be revisited annually.",
+      "tally": "7-3",
+      "turnout": 10,
+      "constitutionRef": "1.1",
+      "note": "Constitution 1.1 still describes the two-year cycle, so the document lags this vote.",
+      "source": "2023/Offseason Voting"
+    },
+    {
+      "id": "2023-dst-yardage",
+      "season": 2023,
+      "date": "2023-08",
+      "category": "scoring",
+      "title": "Yardage points for DSTs",
+      "question": "Do we incorporate yardage points for DSTs? Specifically, do we reward DSTs for allowing less yards, likely on a 3,2,1 or 4,3,2,1 format.",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 7,
+          "pct": 70,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 3,
+          "pct": 30
+        }
+      ],
+      "result": "passed",
+      "outcome": "DST yardage scoring adopted.",
+      "tally": "7-3",
+      "turnout": 10,
+      "source": "2023/Offseason Voting"
+    },
+    {
+      "id": "2023-moratorium",
+      "season": 2023,
+      "date": "2023-08",
+      "category": "rule",
+      "title": "Keep the offseason moratorium",
+      "question": "Should we have a \"moratorium\"? Period of time between end of season and after the draft lottery has taken place.",
+      "options": [
+        {
+          "label": "Keep moratorium as is",
+          "votes": 8,
+          "pct": 80,
+          "winner": true
+        },
+        {
+          "label": "Free agency should be free year-round",
+          "votes": 2,
+          "pct": 20
+        }
+      ],
+      "result": "passed",
+      "outcome": "Moratorium kept. No year-round free agency.",
+      "tally": "8-2",
+      "turnout": 10,
+      "source": "2023/Offseason Voting"
+    },
+    {
+      "id": "2023-playoff-cancellation",
+      "season": 2023,
+      "date": "2023-08",
+      "category": "rule",
+      "title": "Playoff game cancellation tiebreak",
+      "question": "In the case of a freaky game cancellation in the playoffs (think Bengals/Bills), what happens to a matchup?",
+      "options": [
+        {
+          "label": "Whoever has the most points wins, regardless of reschedule/cancellation",
+          "votes": 6,
+          "pct": 67,
+          "winner": true
+        },
+        {
+          "label": "Go to head-to-head record (tiebreaker would be most points scored H2H)",
+          "votes": 3,
+          "pct": 33
+        }
+      ],
+      "result": "passed",
+      "outcome": "Most points wins, regardless of cancellation.",
+      "tally": "6-3",
+      "turnout": 9,
+      "note": "1 of 10 owners skipped this question.",
+      "source": "2023/Offseason Voting"
+    },
+    {
+      "id": "2023-trade-deadline",
+      "season": 2023,
+      "date": "2023-11-28",
+      "category": "rule",
+      "title": "Set the trade deadline",
+      "question": "What should the trade deadline be moving forward? (Deadline will be Wednesday @ 12PM AFTER the week you select below)",
+      "options": [
+        {
+          "label": "Week 12",
+          "votes": 8,
+          "winner": true
+        },
+        {
+          "label": "Week 11",
+          "votes": 1
+        }
+      ],
+      "result": "passed",
+      "outcome": "Trade deadline set to the Wednesday at 12PM after Week 12.",
+      "tally": "8-1",
+      "source": "2023/Offseason Voting/Trade Deadline Vote (11-28-2023).png",
+      "turnout": 9
+    },
+    {
+      "id": "2023-trade-nick-peddie",
+      "season": 2023,
+      "date": "2023-11-28",
+      "category": "trade",
+      "title": "Nick & Peddie — Kyler Murray for Brock Purdy",
+      "detail": "Peddie receives Brock Purdy and Nick's 2024 11th-round pick (9th after keepers). Nick receives Kyler Murray and Peddie's 2024 4th-round pick (2nd after keepers).",
+      "parties": [
+        "Nick",
+        "Peddie"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 6,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 1
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood. Veto rejected 6-1.",
+      "tally": "6-1",
+      "source": "2023/Trades/11-28-2023 Trade (Nick & Pedro).png",
+      "turnout": 7
+    },
+    {
+      "id": "2020-commissioner",
+      "season": 2020,
+      "date": "2020-08-11",
+      "category": "governance",
+      "title": "Election for commissioner",
+      "question": "Your selection for new commissioner of The League, effective immediately.",
+      "options": [
+        {
+          "label": "Boris Markovich",
+          "votes": 6,
+          "pct": 50,
+          "winner": true
+        },
+        {
+          "label": "JP Casas",
+          "votes": 6,
+          "pct": 50
+        }
+      ],
+      "result": "tied",
+      "outcome": "The commissioner election tied 6-6 and went to a runoff.",
+      "tally": "6-6",
+      "turnout": 12,
+      "tie": true,
+      "source": "2020/Offseason vote"
+    },
+    {
+      "id": "2020-faab",
+      "season": 2020,
+      "date": "2020-08-11",
+      "category": "rule",
+      "title": "Replace the waiver wire with FAAB",
+      "question": "Replace the waiver wire with FAAB (waiver bucks)?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 7,
+          "pct": 58,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 5,
+          "pct": 42
+        }
+      ],
+      "result": "passed",
+      "outcome": "FAAB adopted, four years after being rejected. Constitution v3 documents the $100 budget.",
+      "tally": "7-5",
+      "turnout": 12,
+      "constitutionRef": "4.2",
+      "source": "2020/Offseason vote"
+    },
+    {
+      "id": "2020-keepers-four",
+      "season": 2020,
+      "date": "2020-08-11",
+      "category": "rule",
+      "title": "Increase keepers to four",
+      "question": "Increase the amount of keepers to 4?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 6,
+          "pct": 50,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 6,
+          "pct": 50
+        }
+      ],
+      "result": "tied",
+      "outcome": "Tied 6-6, so no change.",
+      "tally": "6-6",
+      "turnout": 12,
+      "tie": true,
+      "source": "2020/Offseason vote"
+    },
+    {
+      "id": "2020-sleeper",
+      "season": 2020,
+      "date": "2020-08-11",
+      "category": "rule",
+      "title": "Move The League to Sleeper",
+      "question": "Move The League from ESPN to Sleeper?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 10,
+          "pct": 83,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 2,
+          "pct": 17
+        }
+      ],
+      "result": "failed",
+      "outcome": "The League stays on ESPN.",
+      "tally": "10-2",
+      "turnout": 12,
+      "source": "2020/Offseason vote"
+    },
+    {
+      "id": "2020-covid-champion",
+      "season": 2020,
+      "date": "2020-08-31",
+      "category": "rule",
+      "title": "Minimum weeks to crown a champion",
+      "question": "In a cancelled or shortened season, what is the minimum number of weeks required to crown a champion?",
+      "options": [
+        {
+          "label": "If the season is shorter than 16 weeks, no champion",
+          "votes": 8,
+          "pct": 73,
+          "winner": true
+        },
+        {
+          "label": "8 weeks",
+          "votes": 0,
+          "pct": 0
+        }
+      ],
+      "result": "passed",
+      "outcome": "A short season means no champion at all.",
+      "tally": "8-0",
+      "turnout": 8,
+      "source": "2020/Offseason vote",
+      "unanimous": true
+    },
+    {
+      "id": "2020-covid-dues",
+      "season": 2020,
+      "date": "2020-08-31",
+      "category": "money",
+      "title": "What happens to dues if the season is cancelled",
+      "question": "What happens to league dues if the season is cancelled before crowning a champ?",
+      "options": [
+        {
+          "label": "Keep for credit towards the 2021-2022 season",
+          "votes": 7,
+          "pct": 64,
+          "winner": true
+        },
+        {
+          "label": "Give me money back. Refund.",
+          "votes": 4,
+          "pct": 36
+        }
+      ],
+      "result": "passed",
+      "outcome": "Dues roll over rather than refund.",
+      "tally": "7-4",
+      "turnout": 11,
+      "source": "2020/Offseason vote"
+    },
+    {
+      "id": "2020-invest-funds",
+      "season": 2020,
+      "date": "2020-08-31",
+      "category": "money",
+      "title": "Invest league funds",
+      "question": "Should league funds be invested into a CD or low-risk account where they can earn interest?",
+      "options": [
+        {
+          "label": "Yes, let's do it!",
+          "votes": 11,
+          "pct": 100,
+          "winner": true
+        },
+        {
+          "label": "No, I want the money to sit peacefully in a bank account and earn nothing.",
+          "votes": 0,
+          "pct": 0
+        }
+      ],
+      "result": "passed",
+      "outcome": "Unanimous. The league became an investment vehicle.",
+      "tally": "11-0",
+      "turnout": 11,
+      "unanimous": true,
+      "source": "2020/Offseason vote"
+    },
+    {
+      "id": "2020-roster-spots",
+      "season": 2020,
+      "date": "2020-08-31",
+      "category": "rule",
+      "title": "Increase roster spots",
+      "question": "Should we increase roster spots from the current 18? (this season only)",
+      "options": [
+        {
+          "label": "No increase",
+          "votes": 6,
+          "pct": 55,
+          "winner": true
+        },
+        {
+          "label": "Yes, 20 total spots",
+          "votes": 3,
+          "pct": 27
+        },
+        {
+          "label": "Yes, 19 total spots",
+          "votes": 2,
+          "pct": 18
+        }
+      ],
+      "result": "failed",
+      "outcome": "Rosters unchanged.",
+      "tally": "6-3-2",
+      "turnout": 11,
+      "source": "2020/Offseason vote"
+    },
+    {
+      "id": "2019-draft-lottery",
+      "season": 2019,
+      "date": "2019-08-22",
+      "category": "rule",
+      "title": "How the first six picks are determined",
+      "question": "How do we want the first six draft picks to be determined?",
+      "options": [
+        {
+          "label": "Draft Lottery",
+          "votes": 8,
+          "pct": 67,
+          "winner": true
+        },
+        {
+          "label": "Playoff ladder",
+          "votes": 4,
+          "pct": 33
+        }
+      ],
+      "result": "passed",
+      "outcome": "The draft lottery was born.",
+      "tally": "8-4",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-trade-during-draft",
+      "season": 2019,
+      "date": "2019-08-22",
+      "category": "rule",
+      "title": "Trading picks for players during the draft",
+      "question": "Should owners be allowed to trade picks for players DURING the draft?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 7,
+          "pct": 58,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 5,
+          "pct": 42
+        }
+      ],
+      "result": "failed",
+      "outcome": "Trade deadline aligns with the keeper deadline, one hour before the draft.",
+      "tally": "7-5",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-abolish-keepers",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "Abolish keepers",
+      "question": "Should we abolish keepers?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 9,
+          "pct": 75,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 3,
+          "pct": 25
+        }
+      ],
+      "result": "failed",
+      "outcome": "Keepers survive. They were phased out from 2026 instead.",
+      "tally": "9-3",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-abolish-kickers",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "Abolish kickers",
+      "question": "Should we abolish kickers?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 9,
+          "pct": 75,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 3,
+          "pct": 25
+        }
+      ],
+      "result": "failed",
+      "outcome": "Attempt number three.",
+      "tally": "9-3",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-abolish-rivals",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "Abolish rivals",
+      "question": "Should we abolish rivals?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 8,
+          "pct": 67,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 4,
+          "pct": 33
+        }
+      ],
+      "result": "passed",
+      "outcome": "Rivalries abolished, after being defended in 2014 and 2017.",
+      "tally": "8-4",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-consolation-bracket",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "Consolation bracket sets draft order",
+      "question": "Should the draft order for non-playoff teams be determined by a consolation bracket beginning after week 13?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 8,
+          "pct": 67,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 4,
+          "pct": 33
+        }
+      ],
+      "result": "passed",
+      "outcome": "Non-playoff teams play for draft position.",
+      "tally": "8-4",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-divisions",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "Create three divisions",
+      "question": "Should we create three divisions, abolishing existing rivals?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 8,
+          "pct": 67,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 4,
+          "pct": 33
+        }
+      ],
+      "result": "failed",
+      "outcome": "No divisions.",
+      "tally": "8-4",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-dues-150",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "money",
+      "title": "Raise league dues to $150",
+      "question": "Should we increase league dues to $150? *must be unanimous in order to pass, as League dues should not be a financial burden*",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 11,
+          "pct": 92,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 1,
+          "pct": 8
+        }
+      ],
+      "result": "disputed",
+      "tally": "11-1",
+      "turnout": 12,
+      "threshold": "unanimous",
+      "outcome": "Eleven of twelve voted yes, but the question required unanimity, so by its own terms it did not pass. Constitution v2, dated the same month, nevertheless records a $150 fee.",
+      "discrepancy": "Vote failed its stated unanimity threshold (11-1) yet the fee changed to $150 in constitution v2 (Aug 2019). Either the holdout was won over afterwards, or the threshold was set aside. Unresolved from the archive alone.",
+      "verified": "Read directly from the chart image, not inferred.",
+      "source": "2019/Offseason Vote/Photo Aug 24, 12 20 01 PM.jpg"
+    },
+    {
+      "id": "2019-kicker-scoring",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "scoring",
+      "title": "Reduce kicker scoring by one point",
+      "question": "If we keep kickers, should we reduce existing scoring structure by one point?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 6,
+          "pct": 50,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 6,
+          "pct": 50
+        }
+      ],
+      "result": "tied",
+      "outcome": "Tied 6-6, so no change.",
+      "tally": "6-6",
+      "turnout": 12,
+      "tie": true,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-last-playoff-berth",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "Award the last playoff berth on points",
+      "question": "Should the last playoff berth be given to the highest scoring of the bottom 7 teams instead of the best record?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 9,
+          "pct": 75,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 3,
+          "pct": 25
+        }
+      ],
+      "result": "failed",
+      "outcome": "Record still decides the final berth.",
+      "tally": "9-3",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-missed-pat",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "scoring",
+      "title": "Missed PAT scored as -1",
+      "question": "If we keep kickers, should a missed PAT be scored as -1?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 9,
+          "pct": 75,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 3,
+          "pct": 25
+        }
+      ],
+      "result": "passed",
+      "outcome": "Missed extra points now cost a point.",
+      "tally": "9-3",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-third-tiebreaker",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "New third regular-season tiebreaker",
+      "question": "Should our new third regular season tie-breaker be \"least points against from starters\" or a coin toss?",
+      "options": [
+        {
+          "label": "Least points against from starters",
+          "votes": 6,
+          "pct": 50,
+          "winner": true
+        },
+        {
+          "label": "Coin toss",
+          "votes": 6,
+          "pct": 50
+        }
+      ],
+      "result": "tied",
+      "outcome": "Tied 6-6.",
+      "tally": "6-6",
+      "turnout": 12,
+      "tie": true,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-tiebreaker-bench",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "Does the points tiebreaker include the bench",
+      "question": "Should \"total points scored in the regular season\" include bench points or only starters?",
+      "options": [
+        {
+          "label": "Starters only",
+          "votes": 11,
+          "pct": 92,
+          "winner": true
+        },
+        {
+          "label": "Include bench",
+          "votes": 1,
+          "pct": 8
+        }
+      ],
+      "result": "passed",
+      "outcome": "Starters only.",
+      "tally": "11-1",
+      "turnout": 12,
+      "constitutionRef": "3.1",
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-trade-deadline",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "Move the trade deadline earlier",
+      "question": "Should our trade deadline be the Wednesday after week 10? (currently after week 11)",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 8,
+          "pct": 67,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 4,
+          "pct": 33
+        }
+      ],
+      "result": "passed",
+      "outcome": "Deadline moved to after week 10. It moved again, to week 12, in 2023.",
+      "tally": "8-4",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-trade-picks-for-players",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "Trade draft picks for players",
+      "question": "Should owners be able to trade draft picks for players starting 2019?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 7,
+          "pct": 58,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 5,
+          "pct": 42
+        }
+      ],
+      "result": "passed",
+      "outcome": "Picks and players became interchangeable in trades.",
+      "tally": "7-5",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-trade-waiver-spots",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "Trade waiver claim spots",
+      "question": "Should owners be able to trade waiver claim spots for players?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 7,
+          "pct": 58,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 5,
+          "pct": 42
+        }
+      ],
+      "result": "failed",
+      "outcome": "Waiver position is not tradeable.",
+      "tally": "7-5",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-veto-window",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "rule",
+      "title": "Disallow trade vetoes before week 4",
+      "question": "Should trade vetoes be disallowed before week 4 of the regular season?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 11,
+          "pct": 92,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 1,
+          "pct": 8
+        }
+      ],
+      "result": "failed",
+      "outcome": "Vetoes available all season.",
+      "tally": "11-1",
+      "turnout": 12,
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-weekly-high-scorer",
+      "season": 2019,
+      "date": "2019-08-24",
+      "category": "money",
+      "title": "Replace the season high-scorer payout with a weekly one",
+      "question": "Should we remove payout for season high scorer and replace it with weekly high scorer payout?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 11,
+          "pct": 92,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 1,
+          "pct": 8
+        }
+      ],
+      "result": "passed",
+      "outcome": "Fourth time asked, first time passed. This created the weekly high-score prize, set at $20 through week 13 in constitution v2.",
+      "tally": "11-1",
+      "turnout": 12,
+      "constitutionRef": "2.1",
+      "source": "2019/Offseason Vote"
+    },
+    {
+      "id": "2019-t-01",
+      "season": 2019,
+      "date": "2019-09-02",
+      "category": "trade",
+      "title": "Diego & Peddie",
+      "detail": "Diego receives Adam Thielen and a 7th-round pick. Peddie receives a 1st-round pick.",
+      "parties": [
+        "Diego",
+        "Peddie"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "Veto",
+          "votes": 6,
+          "winner": true
+        },
+        {
+          "label": "No veto",
+          "votes": 3
+        }
+      ],
+      "result": "vetoed",
+      "outcome": "Trade vetoed by the league.",
+      "tally": "6-3",
+      "turnout": 9,
+      "note": "Vetoed 6-3. A restructured version passed 45 minutes later.",
+      "source": "2019/Trades"
+    },
+    {
+      "id": "2019-t-02",
+      "season": 2019,
+      "date": "2019-09-02",
+      "category": "trade",
+      "title": "Gabe & Alex",
+      "detail": "Gabe gets a 3rd-round pick from Alex (#61). Alex gets Melvin Gordon and a 3rd-round pick from Gabe.",
+      "parties": [
+        "Gabe",
+        "Alex"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 1
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-1",
+      "turnout": 6,
+      "source": "2019/Trades"
+    },
+    {
+      "id": "2019-t-03",
+      "season": 2019,
+      "date": "2019-09-02",
+      "category": "trade",
+      "title": "Diego & Peddie",
+      "detail": "Diego receives Adam Thielen, Keenan Allen and a 2nd-round pick (#49). Peddie receives Odell Beckham Jr and a 2nd-round pick (#51).",
+      "parties": [
+        "Diego",
+        "Peddie"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 1
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-1",
+      "turnout": 6,
+      "note": "The restructured version of the trade vetoed earlier the same day.",
+      "source": "2019/Trades"
+    },
+    {
+      "id": "2019-t-04",
+      "season": 2019,
+      "date": "2019-09-13",
+      "category": "trade",
+      "title": "Nick & Peddie",
+      "detail": "Nick receives Malcolm Brown. Peddie receives TJ Hockenson.",
+      "parties": [
+        "Nick",
+        "Peddie"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 2
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-2",
+      "turnout": 7,
+      "source": "2019/Trades"
+    },
+    {
+      "id": "2019-t-05",
+      "season": 2019,
+      "date": "2019-09-21",
+      "category": "trade",
+      "title": "Gabe & Jaime",
+      "detail": "Gabe receives Giovani Bernard. Jaime receives Randall Cobb.",
+      "parties": [
+        "Gabe",
+        "Jaime"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 2
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-2",
+      "turnout": 7,
+      "source": "2019/Trades"
+    },
+    {
+      "id": "2019-t-06",
+      "season": 2019,
+      "date": "2019-10-01",
+      "category": "trade",
+      "title": "Alex & Boris",
+      "detail": "Alex receives Deshaun Watson. Boris receives Devonta Freeman.",
+      "parties": [
+        "Alex",
+        "Boris"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 1
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-1",
+      "turnout": 6,
+      "source": "2019/Trades"
+    },
+    {
+      "id": "2019-t-07",
+      "season": 2019,
+      "date": "2019-11-13",
+      "category": "trade",
+      "title": "Alex & JP",
+      "detail": "Alex receives Terry McLaurin. JP receives Jaylen Samuels.",
+      "parties": [
+        "Alex",
+        "JP"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 0
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-0",
+      "turnout": 5,
+      "source": "2019/Trades",
+      "unanimous": true
+    },
+    {
+      "id": "2018-buyin-150",
+      "season": 2018,
+      "date": "2018-08-06",
+      "category": "money",
+      "title": "Raise the buy-in to $150",
+      "question": "Should we increase our buy-in to $150 from the current $125? (THIS MUST BE UNANIMOUS IN ORDER TO PASS)",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 9,
+          "pct": 75,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 3,
+          "pct": 25
+        }
+      ],
+      "result": "failed",
+      "outcome": "A 9-3 majority wanted it, but the question required unanimity, so it failed. The increase did not take effect until 2019.",
+      "tally": "9-3",
+      "turnout": 12,
+      "threshold": "unanimous",
+      "source": "2018/Offseason Voting"
+    },
+    {
+      "id": "2018-home-field",
+      "season": 2018,
+      "date": "2018-08-06",
+      "category": "rule",
+      "title": "Playoff home-field advantage",
+      "question": "Should higher seeded teams receive a 2-point home field advantage in the playoffs?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 10,
+          "pct": 83,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 2,
+          "pct": 17
+        }
+      ],
+      "result": "failed",
+      "outcome": "No head start for higher seeds.",
+      "tally": "10-2",
+      "turnout": 12,
+      "source": "2018/Offseason Voting"
+    },
+    {
+      "id": "2018-keeper-optout",
+      "season": 2018,
+      "date": "2018-08-06",
+      "category": "rule",
+      "title": "Trade a keeper slot for draft position",
+      "question": "Should owners be able to opt out of selecting one keeper in order to move up in the draft?",
+      "options": [
+        {
+          "label": "No, all owners must select three (3) keepers",
+          "votes": 8,
+          "pct": 67,
+          "winner": true
+        },
+        {
+          "label": "Yes, with punishment (TBD)",
+          "votes": 3,
+          "pct": 25
+        },
+        {
+          "label": "Yes, with no punishment",
+          "votes": 1,
+          "pct": 8
+        }
+      ],
+      "result": "failed",
+      "outcome": "Keeper count was three at this point.",
+      "tally": "8-3-1",
+      "turnout": 12,
+      "source": "2018/Offseason Voting"
+    },
+    {
+      "id": "2018-rivals",
+      "season": 2018,
+      "date": "2018-08-06",
+      "category": "rule",
+      "title": "Change rivals",
+      "question": "Should we change rivals?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 8,
+          "pct": 67,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 4,
+          "pct": 33
+        }
+      ],
+      "result": "passed",
+      "outcome": "New rival matchups to be determined.",
+      "tally": "8-4",
+      "turnout": 12,
+      "source": "2018/Offseason Voting"
+    },
+    {
+      "id": "2018-waivers",
+      "season": 2018,
+      "date": "2018-08-06",
+      "category": "rule",
+      "title": "Change the waiver wire process",
+      "question": "Should we change the waiver wire process?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 7,
+          "pct": 58,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 5,
+          "pct": 42
+        }
+      ],
+      "result": "failed",
+      "outcome": "Waiver system unchanged.",
+      "tally": "7-5",
+      "turnout": 12,
+      "source": "2018/Offseason Voting"
+    },
+    {
+      "id": "2018-t-01",
+      "season": 2018,
+      "date": "2018-08-09",
+      "category": "trade",
+      "title": "Alex & Diego",
+      "detail": "Alex receives Devonta Freeman. Diego receives Mike Evans and Aaron Rodgers.",
+      "parties": [
+        "Alex",
+        "Diego"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 6,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 3
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "6-3",
+      "turnout": 9,
+      "source": "2018/Trades"
+    },
+    {
+      "id": "2018-t-02",
+      "season": 2018,
+      "date": "2018-08-12",
+      "category": "trade",
+      "title": "Boris & Nick",
+      "detail": "Boris receives Michael Thomas and Alex Collins. Nick receives DeAndre Hopkins.",
+      "parties": [
+        "Boris",
+        "Nick"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 5
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Split vote. Under the 2016 rule a tie allows the action, so the trade stood.",
+      "tally": "5-5",
+      "turnout": 10,
+      "note": "A genuine 5-5 split, resolved by the 2016 rule that a tie allows the action.",
+      "source": "2018/Trades"
+    },
+    {
+      "id": "2018-t-03",
+      "season": 2018,
+      "date": "2018-09-19",
+      "category": "trade",
+      "title": "Boris & JP",
+      "detail": "Boris receives Rob Gronkowski and Corey Davis. JP receives James Conner, Will Fuller and Trey Burton.",
+      "parties": [
+        "Boris",
+        "JP"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 3
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-3",
+      "turnout": 8,
+      "source": "2018/Trades"
+    },
+    {
+      "id": "2018-t-04",
+      "season": 2018,
+      "date": "2018-11-01",
+      "category": "trade",
+      "title": "JP & Boris & Diego",
+      "detail": "Three-way: JP gets Michael Thomas and Mitch Trubisky. Boris gets Tom Brady, Devin Funchess, Mike Evans and Tarik Cohen. Diego gets Kareem Hunt and Tyler Lockett.",
+      "parties": [
+        "JP",
+        "Boris",
+        "Diego"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 1
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-1",
+      "turnout": 6,
+      "note": "The only three-way trade in the archive.",
+      "source": "2018/Trades"
+    },
+    {
+      "id": "2018-t-05",
+      "season": 2018,
+      "date": "2018-11-06",
+      "category": "trade",
+      "title": "Alex",
+      "detail": "Alex receives Philip Rivers.",
+      "parties": [
+        "Alex"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 6,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 3
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "6-3",
+      "turnout": 9,
+      "source": "2018/Trades"
+    },
+    {
+      "id": "2018-t-06",
+      "season": 2018,
+      "date": "2018-11-06",
+      "category": "trade",
+      "title": "Peddie & Boris",
+      "detail": "Peddie receives Carson Wentz. Boris receives the other side.",
+      "parties": [
+        "Peddie",
+        "Boris"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 6,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 1
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "6-1",
+      "turnout": 7,
+      "source": "2018/Trades"
+    },
+    {
+      "id": "2018-t-07",
+      "season": 2018,
+      "date": "2018-11-07",
+      "category": "trade",
+      "title": "Peter & Gabe",
+      "detail": "Peter receives Isaiah Crowell. Gabe receives Calvin Ridley.",
+      "parties": [
+        "Peter",
+        "Gabe"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 2
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-2",
+      "turnout": 7,
+      "source": "2018/Trades"
+    },
+    {
+      "id": "2018-t-08",
+      "season": 2018,
+      "date": "2018-11-16",
+      "category": "trade",
+      "title": "Nick",
+      "detail": "Nick receives Elijah McGuire; the other side receives D'Onta Foreman.",
+      "parties": [
+        "Nick"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 3
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-3",
+      "turnout": 8,
+      "source": "2018/Trades"
+    },
+    {
+      "id": "2018-t-09",
+      "season": 2018,
+      "date": "2018-11-19",
+      "category": "trade",
+      "title": "Boris & Gabe",
+      "detail": "Boris gets Calvin Ridley and Josh Adams. Gabe gets Rob Gronkowski.",
+      "parties": [
+        "Boris",
+        "Gabe"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "Veto",
+          "votes": 6,
+          "winner": true
+        },
+        {
+          "label": "No veto",
+          "votes": 1
+        }
+      ],
+      "result": "vetoed",
+      "outcome": "Trade vetoed by the league.",
+      "tally": "6-1",
+      "turnout": 7,
+      "note": "Heavily vetoed, 6-1.",
+      "source": "2018/Trades"
+    },
+    {
+      "id": "2017-moratorium",
+      "season": 2017,
+      "date": "2017-07-26",
+      "category": "rule",
+      "title": "The Peter Rule — offseason moratorium",
+      "question": "Establish a moratorium in the offseason where trade, free agent and waiver activity is not allowed, lifted the day after the draft lottery at 12PM.",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 8,
+          "pct": 80,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 2,
+          "pct": 20
+        }
+      ],
+      "result": "passed",
+      "outcome": "The Peter Rule. Reaffirmed 8-2 in 2023.",
+      "tally": "8-2",
+      "turnout": 10,
+      "source": "2017/Votes/The Peter Rule"
+    },
+    {
+      "id": "2017-ppr",
+      "season": 2017,
+      "date": "2017-08-20",
+      "category": "scoring",
+      "title": "Make The League PPR",
+      "question": "Should The League be PPR?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 9,
+          "pct": 75,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 3,
+          "pct": 25
+        }
+      ],
+      "result": "passed",
+      "outcome": "PPR adopted.",
+      "tally": "9-3",
+      "turnout": 12,
+      "source": "2017/Votes/PPR"
+    },
+    {
+      "id": "2017-ppr-amount",
+      "season": 2017,
+      "date": "2017-08-20",
+      "category": "scoring",
+      "title": "How much per reception",
+      "question": "How should a reception be awarded?",
+      "options": [
+        {
+          "label": "0.5 PPR",
+          "votes": 8,
+          "pct": 67,
+          "winner": true
+        },
+        {
+          "label": "Full PPR",
+          "votes": 4,
+          "pct": 33
+        }
+      ],
+      "result": "passed",
+      "outcome": "Half a point per reception, still the scoring today.",
+      "tally": "8-4",
+      "turnout": 12,
+      "constitutionRef": "1.0",
+      "source": "2017/Votes/PPR"
+    },
+    {
+      "id": "2017-keepers-four",
+      "season": 2017,
+      "date": "2017-08-23",
+      "category": "rule",
+      "title": "Increase keepers to four",
+      "question": "Should we increase the amount of keepers to four (4), effective 2018-2019?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 9,
+          "pct": 82,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 2,
+          "pct": 18
+        }
+      ],
+      "result": "failed",
+      "outcome": "Keepers stay where they are.",
+      "tally": "9-2",
+      "turnout": 11,
+      "source": "2017/Votes/Offseason Voting"
+    },
+    {
+      "id": "2017-kickers",
+      "season": 2017,
+      "date": "2017-08-23",
+      "category": "rule",
+      "title": "Remove kickers from rosters",
+      "question": "Should we remove kickers from rosters?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 9,
+          "pct": 82,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 2,
+          "pct": 18
+        }
+      ],
+      "result": "failed",
+      "outcome": "Kickers survive attempt number two.",
+      "tally": "9-2",
+      "turnout": 11,
+      "source": "2017/Votes/Offseason Voting"
+    },
+    {
+      "id": "2017-payout",
+      "season": 2017,
+      "date": "2017-08-23",
+      "category": "money",
+      "title": "Payout structure",
+      "question": "How do you want our payout to be handled?",
+      "options": [
+        {
+          "label": "League Champion $1,200 / Runner-Up $200 / Season Scoring Champion $100",
+          "votes": 7,
+          "pct": 64,
+          "winner": true
+        },
+        {
+          "label": "League Champion $1,200 / Runner-Up $170 / Weekly High Scorer $10",
+          "votes": 4,
+          "pct": 36
+        }
+      ],
+      "result": "passed",
+      "outcome": "Season scoring champion kept again; the weekly high scorer idea lost a third time.",
+      "tally": "7-4",
+      "turnout": 11,
+      "constitutionRef": "2.1",
+      "source": "2017/Votes/Offseason Voting"
+    },
+    {
+      "id": "2017-predraft-trading",
+      "season": 2017,
+      "date": "2017-08-23",
+      "category": "rule",
+      "title": "How pre-draft trading works",
+      "question": "How should pre-draft trading be handled?",
+      "options": [
+        {
+          "label": "ONLY allow keepers to be traded for keepers, and picks for picks",
+          "votes": 8,
+          "pct": 73,
+          "winner": true
+        },
+        {
+          "label": "Allow picks to be traded for keepers",
+          "votes": 3,
+          "pct": 27
+        }
+      ],
+      "result": "passed",
+      "outcome": "Like for like only.",
+      "tally": "8-3",
+      "turnout": 11,
+      "source": "2017/Votes/Offseason Voting"
+    },
+    {
+      "id": "2017-rivalries",
+      "season": 2017,
+      "date": "2017-08-23",
+      "category": "rule",
+      "title": "Eliminate rivalries",
+      "question": "Should we eliminate rivalries? You would play 9 owners once and 2 owners twice, randomized by ESPN.",
+      "options": [
+        {
+          "label": "No",
+          "votes": 7,
+          "pct": 64,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 4,
+          "pct": 36
+        }
+      ],
+      "result": "failed",
+      "outcome": "Rivalries survive. They were abolished two years later.",
+      "tally": "7-4",
+      "turnout": 11,
+      "source": "2017/Votes/Offseason Voting"
+    },
+    {
+      "id": "2017-t-01",
+      "season": 2017,
+      "date": "2017-10-17",
+      "category": "trade",
+      "title": "Andy & Gabe",
+      "detail": "Andy receives Mohamed Sanu. Gabe receives Samaje Perine.",
+      "parties": [
+        "Andy",
+        "Gabe"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 7,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 1
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "7-1",
+      "turnout": 8,
+      "source": "2017/Trades"
+    },
+    {
+      "id": "2017-t-02",
+      "season": 2017,
+      "date": "2017-10-18",
+      "category": "trade",
+      "title": "Nick & Rob",
+      "detail": "Nick receives Mark Ingram. Rob receives Carson Wentz and Evan Engram.",
+      "parties": [
+        "Nick",
+        "Rob"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 3
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-3",
+      "turnout": 8,
+      "source": "2017/Trades"
+    },
+    {
+      "id": "2017-t-03",
+      "season": 2017,
+      "date": "2017-10-19",
+      "category": "trade",
+      "title": "Diego & JP",
+      "detail": "Diego receives Dez Bryant, Odell Beckham Jr and Jamaal Charles. JP receives Ezekiel Elliott and Cam Newton.",
+      "parties": [
+        "Diego",
+        "JP"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 7,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 0
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "7-0",
+      "turnout": 7,
+      "source": "2017/Trades",
+      "unanimous": true
+    },
+    {
+      "id": "2017-t-04",
+      "season": 2017,
+      "date": "2017-10-21",
+      "category": "trade",
+      "title": "Gabe & JP",
+      "detail": "Gabe receives Cam Newton. JP receives Matthew Stafford and Nelson Agholor.",
+      "parties": [
+        "Gabe",
+        "JP"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 6,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 0
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "6-0",
+      "turnout": 6,
+      "source": "2017/Trades",
+      "unanimous": true
+    },
+    {
+      "id": "2017-t-05",
+      "season": 2017,
+      "date": "2017-10-25",
+      "category": "trade",
+      "title": "Nick & Peter",
+      "detail": "Nick receives Danny Woodhead. Peter receives Matt Forte.",
+      "parties": [
+        "Nick",
+        "Peter"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 2
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "5-2",
+      "turnout": 7,
+      "source": "2017/Trades"
+    },
+    {
+      "id": "2017-t-06",
+      "season": 2017,
+      "date": "2017-11-02",
+      "category": "trade",
+      "title": "Boris & Gabe",
+      "detail": "Boris receives Rob Kelley. Gabe receives Ted Ginn Jr.",
+      "parties": [
+        "Boris",
+        "Gabe"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 6,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 1
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "6-1",
+      "turnout": 7,
+      "source": "2017/Trades"
+    },
+    {
+      "id": "2017-t-07",
+      "season": 2017,
+      "date": "2017-11-14",
+      "category": "trade",
+      "title": "Boris & JP",
+      "detail": "Boris receives Nelson Agholor and Marlon Mack. JP receives Demaryius Thomas and Tarik Cohen.",
+      "parties": [
+        "Boris",
+        "JP"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "Veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "No veto",
+          "votes": 0
+        }
+      ],
+      "result": "vetoed",
+      "outcome": "Trade vetoed by the league.",
+      "tally": "5-0",
+      "turnout": 5,
+      "note": "Unanimously vetoed. A trimmed version passed two days later.",
+      "source": "2017/Trades",
+      "unanimous": true
+    },
+    {
+      "id": "2017-t-08",
+      "season": 2017,
+      "date": "2017-11-14",
+      "category": "trade",
+      "title": "Alex & Rob",
+      "detail": "Alex receives Aaron Rodgers. Rob receives Ty Montgomery and Greg Olsen.",
+      "parties": [
+        "Alex",
+        "Rob"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "Veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "No veto",
+          "votes": 1
+        }
+      ],
+      "result": "vetoed",
+      "outcome": "Trade vetoed by the league.",
+      "tally": "5-1",
+      "turnout": 6,
+      "note": "Vetoed. A revised version with Emmanuel Sanders added passed two days later.",
+      "source": "2017/Trades"
+    },
+    {
+      "id": "2017-t-09",
+      "season": 2017,
+      "date": "2017-11-16",
+      "category": "trade",
+      "title": "Boris & JP",
+      "detail": "Boris receives Nelson Agholor and Marlon Mack. JP receives Demaryius Thomas.",
+      "parties": [
+        "Boris",
+        "JP"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 6,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 2
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "6-2",
+      "turnout": 8,
+      "note": "The resubmitted version of the trade vetoed on 14 Nov, with Tarik Cohen removed.",
+      "source": "2017/Trades"
+    },
+    {
+      "id": "2017-t-10",
+      "season": 2017,
+      "date": "2017-11-16",
+      "category": "trade",
+      "title": "Alex & Rob",
+      "detail": "Alex receives Aaron Rodgers and Emmanuel Sanders. Rob receives Ty Montgomery and Greg Olsen.",
+      "parties": [
+        "Alex",
+        "Rob"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "No veto",
+          "votes": 6,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 3
+        }
+      ],
+      "result": "upheld",
+      "outcome": "Trade stood.",
+      "tally": "6-3",
+      "turnout": 9,
+      "note": "The resubmitted version of the trade vetoed on 14 Nov, with Sanders added.",
+      "source": "2017/Trades"
+    },
+    {
+      "id": "2017-t-11",
+      "season": 2017,
+      "date": "2017-11-21",
+      "category": "trade",
+      "title": "Boris & JP",
+      "detail": "Boris receives Matthew Stafford. JP receives Tarik Cohen and JD McKissic.",
+      "parties": [
+        "Boris",
+        "JP"
+      ],
+      "question": "Do you veto this trade?",
+      "options": [
+        {
+          "label": "Veto",
+          "votes": 5,
+          "winner": true
+        },
+        {
+          "label": "No veto",
+          "votes": 4
+        }
+      ],
+      "result": "vetoed",
+      "outcome": "Trade vetoed by the league.",
+      "tally": "5-4",
+      "turnout": 9,
+      "note": "Vetoed 5-4, the narrowest veto on record.",
+      "source": "2017/Trades"
+    },
+    {
+      "id": "2016-committee",
+      "season": 2016,
+      "date": "2016-07-26",
+      "category": "governance",
+      "title": "Create a league committee",
+      "question": "Should the league implement a committee next season?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 9,
+          "pct": 75,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 3,
+          "pct": 25
+        }
+      ],
+      "result": "failed",
+      "outcome": "No committee.",
+      "tally": "9-3",
+      "turnout": 12,
+      "source": "2016/Votes/Offseason Voting"
+    },
+    {
+      "id": "2016-faab",
+      "season": 2016,
+      "date": "2016-07-26",
+      "category": "rule",
+      "title": "Replace waivers with FAAB",
+      "question": "Should the league implement waiver bucks (auction-format waiver claims)?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 7,
+          "pct": 58.33,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 5,
+          "pct": 41.67
+        }
+      ],
+      "result": "failed",
+      "outcome": "FAAB rejected. It passed four years later in 2020.",
+      "tally": "7-5",
+      "turnout": 12,
+      "source": "2016/Votes/Offseason Voting"
+    },
+    {
+      "id": "2016-ppr",
+      "season": 2016,
+      "date": "2016-07-26",
+      "category": "scoring",
+      "title": "Convert to 0.5 PPR",
+      "question": "Beginning of next season, should the league stay standard scoring or convert to 0.5 PPR?",
+      "options": [
+        {
+          "label": "Standard League",
+          "votes": 6,
+          "pct": 50,
+          "winner": true
+        },
+        {
+          "label": "0.5 PPR League",
+          "votes": 6,
+          "pct": 50
+        }
+      ],
+      "result": "tied",
+      "outcome": "Dead tie, 6-6. Under league rules a tie leaves the rule unchanged, so standard scoring survived another year. PPR passed in 2017.",
+      "tally": "6-6",
+      "turnout": 12,
+      "source": "2016/Votes/Offseason Voting",
+      "tie": true
+    },
+    {
+      "id": "2016-rule-lifespan",
+      "season": 2016,
+      "date": "2016-07-26",
+      "category": "governance",
+      "title": "How long a passed rule stands",
+      "question": "How long should a rule that is passed be kept for before it can be voted on again?",
+      "options": [
+        {
+          "label": "2 years",
+          "votes": 8,
+          "pct": 66.67,
+          "winner": true
+        },
+        {
+          "label": "1 year (current year)",
+          "votes": 2,
+          "pct": 16.67
+        },
+        {
+          "label": "> 2 years",
+          "votes": 2,
+          "pct": 16.67
+        }
+      ],
+      "result": "passed",
+      "outcome": "The two-year cycle written into constitution 1.1. Lifted in 2023.",
+      "tally": "8-2-2",
+      "turnout": 12,
+      "source": "2016/Votes/Offseason Voting",
+      "constitutionRef": "1.1"
+    },
+    {
+      "id": "2016-split-vote",
+      "season": 2016,
+      "date": "2016-07-26",
+      "category": "governance",
+      "title": "What happens on a split vote",
+      "question": "What outcome should be chosen in the event of a split vote?",
+      "options": [
+        {
+          "label": "Allow",
+          "votes": 7,
+          "pct": 58.33,
+          "winner": true
+        },
+        {
+          "label": "Veto",
+          "votes": 5,
+          "pct": 41.67
+        }
+      ],
+      "result": "passed",
+      "outcome": "A tied vote allows the action rather than blocking it.",
+      "tally": "7-5",
+      "turnout": 12,
+      "source": "2016/Votes/Offseason Voting"
+    },
+    {
+      "id": "2016-trade-deadline",
+      "season": 2016,
+      "date": "2016-07-26",
+      "category": "rule",
+      "title": "Trade deadline",
+      "question": "What should be our trade deadline?",
+      "options": [
+        {
+          "label": "Week 10",
+          "votes": 6,
+          "pct": 50,
+          "winner": true
+        },
+        {
+          "label": "Week 11",
+          "votes": 6,
+          "pct": 50
+        }
+      ],
+      "result": "tied",
+      "outcome": "Tied 6-6, so no change.",
+      "tally": "6-6",
+      "turnout": 12,
+      "source": "2016/Votes/Offseason Voting",
+      "tie": true
+    },
+    {
+      "id": "2016-trade-parties-vote",
+      "season": 2016,
+      "date": "2016-07-26",
+      "category": "rule",
+      "title": "Can trade participants vote on their own trade",
+      "question": "Should teams involved in a trade be allowed to vote on the trade?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 9,
+          "pct": 75,
+          "winner": true
+        },
+        {
+          "label": "Yes",
+          "votes": 3,
+          "pct": 25
+        }
+      ],
+      "result": "passed",
+      "outcome": "Participants cannot vote on their own trade.",
+      "tally": "9-3",
+      "turnout": 12,
+      "source": "2016/Votes/Offseason Voting"
+    },
+    {
+      "id": "2015-decimals",
+      "season": 2015,
+      "date": "2015-08-19",
+      "category": "scoring",
+      "title": "Decimal scoring",
+      "question": "Do you want decimals in our scoring? (each rushing/receiving yard 0.1, each passing yard 0.04)",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 10,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "passed",
+      "outcome": "Decimal scoring adopted unanimously.",
+      "tally": "10",
+      "turnout": 10,
+      "source": "2015/Offseason voting",
+      "unanimous": true,
+      "skipped": 1
+    },
+    {
+      "id": "2015-finances",
+      "season": 2015,
+      "date": "2015-08-19",
+      "category": "money",
+      "title": "Fee and payout structure",
+      "question": "How do you want our finances to be handled?",
+      "options": [
+        {
+          "label": "$125 entry — $1,200 1st, $200 2nd, $100 season high scorer",
+          "votes": 6,
+          "pct": 54.55,
+          "winner": true
+        },
+        {
+          "label": "$125 entry — $1,000 1st, $200 2nd, $25 weekly high scorer for the first 12 weeks",
+          "votes": 5,
+          "pct": 45.45
+        }
+      ],
+      "result": "passed",
+      "outcome": "Season high scorer kept. The $25 weekly prize lost by one vote here — the exact figure that eventually passed in 2024.",
+      "tally": "6-5",
+      "turnout": 11,
+      "source": "2015/Offseason voting"
+    },
+    {
+      "id": "2015-keeper-count",
+      "season": 2015,
+      "date": "2015-08-19",
+      "category": "rule",
+      "title": "How many keepers",
+      "question": "How many keepers do you want?",
+      "options": [
+        {
+          "label": "2",
+          "votes": 6,
+          "pct": 54.55,
+          "winner": true
+        },
+        {
+          "label": "3",
+          "votes": 3,
+          "pct": 27.27
+        },
+        {
+          "label": "1",
+          "votes": 2,
+          "pct": 18.18
+        }
+      ],
+      "result": "passed",
+      "outcome": "Two keepers per team.",
+      "tally": "6-3-2",
+      "turnout": 11,
+      "source": "2015/Offseason voting"
+    },
+    {
+      "id": "2015-keepers",
+      "season": 2015,
+      "date": "2015-08-19",
+      "category": "rule",
+      "title": "Introduce keepers for 2015",
+      "question": "Would you like to have keepers beginning 2015?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 9,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "passed",
+      "outcome": "Keepers adopted unanimously, one year after being rejected unanimously.",
+      "tally": "9",
+      "turnout": 9,
+      "source": "2015/Offseason voting",
+      "unanimous": true,
+      "skipped": 2
+    },
+    {
+      "id": "2015-sacko",
+      "season": 2015,
+      "date": "2015-08-19",
+      "category": "rule",
+      "title": "Penalty for last place",
+      "question": "What should be our penalty for the regular season 12th place team?",
+      "options": [
+        {
+          "label": "Must buy beer/pizza for the next draft, up to $50",
+          "votes": 10,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "passed",
+      "outcome": "The origin of the $50 Sacko food penalty, adopted unanimously — and voted out in 2026 in favour of a PowerPoint.",
+      "tally": "10",
+      "turnout": 10,
+      "source": "2015/Offseason voting",
+      "unanimous": true,
+      "skipped": 1
+    },
+    {
+      "id": "2015-scoring",
+      "season": 2015,
+      "date": "2015-08-19",
+      "category": "scoring",
+      "title": "Keep standard scoring",
+      "question": "What is your preferred scoring method?",
+      "options": [
+        {
+          "label": "Standard (same as we have always had)",
+          "votes": 11,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "passed",
+      "outcome": "Standard scoring kept again.",
+      "tally": "11",
+      "turnout": 11,
+      "source": "2015/Offseason voting",
+      "unanimous": true
+    },
+    {
+      "id": "2015-tiebreaker",
+      "season": 2015,
+      "date": "2015-08-19",
+      "category": "rule",
+      "title": "Playoff tiebreaker",
+      "question": "What should be our playoff tiebreaker?",
+      "options": [
+        {
+          "label": "Regular season total points for",
+          "votes": 6,
+          "pct": 54.55,
+          "winner": true
+        },
+        {
+          "label": "Regular season head-to-head record",
+          "votes": 5,
+          "pct": 45.45
+        }
+      ],
+      "result": "passed",
+      "outcome": "Total points for became the tiebreaker.",
+      "tally": "6-5",
+      "turnout": 11,
+      "source": "2015/Offseason voting"
+    },
+    {
+      "id": "2015-trophy-timing",
+      "season": 2015,
+      "date": "2015-08-19",
+      "category": "rule",
+      "title": "When the champion gets the trophy",
+      "question": "When should the champion receive the league trophy?",
+      "options": [
+        {
+          "label": "After the final game of the current season (around Christmas)",
+          "votes": 9,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "passed",
+      "outcome": "Trophy handed over at season end.",
+      "tally": "9",
+      "turnout": 9,
+      "source": "2015/Offseason voting",
+      "unanimous": true,
+      "skipped": 2
+    },
+    {
+      "id": "2014-bench",
+      "season": 2014,
+      "date": "2014-08-19",
+      "category": "rule",
+      "title": "Bench size",
+      "question": "How many bench spots do you want to have?",
+      "options": [
+        {
+          "label": "7 (current)",
+          "votes": 10,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "passed",
+      "outcome": "Bench stays at 7.",
+      "tally": "10",
+      "turnout": 10,
+      "source": "2014/Offseason voting",
+      "unanimous": true,
+      "skipped": 2
+    },
+    {
+      "id": "2014-finances",
+      "season": 2014,
+      "date": "2014-08-19",
+      "category": "money",
+      "title": "Set the fee structure",
+      "question": "How do you want our finances to be handled?",
+      "options": [
+        {
+          "label": "$120 total — $100 league fee, $10 trophy, $10 draft-day beer/food",
+          "votes": 10,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "passed",
+      "outcome": "Fee set at $120 all-in.",
+      "tally": "10",
+      "turnout": 10,
+      "source": "2014/Offseason voting",
+      "unanimous": true,
+      "skipped": 2
+    },
+    {
+      "id": "2014-keepers",
+      "season": 2014,
+      "date": "2014-08-19",
+      "category": "rule",
+      "title": "Introduce keepers",
+      "question": "Would you like to have keepers beginning with this season?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 10,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "failed",
+      "outcome": "Keepers rejected unanimously in 2014. They arrived the following year.",
+      "tally": "10",
+      "turnout": 10,
+      "source": "2014/Offseason voting",
+      "unanimous": true,
+      "skipped": 2
+    },
+    {
+      "id": "2014-kickers",
+      "season": 2014,
+      "date": "2014-08-19",
+      "category": "rule",
+      "title": "Abolish kickers",
+      "question": "Should we get rid of kickers altogether?",
+      "options": [
+        {
+          "label": "No",
+          "votes": 10,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "failed",
+      "outcome": "Kickers survive. First of many attempts.",
+      "tally": "10",
+      "turnout": 10,
+      "source": "2014/Offseason voting",
+      "unanimous": true,
+      "skipped": 2
+    },
+    {
+      "id": "2014-payout",
+      "season": 2014,
+      "date": "2014-08-19",
+      "category": "money",
+      "title": "Payout structure",
+      "question": "What is your preferred payout structure?",
+      "options": [
+        {
+          "label": "1st $900 / 2nd $200 / Highest Scorer for the Season $100",
+          "votes": 5,
+          "pct": 41.67,
+          "winner": true
+        },
+        {
+          "label": "1st $1,000 / 2nd $200",
+          "votes": 4,
+          "pct": 33.33
+        },
+        {
+          "label": "1st $900 / 2nd $170 / Highest Scorer of Each Week",
+          "votes": 3,
+          "pct": 25
+        }
+      ],
+      "result": "passed",
+      "outcome": "Season-long high scorer chosen. A weekly high-scorer option was on the ballot and finished last — the idea took another five years to pass.",
+      "tally": "5-4-3",
+      "turnout": 12,
+      "source": "2014/Offseason voting"
+    },
+    {
+      "id": "2014-rivalries",
+      "season": 2014,
+      "date": "2014-08-19",
+      "category": "rule",
+      "title": "Keep rivalries",
+      "question": "Should we keep rivalries?",
+      "options": [
+        {
+          "label": "Yes, let's keep the tradition alive! (3 game series)",
+          "votes": 9,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "passed",
+      "outcome": "Rivalries kept as a 3-game series.",
+      "tally": "9",
+      "turnout": 9,
+      "source": "2014/Offseason voting",
+      "unanimous": true,
+      "skipped": 3
+    },
+    {
+      "id": "2014-scoring",
+      "season": 2014,
+      "date": "2014-08-19",
+      "category": "scoring",
+      "title": "Keep standard scoring",
+      "question": "What is your preferred scoring method?",
+      "options": [
+        {
+          "label": "Standard (same as we have always had)",
+          "votes": 10,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "passed",
+      "outcome": "Standard scoring kept, unanimously.",
+      "tally": "10",
+      "turnout": 10,
+      "source": "2014/Offseason voting",
+      "unanimous": true,
+      "skipped": 2
+    },
+    {
+      "id": "2014-trade-picks",
+      "season": 2014,
+      "date": "2014-08-19",
+      "category": "rule",
+      "title": "Allow trading picks on or before draft day",
+      "question": "Would you like to be able to trade picks on or before draft day?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 7,
+          "pct": 58.33,
+          "winner": true
+        },
+        {
+          "label": "No",
+          "votes": 5,
+          "pct": 41.67
+        }
+      ],
+      "result": "passed",
+      "outcome": "Pick trading allowed up to and including draft day.",
+      "tally": "7-5",
+      "turnout": 12,
+      "source": "2014/Offseason voting"
+    },
+    {
+      "id": "2014-wr-to-flex",
+      "season": 2014,
+      "date": "2014-08-19",
+      "category": "rule",
+      "title": "Swap a WR slot for a second FLEX",
+      "question": "Should we remove one WR slot from the starting lineup (currently 3) and replace it with another FLEX spot (currently 1)?",
+      "options": [
+        {
+          "label": "Yes",
+          "votes": 10,
+          "pct": 100,
+          "winner": true
+        }
+      ],
+      "result": "passed",
+      "outcome": "Lineup moved to 2 WR and 2 FLEX, unanimously.",
+      "tally": "10",
+      "turnout": 10,
+      "source": "2014/Offseason voting",
+      "unanimous": true,
+      "skipped": 2
+    }
+  ],
+  "_method": "Google Forms pie charts: the percentage labels are positioned by slice geometry, NOT legend order, so text extraction cannot tell you which option won. Every Forms result here was read from the rendered chart (blue = first legend item, red = second). WhatsApp polls print an explicit vote count beside each option, so those are read directly - but the green check marks the screenshotter's own vote, not the winning option.",
+  "_openQuestions": [
+    "The 2018 and 2019 dues votes both required unanimity and both fell one to three votes short, yet the fee rose from $125 to $150 in constitution v2. How that happened is not recorded in the archive.",
+    "The 2023 vote to allow annual re-voting (7-3) is not reflected in constitution 1.1, which still describes a two-year cycle.",
+    "Three proposals that passed in Aug 2026 are not yet written into the constitution: the incomplete-lineup penalty, locking eliminated teams, and the Sacko PowerPoint."
+  ]
+}
