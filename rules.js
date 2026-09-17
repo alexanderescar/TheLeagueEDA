@@ -186,7 +186,10 @@ async function ask(question, history) {
                 'Authorization': `Bearer ${key}`,
                 'anthropic-version': '2023-06-01',
             },
-            body: JSON.stringify({ model: MODEL, max_tokens: 600, system, messages }),
+            // 600 was too tight. Questions that touch a rule's whole history — the
+            // weekly prize went $0 -> $20 -> $25 across four votes — burned the entire
+            // budget before emitting any text, and the caller got an empty answer.
+            body: JSON.stringify({ model: MODEL, max_tokens: 1500, system, messages }),
             signal: ac.signal,
         });
         const text = await res.text();
@@ -202,8 +205,16 @@ async function ask(question, history) {
             .map(b => b.text)
             .join('\n')
             .trim();
-        if (!answer) throw new Error('No answer came back. Try rephrasing.');
-        return { answer, model: json.model || MODEL };
+        if (!answer) {
+            // Distinguish "ran out of room" from a genuinely empty reply, so the next
+            // person to hit this has something to go on rather than a shrug.
+            console.warn('[Rules] empty answer, stop_reason=' + (json.stop_reason || '?')
+                       + ' blocks=' + (json.content || []).map(b => b.type).join(','));
+            throw new Error(json.stop_reason === 'max_tokens'
+                ? 'That answer ran long and got cut off. Try asking about one thing at a time.'
+                : 'No answer came back. Try rephrasing.');
+        }
+        return { answer, model: json.model || MODEL, truncated: json.stop_reason === 'max_tokens' };
     } finally {
         clearTimeout(tid);
     }
