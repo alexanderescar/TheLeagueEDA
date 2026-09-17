@@ -1557,11 +1557,57 @@ function setStatus(state, text) {
   pill.innerHTML = `<div class="dot ${dotCls}"></div><span id="status-text">${text}</span>`;
 }
 
+// ══════════════════════════════════════════════
+//  VIEW COUNTING
+//  Every tab lives at the same URL, so an off-the-shelf analytics tag would
+//  report one pageview and nothing about which sections anyone actually opens.
+//  This sends a tab name instead.
+//
+//  What leaves the browser: a random id it made up once, and a tab name. No
+//  names, no IP logging on the server, no third party, no cookies. The id is
+//  the seam for a future "who are you?" picker — until then nobody can tell
+//  which manager is which.
+// ══════════════════════════════════════════════
+function tlVid() {
+  try {
+    let v = localStorage.getItem('tl_vid');
+    if (!v) {
+      v = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now())
+            .replace(/[^A-Za-z0-9_-]/g, '').slice(0, 32);
+      localStorage.setItem('tl_vid', v);
+    }
+    return v;
+  } catch (err) {
+    // Private mode, storage disabled, or a browser that says no. Counting is not
+    // worth breaking the site over — this visit simply goes uncounted.
+    return null;
+  }
+}
+
+function tlTrack(tab) {
+  try {
+    const vid = tlVid();
+    if (!vid) return;
+    const body = JSON.stringify({ vid, tab });
+    // sendBeacon survives the page being closed mid-request and never blocks
+    // rendering. fetch with keepalive is the fallback for older Safari.
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/track', new Blob([body], { type: 'application/json' }));
+    } else {
+      fetch('/api/track', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body, keepalive: true,
+      }).catch(() => {});
+    }
+  } catch (err) { /* never let the counter break a page load */ }
+}
+
 function switchTab(e, name) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   e.target.classList.add('active');
+  tlTrack(name);
 }
 
 function mgr(t){ return (t&&t.managerNick)||tName(t); } function tName(t) {
@@ -2045,6 +2091,7 @@ e.target.classList.add('active');
 // Sync VIEW dropdown to match
 const viewSel = document.getElementById('hist-view-sel');
 if (viewSel) viewSel.value = name;
+tlTrack('hist-' + name);
 }
 
 function renderHistSub() {
@@ -4252,6 +4299,7 @@ function renderByPosition(picks) {
 //  KICK OFF
 // ══════════════════════════════════════════════
 loadData();
+tlTrack('load');
 // ══════════════════════════════════════════════
 //  CHAMPION'S ALLEY
 // ══════════════════════════════════════════════

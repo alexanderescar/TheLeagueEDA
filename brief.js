@@ -21,7 +21,12 @@ const fs   = require('fs');
 const path = require('path');
 const BX   = require('./public/boxscore.js');
 
-const DATA_DIR = path.join(__dirname, 'data');
+// Blurbs are the one thing here that cannot be regenerated: boxscores and player
+// stats get rebuilt by the Tuesday scrape, but a written blurb is gone for good if
+// the disk goes with it. Railway's filesystem is ephemeral, so honour DATA_DIR and
+// point it at a mounted volume to keep them. Falls back to the old location when
+// unset, which is what every other module still uses.
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 
 function round(n, d) {
     if (n == null || !isFinite(n)) return null;

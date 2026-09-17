@@ -298,6 +298,130 @@ app.post('/admin/blurbs', express.json({ limit: '1mb' }), (req, res) => {
     }
 });
 
+// ── Track a view. Public, unkeyed, and deliberately boring: it takes an opaque
+// id the browser made up and a tab name from a fixed list, and returns 204 no
+// matter what. Nothing here is worth authenticating, and a tracking endpoint that
+// can return an error is a tracking endpoint that can leak something.
+const trackBody = express.json({ limit: '2kb' });
+app.post('/api/track', (req, res) => {
+    // body-parser signals malformed JSON by calling next(err), which would reach
+    // Express's default handler: a 400 plus a stack trace in the Railway log for
+    // every junk request. Swallow it here — a beacon that cannot be parsed is a
+    // beacon that does not get counted, and that is the whole consequence.
+    trackBody(req, res, (err) => {
+        if (!err) {
+            try {
+                const { vid, tab } = req.body || {};
+                require('./analytics').track({ vid, tab, at: Date.now() });
+            } catch (e) {
+                console.warn('[Track]', e.message);   // never break a page load
+            }
+        }
+        res.status(204).end();
+    });
+});
+
+// ── Admin: who is actually looking at this thing
+app.get('/admin/stats', (req, res) => {
+    if (req.query.key !== SCRAPE_KEY) return res.status(403).send('Forbidden — wrong key');
+    const A = require('./analytics');
+    const days = Math.min(Number(req.query.days) || 30, 365);
+    const s = A.stats({ days });
+    const p = A.persistence();
+
+    if (req.query.format === 'json') return res.json({ ...s, persistence: p });
+
+    const LABELS = {
+        standings: 'Standings & Power', week: 'The Week', draftrecap: 'Draft Recap',
+        rules: 'Constitution & Rules', history: 'League History', champions: "Champion's Alley",
+        managers: 'Managers', draft: 'Draft History', load: '(page load)',
+        'hist-highs': '↳ Weekly Highs', 'hist-standings-all': '↳ All-Time Standings',
+        'hist-allplay': '↳ All-Play', 'hist-dna': '↳ Draft DNA', 'hist-rivalries': '↳ Rivalries',
+        'hist-alltime': '↳ All-Time', 'hist-records': '↳ Records', 'hist-matchups': '↳ Matchups',
+        'hist-season-table': '↳ Season Table',
+    };
+    const esc = (x) => String(x == null ? '' : x).replace(/[&<>"]/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const label = (t) => esc(LABELS[t] || t);
+
+    const maxTab = s.tabs.length ? s.tabs[0].views : 1;
+    const maxDay = s.rows.reduce((m, r) => Math.max(m, r.views), 1);
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(`<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Who's looking — The League</title>
+<style>
+ body{background:#0f1115;color:#e6e6e6;font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:2em;max-width:860px;margin:0 auto}
+ h1{font-size:1.5em;margin:0 0 .2em}
+ h2{font-size:1em;text-transform:uppercase;letter-spacing:.08em;color:#8b93a7;margin:2em 0 .8em;font-weight:600}
+ .sub{color:#8b93a7;margin-bottom:2em}
+ .big{display:flex;gap:2.5em;flex-wrap:wrap;margin:1.5em 0}
+ .big div{min-width:110px}
+ .n{font-size:2.2em;font-weight:700;color:#4da3ff;line-height:1}
+ .n small{font-size:.38em;color:#8b93a7;font-weight:400;display:block;margin-top:.5em;letter-spacing:.04em;text-transform:uppercase}
+ table{border-collapse:collapse;width:100%}
+ td,th{padding:.45em .6em;text-align:left;border-bottom:1px solid #1e222b}
+ th{color:#8b93a7;font-weight:600;font-size:.82em;text-transform:uppercase;letter-spacing:.05em}
+ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+ .bar{background:#4da3ff;height:9px;border-radius:2px;display:block;min-width:2px}
+ .bar.dim{background:#2d3444}
+ .warn{background:#2a1f12;border-left:3px solid #d98324;padding:.9em 1.1em;border-radius:3px;margin:1.5em 0;color:#f0d9be}
+ .good{background:#132419;border-left:3px solid #3f9e5a;padding:.9em 1.1em;border-radius:3px;margin:1.5em 0;color:#c9e6d2}
+ .empty{color:#8b93a7;font-style:italic;padding:1.5em 0}
+ a{color:#4da3ff}
+ code{background:#1a1e26;padding:.15em .4em;border-radius:3px;font-size:.9em}
+</style></head><body>
+<h1>Who's looking</h1>
+<div class="sub">theleague.lol · last ${days} days${s.firstSeen ? ' · counting since ' + esc(s.firstSeen) : ''}</div>
+
+${p.durable
+    ? `<div class="good">Counts are stored on a mounted volume and survive redeploys.</div>`
+    : `<div class="warn"><strong>These numbers reset on every redeploy.</strong> ${esc(p.note)}
+       Mount a Railway volume and set <code>DATA_DIR</code> to its mount path to keep them.</div>`}
+
+<div class="big">
+  <div><div class="n">${s.distinctDevicesWindow}<small>devices, ${days}d</small></div></div>
+  <div><div class="n">${s.activeLast7}<small>active last 7d</small></div></div>
+  <div><div class="n">${s.totalViews}<small>views all time</small></div></div>
+  <div><div class="n">${s.distinctDevicesLifetime}<small>devices all time</small></div></div>
+</div>
+<div class="sub" style="margin-top:-1em;font-size:.88em">
+  A "device" is one browser that has visited — most people count as one or two (phone plus laptop).
+  Twelve managers looking on both would read as roughly 15–24.
+</div>
+
+<h2>What they actually open</h2>
+${s.tabs.length ? `<table><tr><th>Section</th><th class="num">Views</th><th style="width:45%"></th></tr>
+${s.tabs.map(t => `<tr><td>${label(t.tab)}</td><td class="num">${t.views}</td>
+  <td><span class="bar${t.tab === 'load' ? ' dim' : ''}" style="width:${Math.round(t.views / maxTab * 100)}%"></span></td></tr>`).join('')}
+</table>` : '<div class="empty">Nothing recorded yet.</div>'}
+
+<h2>Day by day</h2>
+${s.rows.length ? `<table><tr><th>Day</th><th class="num">Devices</th><th class="num">Views</th><th>Busiest section</th><th style="width:25%"></th></tr>
+${s.rows.map(r => `<tr><td>${esc(r.day)}</td><td class="num">${r.devices}</td><td class="num">${r.views}</td>
+  <td>${r.topTab ? label(r.topTab) : '—'}</td>
+  <td><span class="bar" style="width:${Math.round(r.views / maxDay * 100)}%"></span></td></tr>`).join('')}
+</table>` : '<div class="empty">Nothing recorded yet. Open the site in a browser and reload this page.</div>'}
+
+<h2>Devices</h2>
+${s.devices.length ? `<table><tr><th>Device</th><th>First seen</th><th>Last seen</th><th class="num">Views</th></tr>
+${s.devices.slice(0, 40).map(d => `<tr><td>${d.name ? esc(d.name) : '<span style="color:#8b93a7">anonymous</span>'}</td>
+  <td>${esc(d.first)}</td><td>${esc(d.last)}</td><td class="num">${d.views}</td></tr>`).join('')}
+</table>
+<div class="sub" style="font-size:.88em;margin-top:.8em">
+  No names are collected. Each row is a random id the browser generated — there is no way to tell
+  which manager is which from this page. Adding a one-tap "who are you?" picker would fill in the
+  first column for anyone who comes back.
+</div>` : '<div class="empty">No devices yet.</div>'}
+
+<p style="margin-top:2.5em"><a href="/">← Back to the app</a> ·
+<a href="/admin/stats?key=${esc(req.query.key)}&days=7">7 days</a> ·
+<a href="/admin/stats?key=${esc(req.query.key)}&days=90">90 days</a> ·
+<a href="/admin/stats?key=${esc(req.query.key)}&days=${days}&format=json">JSON</a></p>
+</body></html>`);
+});
+
 // ── Admin: pull per-player weekly boxscores for the current season
 app.get('/admin/boxscores', async (req, res) => {
     if (req.query.key !== SCRAPE_KEY) return res.status(403).send('Forbidden — wrong key');
