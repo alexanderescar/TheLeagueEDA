@@ -1,0 +1,42 @@
+# ── Dependencies ─────────────────────────────────────────────────────────────
+# Railway installs these from package.json at build time. Committing them would
+# add thousands of files to every diff in GitHub Desktop.
+node_modules/
+
+
+# ── Generated data ───────────────────────────────────────────────────────────
+# Everything under data/ is produced at runtime by /admin/scrape and friends:
+# league_data.json, player_stats.json, preseason_*.json, boxscores_*.json,
+# blurbs_*.json, analytics.json. None of it is source, and league_data.json in
+# particular is large and changes every week.
+#
+# Careful: season_2010.json and managers.json look like data but are NOT. They
+# are hand-maintained source the app reads at boot (server.js getInaugural2010
+# and loadManagers), they live in the repo root, and they must stay committed.
+data/
+
+
+# ── Secrets ──────────────────────────────────────────────────────────────────
+# ESPN_S2, SWID, ANTHROPIC_API_KEY and SCRAPE_KEY live in Railway → Variables,
+# never in the repo. This is here so a local .env can never be committed by
+# accident.
+.env
+.env.*
+!.env.example
+
+
+# ── Logs and scratch ─────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+.cache/
+tmp/
+*.tmp
+
+
+# ── Editors and OS ───────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
