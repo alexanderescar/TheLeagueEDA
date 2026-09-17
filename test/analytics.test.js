@@ -162,10 +162,37 @@ console.log('\nEMPTY AND MALFORMED STORES');
 
 console.log('\nPERSISTENCE HONESTY  (a counter that silently resets is worse than none)');
 {
-    const p = A.persistence();
-    ok('reports which directory it uses', typeof p.dataDir === 'string' && p.dataDir.length > 0);
-    ok('durable exactly when DATA_DIR is set', p.durable === !!process.env.DATA_DIR);
-    ok('the note explains the consequence', /redeploy/i.test(p.note), p.note);
+    // The cases below are the four ways a Railway deploy can end up configured.
+    // Tested through the pure predicate rather than the module's own DATA_DIR,
+    // because on Railway __dirname is /app and in this sandbox it is not — an
+    // accident of the test environment should not decide whether this passes.
+    const d = A.durability;
+
+    let p = d('/app/data', undefined);
+    ok('no volume -> not durable', p.durable === false);
+    ok('and the note says redeploys reset it', /reset|redeploy/i.test(p.note), p.note);
+
+    // The recommended setup: mount over the default location, set nothing.
+    p = d('/app/data', '/app/data');
+    ok('volume over the default path -> durable', p.durable === true, JSON.stringify(p));
+    ok('with no DATA_DIR involved at all', p.onVolume === true);
+
+    p = d('/data', '/data');
+    ok('DATA_DIR pointing at the mount -> durable', p.durable === true);
+    p = d('/data/analytics', '/data');
+    ok('a subdirectory of the mount is still durable', p.durable === true);
+
+    // The misconfiguration worth catching: a volume exists, but the app writes
+    // somewhere else, so it looks safe and is not.
+    p = d('/app/data', '/data');
+    ok('volume mounted but data written outside it -> NOT durable', p.durable === false);
+    ok('and the note names the mismatch', /outside it/i.test(p.note), p.note);
+
+    p = d('/datastore', '/data');
+    ok('a prefix match is not a path match', p.durable === false, JSON.stringify(p));
+
+    ok('reports which directory it uses',
+        typeof A.persistence().dataDir === 'string' && A.persistence().dataDir.length > 0);
 }
 
 console.log(`\n${passes} passed, ${fails} failed\n`);

@@ -285,17 +285,46 @@ function stats(opts) {
     return summarize(load(), opts);
 }
 
-/** Whether the counts will survive the next redeploy. */
-function persistence() {
-    const usingVolume = !!process.env.DATA_DIR;
+/**
+ * Whether the counts will survive the next redeploy.
+ *
+ * Two ways to be durable, and checking only the first would make this lie:
+ *
+ *   1. DATA_DIR points somewhere persistent, e.g. a volume mounted at /data.
+ *   2. No DATA_DIR at all, but the volume is mounted over the default location.
+ *      Railway builds into /app, so __dirname/data is /app/data — mounting there
+ *      persists every data file with no environment variable set. Railway supplies
+ *      RAILWAY_VOLUME_MOUNT_PATH automatically, which is how we can tell.
+ *
+ * When neither holds, say so plainly. A counter that silently resets reads as
+ * "nobody visited", which is the one wrong answer this page must never give.
+ */
+function durability(dataDir, mount) {
+    const m = String(mount || '').trim();
+    const resolved = path.resolve(dataDir);
+    // Path containment, not string prefix: /datastore must not count as being
+    // inside /data.
+    const onVolume = !!m && (
+        resolved === path.resolve(m) ||
+        resolved.startsWith(path.resolve(m) + path.sep)
+    );
     return {
-        dataDir: DATA_DIR,
-        usingVolume,
-        durable: usingVolume,
-        note: usingVolume
-            ? 'DATA_DIR is set, so these counts survive redeploys.'
-            : 'No DATA_DIR set — this is Railway\'s ephemeral disk, so a redeploy resets these counts to zero.',
+        dataDir,
+        volumeMount: m || null,
+        onVolume,
+        durable: onVolume,
+        note: onVolume
+            ? `Stored on the volume mounted at ${m}, so these counts survive redeploys.`
+            : m
+                ? `A volume is mounted at ${m}, but the data is being written to ${resolved}, `
+                  + 'which is outside it — so these counts still reset on redeploy.'
+                : 'No Railway volume is mounted, so this is the container\'s ephemeral disk '
+                  + 'and a redeploy resets these counts to zero.',
     };
+}
+
+function persistence() {
+    return durability(DATA_DIR, process.env.RAILWAY_VOLUME_MOUNT_PATH);
 }
 
 process.on('SIGTERM', flush);
@@ -304,6 +333,6 @@ process.on('SIGINT', flush);
 module.exports = {
     track, stats, persistence, flush,
     // exported for tests
-    recordEvent, summarize, emptyStore, dayKey, hourKey, prune, safeKey,
+    recordEvent, summarize, emptyStore, dayKey, hourKey, prune, safeKey, durability,
     KNOWN_TABS, UNSAFE_KEYS, MAX_EVENTS_PER_DAY, MAX_DAYS, FILE, DATA_DIR,
 };
