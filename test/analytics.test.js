@@ -99,6 +99,43 @@ console.log('\nDISTINCT DEVICES  (the number that answers "is anyone looking")')
         JSON.stringify(sum.tabs[0]));
 }
 
+console.log('\nVISITS ARE NOT A SECTION  ("load" must not top the section list)');
+{
+    const s = store();
+    const t = at('2026-09-17T16:00:00Z');
+    // Realistic shape: everyone lands, most never click anything.
+    for (let i = 0; i < 9; i++) {
+        A.recordEvent(s, { vid: 'v' + i, tab: 'load', at: t });
+        A.recordEvent(s, { vid: 'v' + i, tab: 'standings', at: t });   // landing tab beacon
+    }
+    A.recordEvent(s, { vid: 'v0', tab: 'week', at: t });
+
+    const sum = A.summarize(s, { days: 30, today: '2026-09-17' });
+    ok('visits counted separately', sum.visits === 9, String(sum.visits));
+    ok('load is absent from sections', sum.sections.every(x => x.tab !== 'load'),
+        JSON.stringify(sum.sections));
+    ok('load is still in the raw tab data', sum.tabs.some(x => x.tab === 'load'));
+    ok('the landing tab now registers', sum.sections.find(x => x.tab === 'standings').views === 9);
+    ok('busiest section is a real section', sum.rows[0].topTab === 'standings', sum.rows[0].topTab);
+    ok('per-day visits available', sum.rows[0].visits === 9);
+
+    // The regression this whole section exists to prevent: before the landing-tab
+    // beacon, standings could never appear at all.
+    const old = store();
+    for (let i = 0; i < 9; i++) A.recordEvent(old, { vid: 'v' + i, tab: 'load', at: t });
+    A.recordEvent(old, { vid: 'v0', tab: 'week', at: t });
+    const oldSum = A.summarize(old, { days: 30, today: '2026-09-17' });
+    ok('without the landing beacon standings is invisible',
+        !oldSum.sections.some(x => x.tab === 'standings'));
+    ok('and topTab still avoids load even then', oldSum.rows[0].topTab === 'week', oldSum.rows[0].topTab);
+
+    const none = store();
+    A.recordEvent(none, { vid: 'a', tab: 'load', at: t });
+    const nsum = A.summarize(none, { days: 30, today: '2026-09-17' });
+    ok('load-only data yields no sections', nsum.sections.length === 0);
+    ok('and a null topTab rather than load', nsum.rows[0].topTab === null);
+}
+
 console.log('\nTAB TALLIES ACROSS DAYS');
 {
     const s = store();

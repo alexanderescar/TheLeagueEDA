@@ -344,7 +344,7 @@ app.get('/admin/stats', (req, res) => {
         { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const label = (t) => esc(LABELS[t] || t);
 
-    const maxTab = s.tabs.length ? s.tabs[0].views : 1;
+    const maxTab = s.sections.length ? s.sections[0].views : 1;
     const maxDay = s.rows.reduce((m, r) => Math.max(m, r.views), 1);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -376,14 +376,15 @@ app.get('/admin/stats', (req, res) => {
 <div class="sub">theleague.lol · last ${days} days${s.firstSeen ? ' · counting since ' + esc(s.firstSeen) : ''}</div>
 
 ${p.durable
-    ? `<div class="good">Counts are stored on a mounted volume and survive redeploys.</div>`
+    ? `<div class="good">Counts are stored on the volume at <code>${esc(p.volumeMount)}</code> and survive redeploys.</div>`
     : `<div class="warn"><strong>These numbers reset on every redeploy.</strong> ${esc(p.note)}
-       Mount a Railway volume and set <code>DATA_DIR</code> to its mount path to keep them.</div>`}
+       Create a Railway volume from the project canvas (Ctrl+K) and mount it at
+       <code>/app/data</code> — that is where the app already writes, so no variable is needed.</div>`}
 
 <div class="big">
   <div><div class="n">${s.distinctDevicesWindow}<small>devices, ${days}d</small></div></div>
   <div><div class="n">${s.activeLast7}<small>active last 7d</small></div></div>
-  <div><div class="n">${s.totalViews}<small>views all time</small></div></div>
+  <div><div class="n">${s.visits}<small>visits all time</small></div></div>
   <div><div class="n">${s.distinctDevicesLifetime}<small>devices all time</small></div></div>
 </div>
 <div class="sub" style="margin-top:-1em;font-size:.88em">
@@ -392,10 +393,14 @@ ${p.durable
 </div>
 
 <h2>What they actually open</h2>
-${s.tabs.length ? `<table><tr><th>Section</th><th class="num">Views</th><th style="width:45%"></th></tr>
-${s.tabs.map(t => `<tr><td>${label(t.tab)}</td><td class="num">${t.views}</td>
-  <td><span class="bar${t.tab === 'load' ? ' dim' : ''}" style="width:${Math.round(t.views / maxTab * 100)}%"></span></td></tr>`).join('')}
-</table>` : '<div class="empty">Nothing recorded yet.</div>'}
+${s.sections.length ? `<table><tr><th>Section</th><th class="num">Views</th><th style="width:45%"></th></tr>
+${s.sections.map(t => `<tr><td>${label(t.tab)}</td><td class="num">${t.views}</td>
+  <td><span class="bar" style="width:${Math.round(t.views / maxTab * 100)}%"></span></td></tr>`).join('')}
+</table>
+<div class="sub" style="font-size:.88em;margin-top:.8em">
+  Standings is the landing tab, so its count includes everyone who simply arrived.
+  The other rows are deliberate clicks.
+</div>` : '<div class="empty">Nothing recorded yet.</div>'}
 
 <h2>Day by day</h2>
 ${s.rows.length ? `<table><tr><th>Day</th><th class="num">Devices</th><th class="num">Views</th><th>Busiest section</th><th style="width:25%"></th></tr>

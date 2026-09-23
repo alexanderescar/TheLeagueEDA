@@ -180,12 +180,18 @@ function summarize(store, opts) {
 
     const rows = window.map(day => {
         const d = s.days[day];
+        // Busiest *section* — 'load' excluded, or it wins every day by construction
+        // and the column says nothing.
+        const topTab = Object.keys(d.tabs)
+            .filter(k => k !== 'load')
+            .sort((a, b) => d.tabs[b] - d.tabs[a])[0] || null;
         return {
             day,
             views: d.views,
+            visits: d.tabs.load || 0,
             devices: d.devices.length,
             tabs: d.tabs,
-            topTab: Object.keys(d.tabs).sort((a, b) => d.tabs[b] - d.tabs[a])[0] || null,
+            topTab,
         };
     });
 
@@ -198,6 +204,13 @@ function summarize(store, opts) {
     const tabs = Object.keys(tabTotals)
         .map(k => ({ tab: k, views: tabTotals[k] }))
         .sort((a, b) => b.views - a.views);
+
+    // 'load' fires once per visit and is not a section. Left in `tabs` because it
+    // is real data, but split out here so the dashboard can report visits as
+    // visits and sections as sections. Mixing them makes 'load' the permanent
+    // leader of a list it does not belong on.
+    const visits = tabTotals.load || 0;
+    const sections = tabs.filter(t => t.tab !== 'load');
 
     // Distinct devices across the window, and lifetime.
     const seen = {};
@@ -224,6 +237,8 @@ function summarize(store, opts) {
         activeLast7,
         rows: rows.slice().reverse(),   // newest first for reading
         tabs,
+        sections,
+        visits,
         devices,
         daysOnFile: allDays.length,
     };

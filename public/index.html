@@ -4299,7 +4299,23 @@ function renderByPosition(picks) {
 //  KICK OFF
 // ══════════════════════════════════════════════
 loadData();
+
+// Two beacons, counting two different things.
+//
+// 'load' is one per visit — the visitor counter.
+//
+// The landing tab needs its own beacon because switchTab only fires when someone
+// clicks a nav button, and nobody clicks to reach the tab that is already open.
+// Without this, whichever section is the default records zero views forever and
+// the numbers imply nobody reads it. Read from the DOM rather than hardcoding
+// 'standings' so this stays correct if the default ever moves.
 tlTrack('load');
+(function () {
+  try {
+    const el = document.querySelector('.tab-content.active');
+    if (el && el.id && el.id.indexOf('tab-') === 0) tlTrack(el.id.slice(4));
+  } catch (err) { /* counting is never worth a broken page */ }
+})();
 // ══════════════════════════════════════════════
 //  CHAMPION'S ALLEY
 // ══════════════════════════════════════════════
