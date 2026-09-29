@@ -21,6 +21,31 @@ const CURRENT_SEASON = process.env.CURRENT_SEASON || (() => {
 
 const DATA_FILE = path.join(__dirname, 'data', 'league_data.json');
 
+/**
+ * How stale the league data may get before a boot counts as a rescue.
+ *
+ * This exists because of a failure that took a week to notice. The boot check used to
+ * be "no data file at all", which on Railway's ephemeral disk was true after every
+ * redeploy — so every deploy quietly rescraped, and that accident was the only thing
+ * keeping the site current while the weekly refresh task sat disabled. Mounting a
+ * volume in September made the file persist, the boot scrape stopped firing, and the
+ * site sat on Week 2 data for six days while the blurb writer dutifully reported that
+ * there was nothing new to write about.
+ *
+ * Seven days would let a whole missed week through; one day would rescrape on every
+ * routine deploy during the season. Three is long enough that normal deploys don't
+ * trigger it and short enough that a missed Tuesday gets caught.
+ */
+const STALE_DATA_DAYS = Number(process.env.STALE_DATA_DAYS || 3);
+
+/** Age of the league data file in days. Infinity when it is missing entirely. */
+function dataFileAgeDays() {
+    try {
+        if (!fs.existsSync(DATA_FILE)) return Infinity;
+        return (Date.now() - fs.statSync(DATA_FILE).mtimeMs) / 86400000;
+    } catch { return Infinity; }
+}
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Data source priority:
@@ -127,14 +152,26 @@ app.get('/api/league', async (req, res) => {
 
 // ── API: status
 app.get('/api/status', (req, res) => {
+    const exists = fs.existsSync(DATA_FILE);
+    const ageMin = exists ? Math.round((Date.now() - fs.statSync(DATA_FILE).mtimeMs) / 1000 / 60) : null;
+    const ageDays = ageMin == null ? null : ageMin / 1440;
+    // `stale` is machine-readable on purpose: the weekly blurb task reads it and
+    // refuses to write commentary about data that hasn't been refreshed, rather than
+    // silently concluding there is no new week to write about.
+    // Written as !(age <= limit) rather than (age > limit) so a NaN age — a broken
+    // mtime, a filesystem that reports nonsense — falls to stale. Every NaN
+    // comparison is false, so the `>` form would quietly call it fresh, which is the
+    // one answer that hides a problem instead of surfacing it.
+    const stale = ageDays == null || !(ageDays <= STALE_DATA_DAYS);
     res.json({
         leagueId: LEAGUE_ID,
-        hasFile:    fs.existsSync(DATA_FILE),
+        hasFile:    exists,
         hasTurso:   !!(TURSO_URL && TURSO_TOKEN),
         hasCookies: !!(ESPN_S2 && SWID),
-        fileAge:    fs.existsSync(DATA_FILE)
-            ? Math.round((Date.now() - fs.statSync(DATA_FILE).mtimeMs) / 1000 / 60) + ' min ago'
-            : null,
+        fileAge:    ageMin == null ? null : ageMin + ' min ago',
+        fileAgeMinutes: ageMin,
+        staleAfterDays: STALE_DATA_DAYS,
+        stale,
     });
 });
 
@@ -474,11 +511,20 @@ app.get('/admin/preseason', async (req, res) => {
     res.end('</body></html>');
 });
 
-if (!fs.existsSync(DATA_FILE) && ESPN_S2 && SWID && !TURSO_URL) {
-    console.log('[Boot] No data file - running background scrape');
+const bootAgeDays = dataFileAgeDays();
+// Same NaN-safe form as /api/status: unknown age must mean "rescrape", not "fine".
+const bootDataStale = !(bootAgeDays <= STALE_DATA_DAYS);
+
+if (bootDataStale && ESPN_S2 && SWID && !TURSO_URL) {
+    console.log(bootAgeDays === Infinity
+        ? '[Boot] No data file - running background scrape'
+        : `[Boot] Data is ${bootAgeDays.toFixed(1)} days old (limit ${STALE_DATA_DAYS}) - running background scrape`);
     Promise.resolve()
         .then(() => require('./scrape').runScrape(console.log))
         .then(d => require('./playerstats').buildPlayerStats(d, console.log))
+        // Boxscores feed the power rankings and the weekly brief; without this the
+        // rescue would refresh scores but leave per-player data a week behind.
+        .then(() => require('./boxscores').buildBoxscores(CURRENT_SEASON, null, console.log))
         .catch(e => console.error('[Boot] scrape failed', e.message));
 } else if (ESPN_S2 && SWID && !fs.existsSync(path.join(__dirname, 'data', 'player_stats.json'))) {
     // Data exists but draft-grade stats don't — build just those.
