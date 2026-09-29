@@ -135,6 +135,29 @@ function gzOversUnders(teams, projOf, n) {
     };
 }
 
+/**
+ * A mark per award and per notice category. Keyed on the label so a new award
+ * degrades to no mark rather than the wrong one.
+ */
+var GZ_AWARD_ICON = {
+    'Worst Start/Sit': '🤦', 'Most Left on the Bench': '🪑',
+    'Player of the Week': '🔥', 'Goose Egg': '🥚',
+    'Unluckiest Loss': '💔', 'Luckiest Win': '🍀',
+    'Coach of the Week': '🧠', 'The Perfect Lineup': '💯',
+    'Waiver Wire Steal': '🕵️', 'Draft Day Ghost': '👻',
+    'One-Man Band': '🎺', 'The Nail-Biter': '😬',
+    'The Beatdown': '🔨', 'Sacko Watch': '🚽',
+};
+
+var GZ_NOTICE_ICON = {
+    'Help Wanted': '🆘', 'Public Notice': '📣', 'Legal Notice': '⚖️',
+    'Apology': '🙇', 'Personals': '💌', 'Estate Sale': '🏷️',
+    'For Sale': '💰', 'Lost': '🔍',
+};
+
+function gzAwardIcon(label) { return GZ_AWARD_ICON[label] || ''; }
+function gzNoticeIcon(cat) { return GZ_NOTICE_ICON[cat] || ''; }
+
 // ── Extra weekly awards ──────────────────────────────────────────────────────
 
 /**
@@ -463,6 +486,7 @@ if (typeof module !== 'undefined') {
         gzObituaries, gzExtraAwards, gzClassifieds, gzRecords, gzSpreads,
         gzOversUnders,
         gzStarters, gzWeeklyProj, gzPick, gzHash, gzRound,
+        gzAwardIcon, gzNoticeIcon, GZ_AWARD_ICON, GZ_NOTICE_ICON,
         GZ_PROJ_GAMES, GZ_OBIT_MIN_PROJ,
         GZ_OBIT_OPENERS, GZ_OBIT_CLOSERS,
     };

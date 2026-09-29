@@ -1629,8 +1629,8 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
   <nav>
     <div class="nav-col">
       <span class="nav-group">This Season</span>
-      <button class="active" onclick="switchTab(event,'standings')">Standings</button>
-      <button onclick="switchTab(event,'week')">The Week</button>
+      <button class="active" onclick="switchTab(event,'week')">The Week</button>
+      <button onclick="switchTab(event,'standings')">Standings</button>
       <button onclick="switchTab(event,'draftrecap')">Draft Recap</button>
       <button class="nav-rules" onclick="switchTab(event,'rules')">Constitution &amp; Rules</button>
     </div>
@@ -1645,8 +1645,8 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
   </nav>
 
   <main>
-    <div id="tab-standings" class="tab-content active"></div>
-    <div id="tab-week"      class="tab-content"></div>
+    <div id="tab-week"      class="tab-content active"></div>
+    <div id="tab-standings" class="tab-content"></div>
     <div id="tab-draftrecap" class="tab-content"></div>
     <div id="tab-rules"     class="tab-content"></div>
     <div id="tab-history"   class="tab-content"></div>
@@ -3290,23 +3290,41 @@ function wkIsPlayed(m) {
 }
 
 /**
- * The masthead. Dateline uses the date the week's last game was played rather
- * than today, so an old edition reads as an old edition.
+ * The NFL opens on the Thursday after Labor Day, and Labor Day is the first
+ * Monday in September. Deriving from that beats guessing: the first version of
+ * this assumed a fixed 8 September start and printed the wrong date every year.
+ */
+function gzSeasonOpener(year) {
+  const sept1 = new Date(Date.UTC(year, 8, 1));
+  const firstMonday = 1 + ((8 - sept1.getUTCDay()) % 7);
+  return new Date(Date.UTC(year, 8, firstMonday + 3));
+}
+
+/** A week wraps on Monday night; the paper goes out the following morning. */
+function gzEditionDate(year, week) {
+  const opener = gzSeasonOpener(Number(year));
+  return new Date(opener.getTime() + ((Number(week) - 1) * 7 + 5) * 86400000);
+}
+
+/**
+ * The masthead. The dateline is the date that edition would have gone out, not
+ * today, so an old week reads as an old edition.
  */
 function gzMasthead(src, week, isPlayed) {
-  const games = (src.schedule || []).filter(m =>
-    m.matchupPeriodId === week && m.home && m.away);
-  const played = games.filter(wkIsPlayed).length;
   const reg = regWeeksFor(src);
   const label = week > reg ? `Playoff Round ${week - reg}` : `Week ${week}`;
-
-  // Seasons open in September; week 1 is the first full weekend.
-  const approx = new Date(Date.UTC(Number(src.season), 8, 8 + (week - 1) * 7));
-  const dateline = approx.toLocaleDateString('en-US',
+  const dateline = gzEditionDate(src.season, week).toLocaleDateString('en-US',
     { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 
   const oldest = allSeasons.length
     ? Math.min.apply(null, allSeasons.map(s => Number(s.season))) : src.season;
+
+  // Weeks of football played, not matchups in this one week — "6 games in the
+  // books" read as a season total and was wrong on both counts.
+  const done = week > reg ? reg : week;
+  const progress = isPlayed
+    ? `${done} week${done === 1 ? '' : 's'} in the books`
+    : 'Preview';
 
   return `<div class="news-masthead">
     <h1 class="news-title">The League Gazette</h1>
@@ -3317,7 +3335,7 @@ function gzMasthead(src, week, isPlayed) {
       <span>&middot;</span>
       <span>Est. ${oldest}</span>
       <span>&middot;</span>
-      <span>${isPlayed ? played + ' games in the books' : 'Preview'}</span>
+      <span>${progress}</span>
     </div>
   </div>
   <div class="news-rule-thin"></div>`;
@@ -3362,19 +3380,23 @@ function renderWeek() {
     h += gzAdsSection(src, sel);
     h += gzRecordSection(src, sel);
   }
-  h += gzLinesSection(src, sel, byWeek);   // next week's spreads
   h += wkShameTable(src);
 
   // Season highs — the old Weekly Awards, folded in.
   h += wkSeasonHighs(src);
+
+  // Anything about the week ahead goes last — this page is a record of what
+  // happened, and the lines are a footnote to it.
+  h += gzLinesSection(src, sel, byWeek);
 
   el.innerHTML = h;
 }
 
 // ══════════════════════════════════════════════
 //  THE GAZETTE
-//  Named awards, obituaries, classifieds, fraud watch, stamped records and
-//  next week's lines. All derived from data already loaded — see gazette.js.
+//  Obituaries, classifieds, overs and unders, stamped records and next week's
+//  lines. All derived from data already loaded — see gazette.js. The extra
+//  weekly awards merge into wkAwards() rather than forming their own section.
 // ══════════════════════════════════════════════
 
 /** Season projection per player id, from the draft board. */
@@ -3555,7 +3577,7 @@ function gzAdsSection(src, week) {
       <div class="card-sub">Classified advertising</div></div>
     <div class="gz-ads">
       ${ads.map(a => `<div class="gz-ad">
-        <div class="gz-ad-cat">${escapeHtml(a.category || '')}</div>
+        <div class="gz-ad-cat">${typeof gzNoticeIcon==='function'&&gzNoticeIcon(a.category)?gzNoticeIcon(a.category)+' ':''}${escapeHtml(a.category || '')}</div>
         <div class="gz-ad-head">${escapeHtml(a.head)}</div>
         <div class="gz-ad-body">${escapeHtml(a.body)}</div>
         <div class="gz-ad-contact">${escapeHtml(a.contact)}</div>
@@ -3896,7 +3918,7 @@ function wkAwards(src, week) {
       <div class="card-sub">Decisions, not just scores</div></div>
     <div class="dr-sups">
       ${cards.map(c => `<div class="dr-sup">
-        <div class="dr-suplab">${c.lab}</div>
+        <div class="dr-suplab">${typeof gzAwardIcon==='function'&&gzAwardIcon(c.lab)?gzAwardIcon(c.lab)+' ':''}${c.lab}</div>
         <div class="dr-supname"${c.bad ? ' style="color:#f06a6a"' : ''}>${c.name}</div>
         <div class="dr-supsub">${c.sub}</div>
       </div>`).join('')}

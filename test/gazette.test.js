@@ -221,6 +221,41 @@ console.log('\nCLASSIFIEDS  (eight categories, each on its own trigger)');
     ok('no context is safe', G.gzClassifieds([bad], {}).length >= 0);
 }
 
+console.log('\nICONS  (a mark per award and notice)');
+{
+    const awards = ['Worst Start/Sit','Most Left on the Bench','Player of the Week','Goose Egg',
+        'Unluckiest Loss','Luckiest Win','Coach of the Week','The Perfect Lineup',
+        'Waiver Wire Steal','Draft Day Ghost','One-Man Band','The Nail-Biter',
+        'The Beatdown','Sacko Watch'];
+    ok('every award label has a mark', awards.every(l => G.gzAwardIcon(l)),
+        awards.filter(l => !G.gzAwardIcon(l)).join(', '));
+
+    const notices = ['Help Wanted','Public Notice','Legal Notice','Apology',
+        'Personals','Estate Sale','For Sale','Lost'];
+    ok('every notice category has a mark', notices.every(c => G.gzNoticeIcon(c)),
+        notices.filter(c => !G.gzNoticeIcon(c)).join(', '));
+
+    ok('an unknown award degrades to no mark rather than a wrong one',
+        G.gzAwardIcon('Some New Award') === '');
+    ok('an unknown category likewise', G.gzNoticeIcon('Obituaries') === '');
+    ok('null is safe', G.gzAwardIcon(null) === '' && G.gzNoticeIcon(undefined) === '');
+    ok('marks are unique across awards',
+        new Set(awards.map(G.gzAwardIcon)).size === awards.length);
+    ok('marks are unique across notices',
+        new Set(notices.map(G.gzNoticeIcon)).size === notices.length);
+
+    // Everything gzExtraAwards can emit must have a mark.
+    const proj = {}, drafted = {};
+    const p1 = pl('P','RB',30); drafted[p1.id]=3;
+    const t1 = team('M',[p1],{left:0,optimal:30,margin:5});
+    t1.box.hero={name:'P',pts:30}; t1.box.heroShare=100;
+    const emitted = G.gzExtraAwards([t1], {
+        projOf: proj, draftedAt: drafted, lastPlace:{manager:'X',record:'0-3'}, weeksLeft:11 });
+    ok('every award the engine actually emits has a mark',
+        emitted.every(a => G.gzAwardIcon(a.lab)),
+        emitted.filter(a => !G.gzAwardIcon(a.lab)).map(a => a.lab).join(', '));
+}
+
 console.log('\nRECORD BOOK  (stamped the week it falls)');
 {
     const games = [
