@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The League</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
   --field: #090f0b;
@@ -1001,6 +1001,151 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
   .dg-corrcard{min-width:130px;padding:10px}
   .dg-corrval{font-size:21px}
 }
+/* ═══════════════════════════════════════════════════════════════
+   THE WEEK — NEWSPRINT
+   Scoped entirely to #tab-week. Every rule below is prefixed, so the
+   rest of the app keeps the turf palette and nothing here can leak.
+   The look is standard newsprint convention — Scotch-serif headlines,
+   letterspaced kickers, hairline and double rules, a red spot colour —
+   not a copy of any particular paper.
+   ═══════════════════════════════════════════════════════════════ */
+#tab-week{
+  --news-stock:#f4f1ea;      /* paper */
+  --news-ink:#16130e;        /* body ink */
+  --news-ink-soft:#33291d;
+  --news-faded:#6b6152;      /* datelines, captions */
+  --news-rule:#c9c0ad;       /* hairlines */
+  --news-rule-dark:#16130e;
+  --news-spot:#a8321e;       /* the one red */
+  background:var(--news-stock);
+  color:var(--news-ink);
+  font-family:'PT Serif',Georgia,serif;
+  padding:26px 30px 34px;
+  border-radius:10px;
+  box-shadow:0 1px 0 rgba(0,0,0,.35), 0 18px 46px rgba(0,0,0,.42);
+}
+#tab-week *{border-color:var(--news-rule)}
+
+/* Masthead */
+.news-masthead{text-align:center;border-bottom:4px double var(--news-rule-dark);padding-bottom:12px;margin-bottom:6px}
+.news-title{font-family:'Playfair Display',Georgia,serif;font-weight:900;
+  font-size:clamp(30px,6vw,54px);line-height:1;letter-spacing:-.02em;margin:0}
+.news-dateline{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;
+  font-family:'Inter',sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--news-faded);margin-top:9px}
+.news-dateline span{white-space:nowrap}
+.news-rule-thin{border-bottom:1px solid var(--news-rule-dark);margin:0 0 18px}
+
+/* Cards become articles */
+#tab-week .card{background:transparent;border:0;border-top:1px solid var(--news-rule);
+  border-radius:0;margin:0 0 4px;padding-top:16px;overflow:visible}
+#tab-week .card:first-of-type{border-top:0;padding-top:0}
+#tab-week .card-header{display:block;padding:0 0 10px;border:0}
+#tab-week .card-title{font-family:'Inter',sans-serif;font-weight:700;font-size:10.5px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--news-spot)}
+#tab-week .card-sub{font-family:'PT Serif',Georgia,serif;font-style:italic;font-size:12.5px;
+  color:var(--news-faded);letter-spacing:0;margin-top:3px}
+
+/* Type */
+#tab-week h1,#tab-week h2,#tab-week h3{font-family:'Playfair Display',Georgia,serif}
+#tab-week p{font-size:13.5px;line-height:1.66;color:var(--news-ink-soft)}
+#tab-week .num,#tab-week .std-table td.num{font-variant-numeric:tabular-nums}
+
+/* Tables read as agate */
+#tab-week .std-table{width:100%;border-collapse:collapse}
+#tab-week .std-table th{font-family:'Inter',sans-serif;font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--news-faded);border-bottom:1.5px solid var(--news-rule-dark);
+  padding:5px 7px;background:transparent}
+#tab-week .std-table td{border-bottom:1px solid var(--news-rule);padding:6px 7px;
+  font-size:12.5px;color:var(--news-ink-soft)}
+#tab-week .std-table tr:last-child td{border-bottom:0}
+
+/* The Honours */
+#tab-week .gz-awards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:0;padding:4px 0 14px}
+#tab-week .gz-award{border:0;border-left:1px solid var(--news-rule);background:transparent;
+  border-radius:0;padding:4px 16px 8px}
+#tab-week .gz-award:first-child{border-left:0;padding-left:0}
+#tab-week .gz-award.bad{border-color:var(--news-rule)}
+#tab-week .gz-award-name{font-family:'Playfair Display',Georgia,serif;font-weight:700;
+  font-size:15px;letter-spacing:0;color:var(--news-ink);text-transform:none}
+#tab-week .gz-award-canon{font-size:11.5px;font-style:italic;color:var(--news-faded);
+  line-height:1.5;margin:5px 0 9px}
+#tab-week .gz-award-winner{font-family:'Playfair Display',Georgia,serif;font-size:19px;color:var(--news-ink)}
+#tab-week .gz-award.bad .gz-award-winner{color:var(--news-spot)}
+#tab-week .gz-award-detail{font-size:12px;color:var(--news-ink-soft);line-height:1.5}
+
+/* Obituaries */
+#tab-week .gz-obits{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:18px;padding:4px 0 14px}
+#tab-week .gz-obit{border-left:0;border-top:2px solid var(--news-rule-dark);padding:8px 0 0}
+#tab-week .gz-obit-name{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:16px}
+#tab-week .gz-obit-line{font-family:'Inter',sans-serif;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--news-faded);margin:4px 0 8px}
+#tab-week .gz-obit-text{font-size:12.5px;line-height:1.6;color:var(--news-ink-soft)}
+
+/* Classifieds */
+#tab-week .gz-ads{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+  gap:14px;padding:4px 0 14px}
+#tab-week .gz-ad{border:1px solid var(--news-rule-dark);border-radius:0;padding:10px 12px;
+  background:rgba(22,19,14,.03)}
+#tab-week .gz-ad-cat{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:.18em;color:var(--news-spot);border-bottom:1px solid var(--news-rule);padding-bottom:4px;margin-bottom:6px}
+#tab-week .gz-ad-head{font-family:'Inter',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:.08em;color:var(--news-ink)}
+#tab-week .gz-ad-body{font-size:12px;color:var(--news-ink-soft);line-height:1.5}
+#tab-week .gz-ad-contact{font-size:11px;font-style:italic;color:var(--news-faded)}
+
+/* Fraud watch — the editorial */
+#tab-week .gz-fraud{border-top:3px double var(--news-rule-dark)!important}
+#tab-week .gz-fraud-body{padding:4px 0 14px;max-width:62ch}
+#tab-week .gz-fraud-open{font-family:'Playfair Display',Georgia,serif;font-size:17px;
+  font-weight:700;line-height:1.3;color:var(--news-ink)}
+#tab-week .gz-fraud-nums b{color:var(--news-ink);font-family:'Playfair Display',Georgia,serif}
+
+/* Record book */
+#tab-week .gz-recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:0;padding:4px 0 14px}
+#tab-week .gz-rec{border-left:1px solid var(--news-rule);padding:2px 14px}
+#tab-week .gz-rec:first-child{border-left:0;padding-left:0}
+#tab-week .gz-rec-lab{font-family:'Inter',sans-serif;font-size:9.5px;color:var(--news-faded)}
+#tab-week .gz-rec-val{font-family:'Playfair Display',Georgia,serif;font-size:25px;color:var(--news-ink)}
+#tab-week .gz-rec-sub{font-size:11px;color:var(--news-faded)}
+#tab-week .gz-new{background:var(--news-spot);color:var(--news-stock);border-radius:0;
+  font-family:'Inter',sans-serif;font-size:8px;padding:2px 4px}
+
+/* Betting lines */
+#tab-week .gz-lines{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:0;padding:4px 0 14px}
+#tab-week .gz-line{border:0;border-left:1px solid var(--news-rule);border-radius:0;padding:4px 14px}
+#tab-week .gz-line:first-child{border-left:0;padding-left:0}
+#tab-week .gz-line-teams{font-size:12.5px;color:var(--news-ink)}
+#tab-week .gz-line-num{font-family:'Playfair Display',Georgia,serif;font-size:17px;color:var(--news-spot)}
+#tab-week .gz-line-ou{font-family:'Inter',sans-serif;font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--news-faded)}
+
+/* Overs and unders */
+#tab-week .gz-ou{gap:26px;padding:4px 0 14px}
+#tab-week .gz-ou-head{font-family:'Inter',sans-serif;font-size:9.5px;letter-spacing:.14em;
+  color:var(--news-faded);border-bottom:2px solid var(--news-rule-dark);padding-bottom:4px}
+#tab-week .gz-ou-sub{font-size:10px;color:var(--news-faded)}
+
+/* Week picker as edition tabs */
+#tab-week .wk-picker{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--news-rule);
+  border-bottom:1px solid var(--news-rule);padding:6px 0;margin:0 0 18px}
+#tab-week .wk-pill{background:transparent;border:0;border-right:1px solid var(--news-rule);
+  border-radius:0;color:var(--news-faded);font-family:'Inter',sans-serif;font-size:11px;
+  font-weight:600;letter-spacing:.06em;padding:3px 13px;cursor:pointer}
+#tab-week .wk-pill:last-child{border-right:0}
+#tab-week .wk-pill.active{color:var(--news-spot);text-decoration:underline;text-underline-offset:3px}
+#tab-week .wk-pill.future{color:var(--news-rule)}
+
+@media(max-width:720px){
+  #tab-week{padding:18px 16px 24px}
+  #tab-week .gz-award,#tab-week .gz-rec,#tab-week .gz-line{border-left:0;padding-left:0;
+    border-top:1px solid var(--news-rule);padding-top:10px;margin-top:10px}
+  #tab-week .gz-award:first-child,#tab-week .gz-rec:first-child,#tab-week .gz-line:first-child{
+    border-top:0;margin-top:0;padding-top:0}
+}
 /* ─── THE GAZETTE ─── */
 .gz-awards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;padding:14px 16px}
 .gz-award{border:1px solid var(--border);border-radius:8px;padding:12px 14px;background:rgba(255,255,255,.02)}
@@ -1017,6 +1162,7 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
 .gz-obit-text{font-size:12.5px;line-height:1.55;margin:0;color:var(--muted)}
 .gz-ads{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:12px;padding:14px 16px}
 .gz-ad{border:1px dashed var(--border);border-radius:6px;padding:11px 13px}
+.gz-ad-cat{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
 .gz-ad-head{font-weight:700;font-size:12px;letter-spacing:.05em;line-height:1.35}
 .gz-ad-body{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
 .gz-ad-contact{font-size:11px;color:var(--muted);margin-top:7px;font-style:italic;opacity:.8}
@@ -3143,6 +3289,40 @@ function wkIsPlayed(m) {
   return (m.home?.totalPoints || 0) > 0 || (m.away?.totalPoints || 0) > 0;
 }
 
+/**
+ * The masthead. Dateline uses the date the week's last game was played rather
+ * than today, so an old edition reads as an old edition.
+ */
+function gzMasthead(src, week, isPlayed) {
+  const games = (src.schedule || []).filter(m =>
+    m.matchupPeriodId === week && m.home && m.away);
+  const played = games.filter(wkIsPlayed).length;
+  const reg = regWeeksFor(src);
+  const label = week > reg ? `Playoff Round ${week - reg}` : `Week ${week}`;
+
+  // Seasons open in September; week 1 is the first full weekend.
+  const approx = new Date(Date.UTC(Number(src.season), 8, 8 + (week - 1) * 7));
+  const dateline = approx.toLocaleDateString('en-US',
+    { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+
+  const oldest = allSeasons.length
+    ? Math.min.apply(null, allSeasons.map(s => Number(s.season))) : src.season;
+
+  return `<div class="news-masthead">
+    <h1 class="news-title">The League Gazette</h1>
+    <div class="news-dateline">
+      <span>${label} Edition</span>
+      <span>&middot;</span>
+      <span>${escapeHtml(dateline)}</span>
+      <span>&middot;</span>
+      <span>Est. ${oldest}</span>
+      <span>&middot;</span>
+      <span>${isPlayed ? played + ' games in the books' : 'Preview'}</span>
+    </div>
+  </div>
+  <div class="news-rule-thin"></div>`;
+}
+
 function renderWeek() {
   const el = document.getElementById('tab-week');
   if (!el) return;
@@ -3161,11 +3341,8 @@ function renderWeek() {
   const sel = window._wkSel;
   const isPlayed = byWeek[sel] && byWeek[sel].some(wkIsPlayed);
 
-  let h = `<div class="card" style="margin-bottom:18px">
-    <div class="card-header">
-      <div class="card-title">The Week</div>
-      <div class="card-sub">${src.season} · ${isPlayed ? 'results and recap' : 'preview'}</div>
-    </div>
+  let h = `${gzMasthead(src, sel, isPlayed)}
+  <div class="card" style="margin-bottom:18px;border-top:0;padding-top:0">
     <div class="wk-picker">
       ${allWeeks.map(w => {
         const done = byWeek[w].some(wkIsPlayed);
@@ -3180,9 +3357,7 @@ function renderWeek() {
   // Awards for the selected week, then the running season totals.
   if (isPlayed) {
     h += wkAwards(src, sel);
-    h += gzNamedAwards(src, sel);      // constitution-canon awards
     h += gzOversSection(src, sel);
-    h += gzFraudSection(src, sel);
     h += gzObitSection(src, sel);
     h += gzAdsSection(src, sel);
     h += gzRecordSection(src, sel);
@@ -3246,37 +3421,55 @@ function gzGames(src) {
   return out;
 }
 
-function gzNamedAwards(src, week) {
-  if (typeof gzAwards !== 'function') return '';
-  const teams = gzTeamsFor(src, week);
-  if (!teams.length) return '';
-
-  // Last place by record, then points — the Sacko as things stand.
-  const rows = gzStandingRows(src);
-  const last = rows.length ? rows[rows.length - 1] : null;
-  const reg = regWeeksFor(src);
-
-  const aw = gzAwards(teams, gzProjMap(src), week, {
-    lastPlace: last ? { manager: last.manager, record: last.wins + '-' + last.losses } : null,
-    weeksLeft: Math.max(0, reg - week),
+/** Overall draft pick number per player id. */
+function gzDraftMap(src) {
+  const map = {};
+  ((src.draftDetail || {}).picks || []).forEach(p => {
+    if (p.playerId != null && p.overallPickNumber != null) map[p.playerId] = p.overallPickNumber;
   });
-  if (!aw.length) return '';
-
-  return `<div class="card" style="margin-bottom:18px">
-    <div class="card-header"><div class="card-title">The Honours</div>
-      <div class="card-sub">Named for the rules this league actually wrote</div></div>
-    <div class="gz-awards">
-      ${aw.map(a => `<div class="gz-award${a.bad ? ' bad' : ''}">
-        <div class="gz-award-name">${a.name}</div>
-        <div class="gz-award-canon">${a.canon}</div>
-        <div class="gz-award-winner">${escapeHtml(a.winner)}</div>
-        <div class="gz-award-detail">${escapeHtml(a.detail)}</div>
-      </div>`).join('')}
-    </div>
-  </div>`;
+  return map;
 }
 
-/** Record + all-play per manager, for the fraud watch and the Sacko. */
+/**
+ * Season-long context the notices column needs: how often each player has been
+ * STARTED and what they returned, plus repeat benchings that later paid off.
+ * Walks every cached boxscore week, so it sharpens as the season goes.
+ */
+function gzSeasonContext(src, throughWeek) {
+  const starts = {}, benchLog = {}, activated = {};
+  const map = getTeamsMapFor(src);
+  Object.keys(src.boxscores || {}).map(Number).sort((a, b) => a - b).forEach(w => {
+    if (w > throughWeek) return;
+    const wk = src.boxscores[String(w)];
+    Object.keys(wk).forEach(tid => {
+      const box = bxTeamWeek(wk[tid].entries, { actual: wk[tid].total });
+      if (!box) return;
+      const t = map[tid];
+      const who = t ? mgr(t) : ('Team ' + tid);
+      (box.starters || []).forEach(p => {
+        const r = starts[p.id] = starts[p.id] || { name: p.name, pos: p.pos, manager: who, starts: 0, total: 0 };
+        r.starts++; r.total += p.pts;
+        if (benchLog[p.id] && benchLog[p.id].weeks.length >= 2 && !activated[p.id]) {
+          activated[p.id] = { payoff: p.pts, week: w };
+        }
+      });
+      (box.bench || []).forEach(p => {
+        const r = benchLog[p.id] = benchLog[p.id]
+          || { player: p.name, pos: p.pos, manager: who, weeks: [], benchedTotal: 0 };
+        if (p.pts >= 10) { r.weeks.push(w); r.benchedTotal += p.pts; }
+      });
+    });
+  });
+
+  const repeatOffences = Object.keys(activated).map(id => {
+    const b = benchLog[id];
+    return b ? Object.assign({}, b, { payoff: activated[id].payoff }) : null;
+  }).filter(r => r && r.weeks.length >= 2)
+    .sort((a, b) => b.benchedTotal - a.benchedTotal);
+
+  return { seasonStarts: starts, repeatOffences };
+}
+
 function gzStandingRows(src) {
   const map = getTeamsMapFor(src);
   const acc = {};
@@ -3288,8 +3481,9 @@ function gzStandingRows(src) {
     [[m.home.teamId, hp, ap], [m.away.teamId, ap, hp]].forEach(([id, f, a]) => {
       const t = map[id]; if (!t) return;
       const k = mgr(t);
-      acc[k] = acc[k] || { manager: k, wins: 0, losses: 0, pf: 0, allPlayW: 0, allPlayL: 0 };
+      acc[k] = acc[k] || { manager: k, wins: 0, losses: 0, pf: 0, allPlayW: 0, allPlayL: 0, scores: [] };
       acc[k].pf += f;
+      acc[k].scores.push(f);
       if (f > a) acc[k].wins++; else if (f < a) acc[k].losses++;
       (weekly[m.matchupPeriodId] = weekly[m.matchupPeriodId] || []).push({ k, pts: f });
     });
@@ -3327,24 +3521,6 @@ function gzOversSection(src, week) {
   </div>`;
 }
 
-function gzFraudSection(src, week) {
-  if (typeof gzFraudWatch !== 'function') return '';
-  const f = gzFraudWatch(gzStandingRows(src), week);
-  if (!f) return '';
-  return `<div class="card gz-fraud" style="margin-bottom:18px">
-    <div class="card-header"><div class="card-title">Fraud Watch</div>
-      <div class="card-sub">Record versus all-play</div></div>
-    <div class="gz-fraud-body">
-      <p class="gz-fraud-open">${escapeHtml(f.opener)}</p>
-      <p>${escapeHtml(f.body)}</p>
-      <div class="gz-fraud-nums">
-        <span><b>${f.record}</b> actual</span>
-        <span><b>${f.allPlay}</b> against everyone</span>
-      </div>
-    </div>
-  </div>`;
-}
-
 function gzObitSection(src, week) {
   if (typeof gzObituaries !== 'function') return '';
   const obits = gzObituaries(gzTeamsFor(src, week), gzProjMap(src), week);
@@ -3364,13 +3540,22 @@ function gzObitSection(src, week) {
 
 function gzAdsSection(src, week) {
   if (typeof gzClassifieds !== 'function') return '';
-  const ads = gzClassifieds(gzTeamsFor(src, week), gzProjMap(src), week);
+  const sc = gzSeasonContext(src, week);
+  const rows = gzStandingRows(src);
+  const ads = gzClassifieds(gzTeamsFor(src, week), {
+    projOf: gzProjMap(src),
+    week,
+    standings: rows,
+    seasonStarts: sc.seasonStarts,
+    repeatOffences: sc.repeatOffences,
+  });
   if (!ads.length) return '';
   return `<div class="card" style="margin-bottom:18px">
     <div class="card-header"><div class="card-title">League Notices</div>
       <div class="card-sub">Classified advertising</div></div>
     <div class="gz-ads">
       ${ads.map(a => `<div class="gz-ad">
+        <div class="gz-ad-cat">${escapeHtml(a.category || '')}</div>
         <div class="gz-ad-head">${escapeHtml(a.head)}</div>
         <div class="gz-ad-body">${escapeHtml(a.body)}</div>
         <div class="gz-ad-contact">${escapeHtml(a.contact)}</div>
@@ -3689,6 +3874,20 @@ function wkAwards(src, week) {
       lab: 'Luckiest Win', name: a.luckiestWin.manager,
       sub: `Won with just ${a.luckiestWin.box.actual}. Right place, right week.`,
     });
+  }
+
+  // The expanded set: competence and consequence, joining the original shame-and-luck
+  // awards in one section rather than a competing card.
+  if (typeof gzExtraAwards === 'function') {
+    const rows = gzStandingRows(src);
+    const last = rows.length ? rows[rows.length - 1] : null;
+    const reg = regWeeksFor(src);
+    gzExtraAwards(gzTeamsFor(src, week), {
+      projOf: gzProjMap(src),
+      draftedAt: gzDraftMap(src),
+      lastPlace: last ? { manager: last.manager, record: last.wins + '-' + last.losses } : null,
+      weeksLeft: Math.max(0, reg - week),
+    }).forEach(a => cards.push(a));
   }
   if (!cards.length) return '';
 

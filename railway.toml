@@ -2,6 +2,16 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "npm start"
+# node directly, NOT "npm start".
+#
+# Started through npm, npm is PID 1: it receives Railway's SIGTERM and never
+# forwards it, so the app is force-killed on every shutdown. That is tolerable
+# without a volume. With one mounted, Railway refuses to start the next
+# deployment until the old container releases the volume — so a shutdown that
+# waits for the kill timeout shows up as a deploy stuck "queued" for minutes.
+#
+# Pairs with the shutdown handler in analytics.js, which must call process.exit
+# now that Node actually receives the signal. See the comment there.
+startCommand = "node server.js"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3

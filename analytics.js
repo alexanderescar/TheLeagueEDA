@@ -342,8 +342,34 @@ function persistence() {
     return durability(DATA_DIR, process.env.RAILWAY_VOLUME_MOUNT_PATH);
 }
 
-process.on('SIGTERM', flush);
-process.on('SIGINT', flush);
+/**
+ * Flush on the way out, then actually leave.
+ *
+ * Two traps here, and they compound:
+ *
+ * 1. Registering a SIGTERM listener REPLACES Node's default behaviour of exiting.
+ *    `process.on('SIGTERM', flush)` therefore writes the file and then keeps the
+ *    process alive forever, waiting to be force-killed. The explicit exit is not
+ *    tidiness, it is the entire reason this works.
+ *
+ * 2. It only matters if Node is the process receiving the signal. Started via
+ *    `npm start`, npm is PID 1, intercepts SIGTERM and never forwards it — so this
+ *    handler never runs at all. railway.toml therefore starts `node server.js`
+ *    directly. Change one without the other and shutdown either hangs or is silent.
+ *
+ * Why it matters here: the service has a volume mounted, and Railway will not start
+ * a new deployment while the old one still holds it. A container that ignores
+ * SIGTERM turns every deploy into a wait for the force-kill timeout.
+ *
+ * flush() is synchronous (writeFileSync), so there is nothing to await.
+ */
+function shutdown() {
+    try { flush(); } catch (err) { console.warn('[Analytics] flush on exit failed:', err.message); }
+    process.exit(0);
+}
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 module.exports = {
     track, stats, persistence, flush,

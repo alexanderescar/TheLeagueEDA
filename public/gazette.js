@@ -135,63 +135,116 @@ function gzOversUnders(teams, projOf, n) {
     };
 }
 
-// ── Named awards ─────────────────────────────────────────────────────────────
+// ── Extra weekly awards ──────────────────────────────────────────────────────
 
 /**
- * Awards with canon. `extra` carries league-state facts the box scores don't hold:
- * { lastPlace: {manager, record}, weeksToDraft: n }.
+ * Awards that join the existing weekly set.
+ *
+ * The originals are all shame or luck — worst start/sit, most left on the bench,
+ * goose egg, unluckiest loss. These add the two things that were missing:
+ * competence (who actually managed their roster well) and consequence (who is
+ * currently on the hook for the Sacko presentation).
+ *
+ * Returns cards in the same shape the existing awards use — { lab, name, sub,
+ * bad } — so they render in one section rather than a competing one.
+ *
+ * `ctx`: { projOf, draftedAt, lastPlace, weeksLeft, allTeams }
+ * Every award returns nothing rather than a weak entry when its trigger is unmet.
  */
-function gzAwards(teams, projOf, week, extra) {
-    extra = extra || {};
-    var starters = gzStarters(teams, projOf);
+function gzExtraAwards(teams, ctx) {
+    ctx = ctx || {};
     var out = [];
+    var withBox = (teams || []).filter(function (t) { return t && t.box; });
+    if (!withBox.length) return out;
 
-    // The Brad Johnson Award — constitution 5.3, the man who threw to himself.
-    var top = starters.slice().sort(function (a, b) { return b.pts - a.pts; })[0];
-    if (top) {
+    var starters = gzStarters(teams, ctx.projOf);
+    var drafted = ctx.draftedAt || {};
+
+    // Coach of the Week — the counterweight to the Shame Table. Efficiency only
+    // means something once there was a real lineup to get wrong.
+    var eff = withBox.filter(function (t) { return t.box.optimal > 0; })
+        .map(function (t) {
+            return { t: t, pct: t.box.actual / t.box.optimal };
+        }).sort(function (a, b) { return b.pct - a.pct; })[0];
+    if (eff) {
         out.push({
-            key: 'bradJohnson',
-            name: 'The Brad Johnson Award',
-            canon: 'Section 5.3 exists because a quarterback once threw a touchdown pass '
-                 + 'to himself, and this league decided that was worth 13.4 points. For the '
-                 + 'biggest single performance of the week.',
-            winner: top.name,
-            detail: top.pts + ' at ' + top.pos + ' for ' + top.manager
-                  + (top.proj != null ? ' on a projection of ' + top.proj + '.' : '.'),
+            lab: 'Coach of the Week', name: eff.t.manager,
+            sub: Math.round(eff.pct * 1000) / 10 + '% of his optimal lineup. Left '
+               + eff.t.box.left + ' on the bench and scored ' + eff.t.box.actual + '.',
         });
     }
 
-    // The Meachum — constitution 5.2, points from a play nobody was watching for.
-    //
-    // The week's top scorer is usually also the biggest overperformer, which would
-    // hand the same man both awards and make the page look automated. He already has
-    // one; this goes to the next name down. On a week where only one player beat his
-    // projection at all, the award simply doesn't run.
-    var over = starters.filter(function (p) {
-        return p.vsProj != null && !(top && p.id === top.id);
-    }).sort(function (a, b) { return b.vsProj - a.vsProj; })[0];
-    if (over && over.vsProj > 0) {
+    // The Perfect Lineup — only when someone genuinely left nothing behind.
+    var perfect = withBox.filter(function (t) { return t.box.left <= 0.05; });
+    if (perfect.length) {
         out.push({
-            key: 'meachum',
-            name: 'The Meachum',
-            canon: 'Rule 5.2 awards points for a play nobody was watching for, and puts the '
-                 + 'burden on owners to notice. For the starter who beat his projection by most.',
-            winner: over.name,
-            detail: over.pts + ' against a projected ' + over.proj + ' for ' + over.manager
-                  + ' — ' + gzRound(over.vsProj, 1) + ' more than anyone asked of him.',
+            lab: 'The Perfect Lineup',
+            name: perfect.map(function (t) { return t.manager; }).join(' & '),
+            sub: 'Played every right man. Nothing on the bench outscored anything in the lineup.',
         });
     }
 
-    // The Sacko Watch — constitution 2.2, the presentation at next year's draft.
-    if (extra.lastPlace) {
+    // Waiver Wire Steal — best score from a player nobody drafted.
+    var undrafted = starters.filter(function (p) { return drafted[p.id] == null; })
+        .sort(function (a, b) { return b.pts - a.pts; })[0];
+    if (undrafted && undrafted.pts > 0) {
         out.push({
-            key: 'sacko',
-            name: 'The Sacko Watch',
-            canon: 'Section 2.2: whoever finishes last delivers a presentation at the next '
-                 + 'draft explaining why his team was the worst in the league.',
-            winner: extra.lastPlace.manager,
-            detail: 'Currently last at ' + extra.lastPlace.record + '. Time remaining to '
-                  + 'prepare the slides: ' + (extra.weeksLeft != null ? extra.weeksLeft + ' weeks.' : 'all of it.'),
+            lab: 'Waiver Wire Steal', name: undrafted.name,
+            sub: undrafted.pts + ' at ' + undrafted.pos + ' for ' + undrafted.manager
+               + '. Nobody spent a pick on him in August.',
+        });
+    }
+
+    // Draft Day Ghost — worst return from an early pick. Three rounds in a
+    // 12-team league is the top 36 selections.
+    var early = starters.filter(function (p) {
+        return drafted[p.id] != null && drafted[p.id] <= 36;
+    }).sort(function (a, b) { return a.pts - b.pts; })[0];
+    if (early) {
+        var rd = Math.ceil(drafted[early.id] / 12);
+        out.push({
+            lab: 'Draft Day Ghost', name: early.name,
+            sub: early.pts + ' for ' + early.manager + ', a round ' + rd + ' pick'
+               + (early.proj != null ? ' projected for ' + early.proj + '.' : '.'),
+            bad: true,
+        });
+    }
+
+    // One-Man Band — how much of a team came from a single player.
+    var solo = withBox.filter(function (t) { return t.box.hero && t.box.heroShare; })
+        .sort(function (a, b) { return b.box.heroShare - a.box.heroShare; })[0];
+    if (solo) {
+        out.push({
+            lab: 'One-Man Band', name: solo.manager,
+            sub: solo.box.hero.name + '’s ' + solo.box.hero.pts + ' was '
+               + solo.box.heroShare + '% of everything he scored.',
+        });
+    }
+
+    // The week's extremes. Both read off the same margin list.
+    var margins = withBox.filter(function (t) { return t.margin > 0; })
+        .sort(function (a, b) { return a.margin - b.margin; });
+    if (margins.length) {
+        var closest = margins[0], widest = margins[margins.length - 1];
+        out.push({
+            lab: 'The Nail-Biter', name: closest.manager,
+            sub: 'Won by ' + gzRound(closest.margin, 1) + '. The closest game of the week.',
+        });
+        if (widest !== closest) {
+            out.push({
+                lab: 'The Beatdown', name: widest.manager,
+                sub: 'Won by ' + gzRound(widest.margin, 1) + '. Nothing was in doubt.',
+            });
+        }
+    }
+
+    // Sacko Watch — constitution 2.2. The only award with a consequence.
+    if (ctx.lastPlace) {
+        out.push({
+            lab: 'Sacko Watch', name: ctx.lastPlace.manager,
+            sub: 'Last at ' + ctx.lastPlace.record + '. Section 2.2 owes the league a '
+               + 'presentation at the next draft explaining why'
+               + (ctx.weeksLeft != null ? ' — ' + ctx.weeksLeft + ' weeks to write it.' : '.'),
             bad: true,
         });
     }
@@ -202,112 +255,135 @@ function gzAwards(teams, projOf, week, extra) {
 // ── Classified ads ───────────────────────────────────────────────────────────
 
 /**
- * Small ads written from the week's worst moments. Each is keyed to a real fact,
- * so an empty week produces fewer ads rather than invented ones.
+ * The notices column.
+ *
+ * Eight categories, each with its own trigger. A quiet week produces three ads
+ * and a brutal one produces eight — which is the point. Fixed slots would mean
+ * inventing a story on a week that didn't have one, and that is exactly how this
+ * kind of thing starts reading like filler.
+ *
+ * Several triggers reach across the season rather than the week, because the
+ * funniest material is cumulative: a tight end who has started four times for
+ * nine points is a better ad than anything one Sunday produces.
+ *
+ * `ctx`: { projOf, standings, seasonStarts, week }
+ *   standings    [{ manager, wins, losses, allPlayW, allPlayL, streak }]
+ *   seasonStarts { playerId: { name, pos, manager, starts, total } }
  */
-function gzClassifieds(teams, projOf, week) {
+function gzClassifieds(teams, ctx) {
+    ctx = ctx || {};
     var ads = [];
     var withBox = (teams || []).filter(function (t) { return t && t.box; });
+    if (!withBox.length) return ads;
 
-    // Worst start/sit of the week.
-    var blunders = withBox.filter(function (t) { return t.box.blunder; })
-        .sort(function (a, b) { return b.box.blunder.swing - a.box.blunder.swing; });
-    if (blunders.length) {
-        var b = blunders[0];
-        ads.push({
-            head: 'FOR SALE: ' + b.box.blunder.swing + ' POINTS, NEVER USED',
-            body: b.manager + ' started ' + b.box.blunder.started.name + ' ('
-                + b.box.blunder.started.pts + ') over ' + b.box.blunder.benched.name + ' ('
-                + b.box.blunder.benched.pts + ').',
-            contact: 'Enquire with ' + b.manager,
-        });
-    }
-
-    // Most points abandoned on the bench.
-    var left = withBox.slice().sort(function (a, b) { return b.box.left - a.box.left; })[0];
-    if (left && left.box.left > 0) {
-        ads.push({
-            head: 'WANTED: SOMEONE TO READ THE PROJECTIONS',
-            body: left.manager + ' left ' + left.box.left + ' on the bench. The optimal lineup '
-                + 'scored ' + left.box.optimal + ' against the ' + left.box.actual + ' actually posted.',
-            contact: 'No experience necessary',
-        });
-    }
-
-    // A starter who scored nothing.
-    var zeros = [];
-    withBox.forEach(function (t) {
-        (t.box.zeros || []).forEach(function (z) { zeros.push({ z: z, mgr: t.manager }); });
-    });
-    if (zeros.length) {
-        ads.push({
-            head: 'LOST: ONE ' + String(zeros[0].z.pos || 'PLAYER').toUpperCase() + ', LAST SEEN SUNDAY',
-            body: zeros[0].z.name + ' was started by ' + zeros[0].mgr + ' and returned nothing at all.',
-            contact: 'Reward offered',
-        });
-    }
-
-    // Highest score in a loss.
-    var robbed = withBox.filter(function (t) { return t.margin < 0; })
-        .sort(function (a, b) { return b.box.actual - a.box.actual; })[0];
-    if (robbed) {
-        ads.push({
-            head: 'FOUND: ' + robbed.box.actual + ' POINTS, NO WIN ATTACHED',
-            body: robbed.manager + ' scored more than most of the league and lost by '
-                + Math.abs(gzRound(robbed.margin, 1)) + '.',
-            contact: 'Owner may collect at the commissioner\'s desk',
-        });
-    }
-
-    return ads.slice(0, 4);
-}
-
-// ── Fraud watch ──────────────────────────────────────────────────────────────
-
-var GZ_FRAUD_OPENERS = [
-    'The paper is opening a formal inquiry into {mgr}.',
-    'Questions are being asked about {mgr}.',
-    'This paper is not accusing {mgr} of anything. This paper is simply noting the following.',
-    'An investigation into {mgr} is ongoing.',
-];
-
-/**
- * Who does the record flatter most?
- *
- * All-play is the honest measure — your record against the entire league every
- * week. A team several games better in the standings than in all-play has been
- * beating whoever happened to be in front of them. `rows` is
- * [{ manager, wins, losses, allPlayW, allPlayL, ppg }].
- */
-function gzFraudWatch(rows, week) {
-    if (!rows || rows.length < 3) return null;
-    var scored = rows.map(function (r) {
-        var games = r.wins + r.losses;
-        var apGames = r.allPlayW + r.allPlayL;
-        if (!games || !apGames) return null;
-        var winPct = r.wins / games;
-        var apPct  = r.allPlayW / apGames;
-        return { r: r, gap: winPct - apPct, winPct: winPct, apPct: apPct };
-    }).filter(Boolean);
-    if (!scored.length) return null;
-
-    scored.sort(function (a, b) { return b.gap - a.gap; });
-    var best = scored[0];
-    // A gap under ~20 points of win rate is ordinary schedule noise, not a story.
-    if (best.gap < 0.2) return null;
-
-    return {
-        manager: best.r.manager,
-        record: best.r.wins + '-' + best.r.losses,
-        allPlay: best.r.allPlayW + '-' + best.r.allPlayL,
-        gap: gzRound(best.gap * 100, 0),
-        opener: gzPick(GZ_FRAUD_OPENERS, 'fraud|' + week + '|' + best.r.manager)
-            .replace('{mgr}', best.r.manager),
-        body: best.r.manager + ' is ' + best.r.wins + '-' + best.r.losses
-            + ' while going ' + best.r.allPlayW + '-' + best.r.allPlayL
-            + ' against the league as a whole. The record and the performance are not '
-            + 'telling the same story, and only one of them counts.',
+    var push = function (cat, head, body, contact) {
+        ads.push({ category: cat, head: head, body: body, contact: contact });
     };
+
+    // HELP WANTED — a starter who has been reliably useless all season.
+    var starts = ctx.seasonStarts || {};
+    var worstRegular = Object.keys(starts).map(function (k) { return starts[k]; })
+        .filter(function (p) { return p.starts >= 3; })
+        .map(function (p) { return { p: p, perStart: p.total / p.starts }; })
+        .sort(function (a, b) { return a.perStart - b.perStart; })[0];
+    if (worstRegular && worstRegular.perStart < 6) {
+        var w = worstRegular.p;
+        push('Help Wanted',
+            'EXPERIENCED ' + String(w.pos || 'PLAYER').toUpperCase() + ' SOUGHT',
+            w.name + ' has started ' + w.starts + ' games for ' + w.manager
+            + ' and produced ' + gzRound(w.total, 1) + ' points combined. '
+            + 'No prior success necessary.',
+            'Apply within');
+    }
+
+    // PUBLIC NOTICE — a losing streak the all-play record agrees with.
+    var sinking = (ctx.standings || []).filter(function (r) {
+        return r.losses >= 3 && r.wins === 0;
+    })[0];
+    if (sinking) {
+        push('Public Notice', 'BE ADVISED',
+            sinking.manager + ' has now lost ' + sinking.losses + ' straight'
+            + (sinking.allPlayW != null
+                ? ', going ' + sinking.allPlayW + '-' + sinking.allPlayL + ' against the league as a whole'
+                : '') + '. The commissioner has been informed.',
+            'No action required');
+    }
+
+    // LEGAL NOTICE — the widest gap between what was scored and what was available.
+    var gap = withBox.slice().sort(function (a, b) {
+        return (b.box.optimal - b.box.actual) - (a.box.optimal - a.box.actual);
+    })[0];
+    if (gap && gap.box.optimal - gap.box.actual > 20 && gap.box.blunder) {
+        push('Legal Notice', 'NOTICE OF POINTS FORFEITED',
+            gap.manager + ' is hereby served notice that ' + gap.box.blunder.benched.name
+            + ' scored ' + gap.box.blunder.benched.pts + ' on his bench while '
+            + gap.box.blunder.started.name + ' started for ' + gap.box.blunder.started.pts
+            + '. Optimal lineup ' + gap.box.optimal + '. Actual ' + gap.box.actual + '.',
+            'Served this day');
+    }
+
+    // APOLOGY — owed to the benched player, not the league.
+    var owed = withBox.filter(function (t) { return t.box.blunder; })
+        .sort(function (a, b) { return b.box.blunder.swing - a.box.blunder.swing; })[0];
+    if (owed) {
+        push('Apology', 'A CORRECTION IS OFFERED',
+            owed.manager + ' wishes to apologise to ' + owed.box.blunder.benched.name
+            + ' (' + owed.box.blunder.benched.pts + ', benched) for starting '
+            + owed.box.blunder.started.name + ' (' + owed.box.blunder.started.pts
+            + '). No apology is offered to anyone else.',
+            'Sincerely');
+    }
+
+    // PERSONALS — winless, but not for want of scoring.
+    var unlucky = (ctx.standings || []).filter(function (r) { return r.wins === 0 && r.losses >= 2; })
+        .map(function (r) {
+            var t = withBox.filter(function (x) { return x.manager === r.manager; })[0];
+            return { r: r, scores: r.scores || [] };
+        }).filter(function (x) { return x.scores.length; })
+        .sort(function (a, b) {
+            var av = a.scores.reduce(function (s, n) { return s + n; }, 0) / a.scores.length;
+            var bv = b.scores.reduce(function (s, n) { return s + n; }, 0) / b.scores.length;
+            return bv - av;
+        })[0];
+    if (unlucky) {
+        push('Personals', '0-' + unlucky.r.losses + ' SEEKS ANYONE',
+            unlucky.r.manager + ' has posted ' + unlucky.scores.slice().sort(function (a, b) { return b - a; })
+                .map(function (n) { return gzRound(n, 1); }).join(', ')
+            + ' and has nothing to show for it. Will travel.',
+            'Discretion assured');
+    }
+
+    // ESTATE SALE — the week's biggest pile of unused points.
+    var pile = withBox.slice().sort(function (a, b) { return b.box.left - a.box.left; })[0];
+    if (pile && pile.box.left > 15) {
+        push('Estate Sale', pile.box.left + ' POINTS, UNUSED, MUST GO',
+            'The entire contents of ' + pile.manager + '’s bench. Never started, '
+            + 'never appreciated. All reasonable offers considered.',
+            'Viewing by appointment');
+    }
+
+    // FOR SALE — a repeat benching that finally paid off.
+    var repeat = (ctx.repeatOffences || [])[0];
+    if (repeat) {
+        push('For Sale', 'ONE ' + String(repeat.pos || 'PLAYER').toUpperCase() + ', LIGHTLY BENCHED',
+            repeat.player + ' sat out ' + gzRound(repeat.benchedTotal, 1) + ' points across '
+            + repeat.weeks.length + ' weeks before ' + repeat.manager + ' activated him'
+            + (repeat.payoff != null ? ' for ' + repeat.payoff + '.' : '.')
+            + ' Seller now retaining.',
+            'No longer available');
+    }
+
+    // LOST — the closest game of the week, from the losing side.
+    var heartbreak = withBox.filter(function (t) { return t.margin < 0; })
+        .sort(function (a, b) { return b.margin - a.margin; })[0];
+    if (heartbreak && Math.abs(heartbreak.margin) <= 5) {
+        push('Lost', 'ONE YARD LINE, SENTIMENTAL VALUE',
+            heartbreak.manager + ' lost by ' + gzRound(Math.abs(heartbreak.margin), 1)
+            + '. That one play would have changed everything.',
+            'Return to ' + heartbreak.manager + ', no questions asked');
+    }
+
+    return ads;
 }
 
 // ── Record book, with stamps ─────────────────────────────────────────────────
@@ -384,10 +460,10 @@ function gzSpreads(means, games, nameOf) {
 
 if (typeof module !== 'undefined') {
     module.exports = {
-        gzObituaries, gzAwards, gzClassifieds, gzFraudWatch, gzRecords, gzSpreads,
+        gzObituaries, gzExtraAwards, gzClassifieds, gzRecords, gzSpreads,
         gzOversUnders,
         gzStarters, gzWeeklyProj, gzPick, gzHash, gzRound,
         GZ_PROJ_GAMES, GZ_OBIT_MIN_PROJ,
-        GZ_OBIT_OPENERS, GZ_OBIT_CLOSERS, GZ_FRAUD_OPENERS,
+        GZ_OBIT_OPENERS, GZ_OBIT_CLOSERS,
     };
 }

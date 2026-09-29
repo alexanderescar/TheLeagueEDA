@@ -74,70 +74,6 @@ console.log('\nOBITUARIES  (starters who missed, worst first)');
     ok('no data is safe', G.gzObituaries([], {}, 3).length === 0);
 }
 
-console.log('\nAWARDS  (named from this league\'s own constitution)');
-{
-    const proj = {};
-    const big  = pl('Star', 'RB', 40);  proj[big.id] = 17 * 20;   // +20 over
-    const solid = pl('Solid', 'WR', 14); proj[solid.id] = 17 * 13;
-    const teams = [team('Gabe', [big, solid])];
-
-    const aw = G.gzAwards(teams, proj, 3, {
-        lastPlace: { manager: 'Nick', record: '0-3' }, weeksLeft: 11,
-    });
-    const byKey = {}; aw.forEach(a => { byKey[a.key] = a; });
-
-    ok('the Brad Johnson Award goes to the top score',
-        byKey.bradJohnson && byKey.bradJohnson.winner === 'Star');
-    ok('and cites section 5.3', byKey.bradJohnson.canon.indexOf('5.3') > -1);
-    // Star is both top scorer and biggest overperformer here, so the Meachum skips
-    // him and goes to Solid — the behaviour locked in further down.
-    ok('the Meachum goes to the best overperformer who is not the top scorer',
-        byKey.meachum && byKey.meachum.winner === 'Solid',
-        byKey.meachum && byKey.meachum.winner);
-    ok('and cites rule 5.2', byKey.meachum.canon.indexOf('5.2') > -1);
-    ok('the Sacko Watch names the team in last',
-        byKey.sacko && byKey.sacko.winner === 'Nick');
-    ok('and cites section 2.2', byKey.sacko.canon.indexOf('2.2') > -1);
-    ok('the Sacko is flagged as bad news', byKey.sacko.bad === true);
-
-    ok('no last place means no Sacko award',
-        !G.gzAwards(teams, proj, 3, {}).some(a => a.key === 'sacko'));
-    ok('unprojected players cannot win the Meachum',
-        !G.gzAwards([team('X', [pl('NoProj', 'WR', 30)])], {}, 3, {})
-            .some(a => a.key === 'meachum'));
-    ok('an all-underperforming week has no Meachum',
-        !G.gzAwards([team('X', [Object.assign(pl('Under', 'WR', 2), {})])],
-            (() => { const m = {}; m[pid - 1] = 17 * 15; return m; })(), 3, {})
-            .some(a => a.key === 'meachum'));
-
-    // Observed on real Week 3 data: Brock Purdy was both the top scorer and the
-    // biggest overperformer, so without this the same man collected both awards.
-    ok('the top scorer cannot also win the Meachum',
-        byKey.meachum == null || byKey.meachum.winner !== byKey.bradJohnson.winner,
-        byKey.bradJohnson.winner + ' / ' + (byKey.meachum && byKey.meachum.winner));
-
-    {
-        const p2 = {};
-        const dominant = pl('Dominant', 'QB', 45); p2[dominant.id] = 17 * 15;  // +30
-        const second   = pl('Second', 'RB', 22);   p2[second.id]   = 17 * 12;  // +10
-        const aw2 = G.gzAwards([team('T', [dominant, second])], p2, 4, {});
-        const k2 = {}; aw2.forEach(a => { k2[a.key] = a; });
-        ok('the Brad Johnson still goes to the biggest score', k2.bradJohnson.winner === 'Dominant');
-        ok('and the Meachum falls to the next man down', k2.meachum.winner === 'Second',
-            k2.meachum && k2.meachum.winner);
-    }
-    {
-        // Only one player beat his projection, and he took the other award.
-        const p3 = {};
-        const only = pl('Only', 'QB', 40); p3[only.id] = 17 * 10;
-        const miss = pl('Miss', 'RB', 3);  p3[miss.id] = 17 * 14;
-        const aw3 = G.gzAwards([team('T', [only, miss])], p3, 5, {});
-        ok('with nobody else above projection the Meachum does not run',
-            !aw3.some(a => a.key === 'meachum'),
-            JSON.stringify(aw3.map(a => a.key)));
-    }
-}
-
 console.log('\nOVERS AND UNDERS  (the only place a projection sits next to the result)');
 {
     const proj = {};
@@ -162,56 +98,127 @@ console.log('\nOVERS AND UNDERS  (the only place a projection sits next to the r
         G.gzOversUnders([], {}).overs.length === 0 && G.gzOversUnders([], {}).unders.length === 0);
 }
 
-console.log('\nCLASSIFIEDS  (every ad is pinned to a real fact)');
+console.log('\nEXTRA AWARDS  (competence and consequence)');
 {
-    const a = team('Manny', [pl('Guy', 'WR', 10), pl('Ghost', 'TE', 0)], {
-        left: 29.5, optimal: 128.9, margin: 0.5,
-        blunder: { benched: { name: 'Benched Guy', pts: 20.4 }, started: { name: 'Started Guy', pts: 2.8 }, swing: 17.6 },
+    const proj = {}, drafted = {};
+    const star   = pl('Star', 'RB', 30);   proj[star.id] = 17 * 14; drafted[star.id] = 3;
+    const ghost  = pl('Ghost', 'WR', 2);   proj[ghost.id] = 17 * 16; drafted[ghost.id] = 8;   // rd 1
+    const waiver = pl('Waiver', 'QB', 26);                                                    // undrafted
+    const late   = pl('Late', 'TE', 4);    drafted[late.id] = 150;                            // not early
+
+    const efficient = team('Peddie', [star, waiver], { left: 3.4, optimal: 59.4, margin: 22 });
+    efficient.box.hero = { name: 'Star', pts: 30 }; efficient.box.heroShare = 53.6;
+    const sloppy = team('Albert', [ghost, late], { left: 49.3, optimal: 55.3, margin: -33 });
+    sloppy.box.hero = { name: 'Late', pts: 4 }; sloppy.box.heroShare = 66.7;
+
+    const aw = G.gzExtraAwards([efficient, sloppy], {
+        projOf: proj, draftedAt: drafted,
+        lastPlace: { manager: 'Nick', record: '0-3' }, weeksLeft: 11,
     });
-    const b = team('Nick', [pl('Other', 'RB', 12)], { left: 8.8, margin: -0.5 });
-    const ads = G.gzClassifieds([a, b], {}, 3);
+    const by = {}; aw.forEach(a => { by[a.lab] = a; });
 
-    ok('the worst start/sit becomes an ad', ads.some(x => /FOR SALE/.test(x.head)));
-    ok('and carries the swing', ads.some(x => /17\.6/.test(x.head)));
-    ok('the biggest bench waste becomes an ad', ads.some(x => /WANTED/.test(x.head)));
-    ok('a started zero becomes an ad', ads.some(x => /LOST/.test(x.head) && /Ghost/.test(x.body)));
-    ok('the best score in a loss becomes an ad', ads.some(x => /FOUND/.test(x.head) && /Nick/.test(x.body)));
-    ok('ads are capped at four', ads.length <= 4, String(ads.length));
+    ok('Coach of the Week is the most efficient lineup',
+        by['Coach of the Week'].name === 'Peddie', by['Coach of the Week'].name);
+    ok('and quotes the percentage', /%/.test(by['Coach of the Week'].sub));
+    ok('Waiver Wire Steal finds the undrafted man',
+        by['Waiver Wire Steal'].name === 'Waiver');
+    ok('Draft Day Ghost finds the early pick who did nothing',
+        by['Draft Day Ghost'].name === 'Ghost', by['Draft Day Ghost'].name);
+    ok('and names the round', /round 1/.test(by['Draft Day Ghost'].sub), by['Draft Day Ghost'].sub);
+    ok('Draft Day Ghost is flagged bad', by['Draft Day Ghost'].bad === true);
+    ok('a late pick is not a Draft Day Ghost', by['Draft Day Ghost'].name !== 'Late');
+    ok('One-Man Band takes the highest hero share',
+        by['One-Man Band'].name === 'Albert', by['One-Man Band'].name);
+    ok('Sacko Watch survived the migration', by['Sacko Watch'].name === 'Nick');
+    ok('and carries the deadline', /11 weeks/.test(by['Sacko Watch'].sub));
+    ok('Sacko Watch is flagged bad', by['Sacko Watch'].bad === true);
+    ok('no Perfect Lineup when points were left', !by['The Perfect Lineup']);
+    ok('cards use the existing award shape',
+        aw.every(a => a.lab && a.name && a.sub));
 
-    const quiet = G.gzClassifieds([team('Q', [pl('Fine', 'RB', 15)], { left: 0, margin: 8 })], {}, 3);
-    ok('a clean week produces fewer ads, not invented ones',
-        !quiet.some(x => /FOR SALE/.test(x.head)) && !quiet.some(x => /LOST/.test(x.head)),
-        JSON.stringify(quiet.map(x => x.head)));
-    ok('no teams is safe', G.gzClassifieds([], {}, 3).length === 0);
+    const perfect = team('Clean', [star], { left: 0, optimal: 30, margin: 5 });
+    ok('a perfect lineup is celebrated',
+        G.gzExtraAwards([perfect], { projOf: proj, draftedAt: drafted })
+            .some(a => a.lab === 'The Perfect Lineup'));
+
+    ok('no last place means no Sacko Watch',
+        !G.gzExtraAwards([efficient, sloppy], { projOf: proj, draftedAt: drafted })
+            .some(a => a.lab === 'Sacko Watch'));
+    ok('no teams is safe', G.gzExtraAwards([], {}).length === 0);
+    ok('no context is safe', G.gzExtraAwards([efficient], {}).length > 0);
 }
 
-console.log('\nFRAUD WATCH  (record vs all-play)');
+console.log('\nNAIL-BITER AND BEATDOWN');
 {
-    const rows = [
-        { manager: 'Lucky',  wins: 3, losses: 0, allPlayW: 12, allPlayL: 21, ppg: 100 },
-        { manager: 'Honest', wins: 2, losses: 1, allPlayW: 22, allPlayL: 11, ppg: 130 },
-        { manager: 'Unlucky', wins: 0, losses: 3, allPlayW: 18, allPlayL: 15, ppg: 120 },
-    ];
-    const f = G.gzFraudWatch(rows, 3);
-    ok('the flattered team is named', f && f.manager === 'Lucky', f && f.manager);
-    ok('both records are quoted', f.record === '3-0' && f.allPlay === '12-21');
-    ok('the opener names them', f.opener.indexOf('Lucky') > -1, f.opener);
-    ok('the body explains the gap', /not\s+telling the same story/.test(f.body));
+    const a = team('A', [pl('x', 'RB', 10)], { margin: 0.5 });
+    const b = team('B', [pl('y', 'RB', 10)], { margin: 43.4 });
+    const c = team('C', [pl('z', 'RB', 10)], { margin: -0.5 });
+    const aw = G.gzExtraAwards([a, b, c], {});
+    const by = {}; aw.forEach(x => { by[x.lab] = x; });
+    ok('the closest win is the Nail-Biter', by['The Nail-Biter'].name === 'A');
+    ok('the widest win is the Beatdown', by['The Beatdown'].name === 'B');
+    ok('losers are not eligible for either',
+        by['The Nail-Biter'].name !== 'C' && by['The Beatdown'].name !== 'C');
 
-    const fair = [
-        { manager: 'A', wins: 2, losses: 1, allPlayW: 22, allPlayL: 11, ppg: 130 },
-        { manager: 'B', wins: 1, losses: 2, allPlayW: 11, allPlayL: 22, ppg: 100 },
-        { manager: 'C', wins: 2, losses: 1, allPlayW: 18, allPlayL: 15, ppg: 118 },
-    ];
-    ok('an honest league gets no inquiry', G.gzFraudWatch(fair, 3) === null);
-    ok('too few teams is safe', G.gzFraudWatch([rows[0]], 3) === null);
-    ok('no rows is safe', G.gzFraudWatch(null, 3) === null);
-    ok('zero games played is safe',
-        G.gzFraudWatch([
-            { manager: 'A', wins: 0, losses: 0, allPlayW: 0, allPlayL: 0 },
-            { manager: 'B', wins: 0, losses: 0, allPlayW: 0, allPlayL: 0 },
-            { manager: 'C', wins: 0, losses: 0, allPlayW: 0, allPlayL: 0 },
-        ], 1) === null);
+    const solo = G.gzExtraAwards([a], {});
+    ok('one winner means a Nail-Biter but no Beatdown',
+        solo.some(x => x.lab === 'The Nail-Biter') && !solo.some(x => x.lab === 'The Beatdown'));
+}
+
+console.log('\nCLASSIFIEDS  (eight categories, each on its own trigger)');
+{
+    const blunder = { benched: { name: 'Benched Guy', pts: 22 }, started: { name: 'Started Guy', pts: 1.4 }, swing: 20.6 };
+    const bad  = team('Albert', [pl('a', 'WR', 5), pl('b', 'TE', 0)],
+        { left: 49.3, optimal: 130.7, margin: -33.7, blunder });
+    const close = team('Nick', [pl('c', 'RB', 12)], { left: 8, margin: -0.5 });
+    const ctx = {
+        week: 3,
+        standings: [
+            { manager: 'Nick', wins: 0, losses: 3, allPlayW: 5, allPlayL: 28, scores: [74.5, 111.7, 98.9] },
+            { manager: 'Albert', wins: 1, losses: 2, allPlayW: 16, allPlayL: 17, scores: [146.1, 121.2, 81.4] },
+        ],
+        seasonStarts: {
+            99: { name: 'Kyle Pitts', pos: 'TE', manager: 'Jaime', starts: 3, total: 3.0 },
+            98: { name: 'Fine Player', pos: 'RB', manager: 'Gabe', starts: 3, total: 45 },
+        },
+        repeatOffences: [
+            { player: 'Brock Purdy', pos: 'QB', manager: 'Diego', weeks: [1, 2], benchedTotal: 59.58, payoff: 41.28 },
+        ],
+    };
+    const ads = G.gzClassifieds([bad, close], ctx);
+    const cats = ads.map(a => a.category);
+
+    ok('Help Wanted fires on a season-long dud', cats.indexOf('Help Wanted') > -1);
+    ok('and names the player and his total',
+        ads.some(a => /Kyle Pitts/.test(a.body) && /3 games/.test(a.body)));
+    ok('a productive starter does not trigger Help Wanted',
+        !ads.some(a => /Fine Player/.test(a.body)));
+    ok('Public Notice fires on a winless run', cats.indexOf('Public Notice') > -1);
+    ok('and quotes all-play', ads.some(a => /5-28/.test(a.body)));
+    ok('Legal Notice fires on the biggest gap', cats.indexOf('Legal Notice') > -1);
+    ok('Apology fires on the worst start/sit', cats.indexOf('Apology') > -1);
+    ok('and is addressed to the benched player',
+        ads.some(a => a.category === 'Apology' && /Benched Guy/.test(a.body)));
+    ok('Personals fires for the winless', cats.indexOf('Personals') > -1);
+    ok('Estate Sale fires on the big bench pile', cats.indexOf('Estate Sale') > -1);
+    ok('For Sale fires on the repeat benching that paid off', cats.indexOf('For Sale') > -1);
+    ok('and cites the cost and the payoff',
+        ads.some(a => /59\.6/.test(a.body) && /41\.28/.test(a.body)));
+    ok('Lost fires on a game decided by under five', cats.indexOf('Lost') > -1);
+    ok('every ad carries a category', ads.every(a => !!a.category));
+    ok('categories are not duplicated', new Set(cats).size === cats.length);
+
+    // A quiet week should produce fewer ads, not invented ones.
+    const calm = team('Q', [pl('q', 'RB', 15)], { left: 2, optimal: 17, margin: 25 });
+    const quiet = G.gzClassifieds([calm], { week: 3, standings: [], seasonStarts: {}, repeatOffences: [] });
+    ok('a clean week produces far fewer notices', quiet.length < ads.length,
+        quiet.length + ' vs ' + ads.length);
+    ok('no Public Notice without a losing run',
+        !quiet.some(a => a.category === 'Public Notice'));
+    ok('no Estate Sale over a tidy bench',
+        !quiet.some(a => a.category === 'Estate Sale'));
+    ok('no teams is safe', G.gzClassifieds([], {}).length === 0);
+    ok('no context is safe', G.gzClassifieds([bad], {}).length >= 0);
 }
 
 console.log('\nRECORD BOOK  (stamped the week it falls)');
