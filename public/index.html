@@ -1001,6 +1001,47 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
   .dg-corrcard{min-width:130px;padding:10px}
   .dg-corrval{font-size:21px}
 }
+/* ─── THE GAZETTE ─── */
+.gz-awards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;padding:14px 16px}
+.gz-award{border:1px solid var(--border);border-radius:8px;padding:12px 14px;background:rgba(255,255,255,.02)}
+.gz-award.bad{border-color:rgba(240,106,106,.35)}
+.gz-award-name{font-weight:700;color:var(--gold);font-size:13px;letter-spacing:.02em}
+.gz-award-canon{font-size:11px;color:var(--muted);line-height:1.5;margin:6px 0 10px;font-style:italic}
+.gz-award-winner{font-weight:700;font-size:17px;line-height:1.2}
+.gz-award.bad .gz-award-winner{color:#f06a6a}
+.gz-award-detail{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+.gz-obits{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;padding:14px 16px}
+.gz-obit{border-left:3px solid var(--border);padding:2px 0 2px 12px}
+.gz-obit-name{font-weight:700;font-size:15px}
+.gz-obit-line{font-size:11px;color:var(--muted);margin:3px 0 7px;font-variant-numeric:tabular-nums}
+.gz-obit-text{font-size:12.5px;line-height:1.55;margin:0;color:var(--muted)}
+.gz-ads{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:12px;padding:14px 16px}
+.gz-ad{border:1px dashed var(--border);border-radius:6px;padding:11px 13px}
+.gz-ad-head{font-weight:700;font-size:12px;letter-spacing:.05em;line-height:1.35}
+.gz-ad-body{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+.gz-ad-contact{font-size:11px;color:var(--muted);margin-top:7px;font-style:italic;opacity:.8}
+.gz-fraud-body{padding:14px 16px}
+.gz-fraud-body p{margin:0 0 9px;font-size:13.5px;line-height:1.6}
+.gz-fraud-open{font-weight:700}
+.gz-fraud-nums{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}
+.gz-fraud-nums b{color:var(--text);font-variant-numeric:tabular-nums;font-size:15px}
+.gz-recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;padding:14px 16px}
+.gz-rec-lab{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.gz-new{display:inline-block;margin-left:6px;background:var(--gold);color:#111;font-weight:800;font-size:8.5px;padding:1px 4px;border-radius:3px;letter-spacing:.06em;vertical-align:middle}
+.gz-rec-val{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.25}
+.gz-rec-sub{font-size:11px;color:var(--muted)}
+.gz-ou{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:14px 16px}
+.gz-ou-head{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.gz-ou-table td,.gz-ou-table th{padding:5px 7px;font-size:12px}
+.gz-ou-sub{font-size:10px;color:var(--muted)}
+@media(max-width:640px){.gz-ou{grid-template-columns:1fr}}
+.gz-lines{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px;padding:14px 16px}
+.gz-line{border:1px solid var(--border);border-radius:6px;padding:10px 12px;text-align:center}
+.gz-line-teams{font-size:12px;font-weight:600;line-height:1.4}
+.gz-line-teams span{color:var(--muted);font-weight:400}
+.gz-line-num{font-size:14px;font-weight:700;color:var(--gold);margin-top:6px;font-variant-numeric:tabular-nums}
+.gz-line-ou{font-size:11px;color:var(--muted);margin-top:2px}
+@media(max-width:640px){.gz-awards,.gz-obits,.gz-ads,.gz-recs,.gz-lines{grid-template-columns:1fr;padding:12px}}
 .wk-awards{padding:10px 16px;border-top:1px solid var(--border)}
 .wk-awards-h{font-weight:700;color:var(--gold);font-size:13px;margin-bottom:6px}
 .wk-awards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
@@ -1474,6 +1515,7 @@ nav button.nav-rules{border-color:rgba(240,192,64,.3)}
 <script src="/power.js"></script>
 <script src="/boxscore.js"></script>
 <script src="/highscores.js"></script>
+<script src="/gazette.js"></script>
 <script>
 // ══════════════════════════════════════════════
 //  STATE
@@ -3136,13 +3178,261 @@ function renderWeek() {
   h += isPlayed ? wkPlayedView(src, sel, byWeek[sel]) : wkPreviewView(src, sel, byWeek[sel]);
 
   // Awards for the selected week, then the running season totals.
-  if (isPlayed) h += wkAwards(src, sel);
+  if (isPlayed) {
+    h += wkAwards(src, sel);
+    h += gzNamedAwards(src, sel);      // constitution-canon awards
+    h += gzOversSection(src, sel);
+    h += gzFraudSection(src, sel);
+    h += gzObitSection(src, sel);
+    h += gzAdsSection(src, sel);
+    h += gzRecordSection(src, sel);
+  }
+  h += gzLinesSection(src, sel, byWeek);   // next week's spreads
   h += wkShameTable(src);
 
   // Season highs — the old Weekly Awards, folded in.
   h += wkSeasonHighs(src);
 
   el.innerHTML = h;
+}
+
+// ══════════════════════════════════════════════
+//  THE GAZETTE
+//  Named awards, obituaries, classifieds, fraud watch, stamped records and
+//  next week's lines. All derived from data already loaded — see gazette.js.
+// ══════════════════════════════════════════════
+
+/** Season projection per player id, from the draft board. */
+function gzProjMap(src) {
+  const map = {};
+  ((src.draftDetail || {}).picks || []).forEach(p => {
+    if (p.playerId != null && p.projPoints != null) map[p.playerId] = p.projPoints;
+  });
+  return map;
+}
+
+/** [{teamId, manager, box, margin, won}] for one week — the gazette's input shape. */
+function gzTeamsFor(src, week) {
+  if (typeof bxTeamWeek !== 'function') return [];
+  const wk = (src.boxscores || {})[String(week)];
+  if (!wk) return [];
+  const map = getTeamsMapFor(src);
+  return Object.keys(wk).map(tid => {
+    const rec = wk[tid];
+    const box = bxTeamWeek(rec.entries, { actual: rec.total });
+    if (!box) return null;
+    const t = map[tid];
+    return {
+      teamId: Number(tid),
+      manager: t ? mgr(t) : ('Team ' + tid),
+      box, margin: rec.margin, won: rec.margin > 0,
+    };
+  }).filter(Boolean);
+}
+
+/** Completed team-weeks this season, for the record book. */
+function gzGames(src) {
+  const map = getTeamsMapFor(src);
+  const out = [];
+  (src.schedule || []).forEach(m => {
+    if (!m.home || !m.away) return;
+    const hp = m.home.totalPoints || 0, ap = m.away.totalPoints || 0;
+    if (hp <= 0 && ap <= 0) return;
+    const ht = map[m.home.teamId], at = map[m.away.teamId];
+    if (!ht || !at) return;
+    out.push({ week: m.matchupPeriodId, manager: mgr(ht), pts: hp, oppPts: ap, oppManager: mgr(at) });
+    out.push({ week: m.matchupPeriodId, manager: mgr(at), pts: ap, oppPts: hp, oppManager: mgr(ht) });
+  });
+  return out;
+}
+
+function gzNamedAwards(src, week) {
+  if (typeof gzAwards !== 'function') return '';
+  const teams = gzTeamsFor(src, week);
+  if (!teams.length) return '';
+
+  // Last place by record, then points — the Sacko as things stand.
+  const rows = gzStandingRows(src);
+  const last = rows.length ? rows[rows.length - 1] : null;
+  const reg = regWeeksFor(src);
+
+  const aw = gzAwards(teams, gzProjMap(src), week, {
+    lastPlace: last ? { manager: last.manager, record: last.wins + '-' + last.losses } : null,
+    weeksLeft: Math.max(0, reg - week),
+  });
+  if (!aw.length) return '';
+
+  return `<div class="card" style="margin-bottom:18px">
+    <div class="card-header"><div class="card-title">The Honours</div>
+      <div class="card-sub">Named for the rules this league actually wrote</div></div>
+    <div class="gz-awards">
+      ${aw.map(a => `<div class="gz-award${a.bad ? ' bad' : ''}">
+        <div class="gz-award-name">${a.name}</div>
+        <div class="gz-award-canon">${a.canon}</div>
+        <div class="gz-award-winner">${escapeHtml(a.winner)}</div>
+        <div class="gz-award-detail">${escapeHtml(a.detail)}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/** Record + all-play per manager, for the fraud watch and the Sacko. */
+function gzStandingRows(src) {
+  const map = getTeamsMapFor(src);
+  const acc = {};
+  const weekly = {};
+  (src.schedule || []).forEach(m => {
+    if (!m.home || !m.away) return;
+    const hp = m.home.totalPoints || 0, ap = m.away.totalPoints || 0;
+    if (hp <= 0 && ap <= 0) return;
+    [[m.home.teamId, hp, ap], [m.away.teamId, ap, hp]].forEach(([id, f, a]) => {
+      const t = map[id]; if (!t) return;
+      const k = mgr(t);
+      acc[k] = acc[k] || { manager: k, wins: 0, losses: 0, pf: 0, allPlayW: 0, allPlayL: 0 };
+      acc[k].pf += f;
+      if (f > a) acc[k].wins++; else if (f < a) acc[k].losses++;
+      (weekly[m.matchupPeriodId] = weekly[m.matchupPeriodId] || []).push({ k, pts: f });
+    });
+  });
+  Object.keys(weekly).forEach(w => {
+    const rows = weekly[w];
+    rows.forEach(a => rows.forEach(b => {
+      if (a.k === b.k) return;
+      if (a.pts > b.pts) acc[a.k].allPlayW++; else if (a.pts < b.pts) acc[a.k].allPlayL++;
+    }));
+  });
+  return Object.values(acc).sort((a, b) => (b.wins - a.wins) || (b.pf - a.pf));
+}
+
+function gzOversSection(src, week) {
+  if (typeof gzOversUnders !== 'function') return '';
+  const ou = gzOversUnders(gzTeamsFor(src, week), gzProjMap(src));
+  if (!ou.overs.length && !ou.unders.length) return '';
+  const row = (p, good) => `<tr>
+    <td>${escapeHtml(p.name)}<div class="gz-ou-sub">${p.pos} &middot; ${escapeHtml(p.manager)}</div></td>
+    <td class="num">${p.proj}</td>
+    <td class="num">${p.pts}</td>
+    <td class="num" style="color:${good ? 'var(--green)' : '#f06a6a'};font-weight:700">${good ? '+' : ''}${p.vsProj}</td>
+  </tr>`;
+  const table = (rows, head, good) => rows.length ? `<div class="gz-ou-col">
+    <div class="gz-ou-head">${head}</div>
+    <table class="std-table gz-ou-table"><thead><tr>
+      <th>Player</th><th class="num">Proj</th><th class="num">Actual</th><th class="num">+/&minus;</th>
+    </tr></thead><tbody>${rows.map(p => row(p, good)).join('')}</tbody></table>
+  </div>` : '';
+  return `<div class="card" style="margin-bottom:18px">
+    <div class="card-header"><div class="card-title">Overs and Unders</div>
+      <div class="card-sub">Starters against what was expected of them</div></div>
+    <div class="gz-ou">${table(ou.overs, 'Beat the number', true)}${table(ou.unders, 'Missed it', false)}</div>
+  </div>`;
+}
+
+function gzFraudSection(src, week) {
+  if (typeof gzFraudWatch !== 'function') return '';
+  const f = gzFraudWatch(gzStandingRows(src), week);
+  if (!f) return '';
+  return `<div class="card gz-fraud" style="margin-bottom:18px">
+    <div class="card-header"><div class="card-title">Fraud Watch</div>
+      <div class="card-sub">Record versus all-play</div></div>
+    <div class="gz-fraud-body">
+      <p class="gz-fraud-open">${escapeHtml(f.opener)}</p>
+      <p>${escapeHtml(f.body)}</p>
+      <div class="gz-fraud-nums">
+        <span><b>${f.record}</b> actual</span>
+        <span><b>${f.allPlay}</b> against everyone</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function gzObitSection(src, week) {
+  if (typeof gzObituaries !== 'function') return '';
+  const obits = gzObituaries(gzTeamsFor(src, week), gzProjMap(src), week);
+  if (!obits.length) return '';
+  return `<div class="card" style="margin-bottom:18px">
+    <div class="card-header"><div class="card-title">Obituaries</div>
+      <div class="card-sub">Started, and did not survive the afternoon</div></div>
+    <div class="gz-obits">
+      ${obits.map(o => `<div class="gz-obit">
+        <div class="gz-obit-name">${escapeHtml(o.name)}</div>
+        <div class="gz-obit-line">Projected ${o.proj} &middot; Scored ${o.pts}</div>
+        <p class="gz-obit-text">${escapeHtml(o.opener)} ${escapeHtml(o.closer)}</p>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function gzAdsSection(src, week) {
+  if (typeof gzClassifieds !== 'function') return '';
+  const ads = gzClassifieds(gzTeamsFor(src, week), gzProjMap(src), week);
+  if (!ads.length) return '';
+  return `<div class="card" style="margin-bottom:18px">
+    <div class="card-header"><div class="card-title">League Notices</div>
+      <div class="card-sub">Classified advertising</div></div>
+    <div class="gz-ads">
+      ${ads.map(a => `<div class="gz-ad">
+        <div class="gz-ad-head">${escapeHtml(a.head)}</div>
+        <div class="gz-ad-body">${escapeHtml(a.body)}</div>
+        <div class="gz-ad-contact">${escapeHtml(a.contact)}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function gzRecordSection(src, week) {
+  if (typeof gzRecords !== 'function') return '';
+  const recs = gzRecords(gzGames(src), week);
+  if (!recs || !recs.length) return '';
+  return `<div class="card" style="margin-bottom:18px">
+    <div class="card-header"><div class="card-title">Season Record Book</div>
+      <div class="card-sub">Stamped the moment it falls</div></div>
+    <div class="gz-recs">
+      ${recs.map(r => `<div class="gz-rec">
+        <div class="gz-rec-lab">${r.label}${r.isNew ? '<span class="gz-new">NEW</span>' : ''}</div>
+        <div class="gz-rec-val">${r.value}</div>
+        <div class="gz-rec-sub">${escapeHtml(r.manager)} &middot; Wk ${r.week}${r.sub ? ' &middot; ' + escapeHtml(r.sub) : ''}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function gzLinesSection(src, week, byWeek) {
+  if (typeof gzSpreads !== 'function' || typeof pwProjMap !== 'function') return '';
+  const next = week + 1;
+  const games = (byWeek[next] || []).filter(m => m.home && m.away)
+    .map(m => ({ home: String(m.home.teamId), away: String(m.away.teamId) }));
+  if (!games.length) return '';
+
+  // Team strength = points per game so far, which is the honest simple version.
+  const map = getTeamsMapFor(src);
+  const means = {}, counts = {};
+  (src.schedule || []).forEach(m => {
+    if (!m.home || !m.away) return;
+    const hp = m.home.totalPoints || 0, ap = m.away.totalPoints || 0;
+    if (hp <= 0 && ap <= 0) return;
+    [[m.home.teamId, hp], [m.away.teamId, ap]].forEach(([id, p]) => {
+      means[id] = (means[id] || 0) + p; counts[id] = (counts[id] || 0) + 1;
+    });
+  });
+  Object.keys(means).forEach(id => { means[id] = means[id] / counts[id]; });
+
+  const lines = gzSpreads(means, games, id => {
+    const t = map[id]; return t ? mgr(t) : ('Team ' + id);
+  });
+  if (!lines.length) return '';
+
+  return `<div class="card" style="margin-bottom:18px">
+    <div class="card-header"><div class="card-title">Week ${next} — The Lines</div>
+      <div class="card-sub">Made up from scoring averages. The house takes no bets.</div></div>
+    <div class="gz-lines">
+      ${lines.map(l => `<div class="gz-line">
+        <div class="gz-line-teams">${escapeHtml(l.away)} <span>at</span> ${escapeHtml(l.home)}</div>
+        <div class="gz-line-num">${l.pickem ? 'PICK ’EM'
+          : escapeHtml(l.favourite) + ' &minus;' + l.spread}</div>
+        <div class="gz-line-ou">O/U ${l.total}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
 }
 
 function wkSelect(w) {

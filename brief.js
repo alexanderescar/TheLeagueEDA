@@ -297,10 +297,30 @@ function buildBrief(data, year, week) {
         };
     });
 
+    // League lore — titles, droughts, the Sacko race, the rules named after people.
+    // Best-effort: a missing constitution or vote archive must not break the brief.
+    let lore = null;
+    try {
+        const standingsNow = (season.teams || []).map(t => {
+            const games = weekly[t.id] || [];
+            return {
+                managerKey: t.managerKey || ('t:' + t.id),
+                manager: mgrOf(t),
+                wins: games.filter(g => g.pts > g.oppPts).length,
+                losses: games.filter(g => g.pts < g.oppPts).length,
+                pointsFor: round(games.reduce((s, g) => s + g.pts, 0), 1),
+            };
+        });
+        lore = require('./lore').buildLore(seasons, standingsNow);
+    } catch (err) {
+        console.warn('[Brief] lore unavailable:', err.message);
+    }
+
     return {
         year: Number(year),
         week: wk,
         weeksCompleted: done,
+        lore,
         leagueWeek: {
             high: round(weekHigh, 1), low: round(weekLow, 1), average: round(weekAvg, 1),
             totalLeftOnBench: round(thisWeekBox.reduce((a, t) => a + (t.box ? t.box.left : 0), 0), 1),
