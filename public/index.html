@@ -2323,19 +2323,32 @@ function buildCrossSeasonStats() {
     // True champion = rankCalculatedFinal === 1 (actual playoff winner, not regular season leader)
 const champTeam = s.teams.find(t => t.rankCalculatedFinal === 1);
 const champId = champTeam?.id;
-// Compute PA from schedule (ESPN omits pointsAgainst in team record for active seasons)
-const paMap = {};
+// Points for and against, REGULAR SEASON ONLY.
+//
+// This has to match the win/loss record below, which comes from ESPN's
+// record.overall and counts regular-season games alone. The previous version took
+// pf straight from t.points — ESPN's season total, playoffs included — and divided
+// it by regular-season games. Nick's 2018 is the worst case: 2222.02 points over
+// 15 games (13 regular + 2 playoff) divided by 13 reported as 170.9 ppg, when he
+// actually averaged 148.1. Every team that reached the playoffs was inflated, and
+// the deeper the run the bigger the lie.
+const regWeeks = regWeeksFor(s);
+const pfMap = {}, paMap = {};
 sched.forEach(m => {
+if (m.matchupPeriodId != null && regWeeks && m.matchupPeriodId > regWeeks) return;
 const hId = m.home?.teamId, aId = m.away?.teamId;
 const hPts = m.home?.totalPoints||0, aPts = m.away?.totalPoints||0;
-if (hId != null) paMap[hId] = (paMap[hId]||0) + aPts;
-if (aId != null) paMap[aId] = (paMap[aId]||0) + hPts;
+if (hId != null) { pfMap[hId] = (pfMap[hId]||0) + hPts; paMap[hId] = (paMap[hId]||0) + aPts; }
+if (aId != null) { pfMap[aId] = (pfMap[aId]||0) + aPts; paMap[aId] = (paMap[aId]||0) + hPts; }
 });
 
     s.teams.forEach(t => {
       const rec = t.record?.overall||{};
       const w = rec.wins??0, l = rec.losses??0, gp = w+l||1;
-const pf = t.points??0, pa = paMap[t.id] || t.pointsAgainst || 0;
+// Fall back to ESPN's totals only when the schedule gave us nothing, which happens
+// for the inaugural 2010 season that has no matchup data.
+const pf = pfMap[t.id] != null ? pfMap[t.id] : (t.points??0);
+const pa = paMap[t.id] != null ? paMap[t.id] : (t.pointsAgainst || 0);
 
       // High/low week for this team this season
       let weekHigh=0, weekLow=Infinity;
