@@ -260,7 +260,7 @@ app.get('/admin/playerstats', async (req, res) => {
     res.end('</body></html>');
 });
 
-// ── Constitution, FAQ and the rules bot ──
+// ── Constitution, FAQ and EDNA ──
 app.get('/api/rules', (req, res) => {
     try {
         const R = require('./rules');
@@ -292,7 +292,16 @@ app.post('/api/rules/ask', express.json({ limit: '32kb' }), async (req, res) => 
     _rulesHits.push(now);
     try {
         const { question, history } = req.body || {};
-        const out = await require('./rules').ask(question, history);
+        // League data feeds the stat sheet. Best-effort on purpose: if the scrape
+        // is missing the bot should still answer rules questions rather than fail.
+        let leagueData = null;
+        try {
+            const raw = await getAllData();
+            if (raw) leagueData = annotateManagers(withInaugural(raw));
+        } catch (e) {
+            console.warn('[EDNA] league data unavailable for stats:', e.message);
+        }
+        const out = await require('./rules').ask(question, history, leagueData);
         res.json(out);
     } catch (err) {
         res.status(400).json({ error: err.message });

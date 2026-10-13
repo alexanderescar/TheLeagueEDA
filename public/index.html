@@ -770,6 +770,12 @@ select.hist-sel:focus, select.hist-multi:focus { border-color: var(--gold); }
 /* ── Constitution & Rules ──────────────────────────────────── */
 nav button.nav-rules{border-color:rgba(240,192,64,.3)}
 .rl-chat{max-height:340px;overflow-y:auto;padding:12px 16px 4px}
+.rl-eg{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px}
+.rl-chip{background:transparent;border:1px solid var(--border);border-radius:14px;color:var(--muted);
+  font-size:11px;padding:4px 10px;cursor:pointer;font-family:inherit}
+.rl-chip:hover{border-color:var(--border-bright);color:var(--chalk)}
+@media(max-width:640px){.rl-eg{padding:0 12px 8px}.rl-chip{font-size:10.5px}}
+
 .rl-msg{margin-bottom:10px;display:flex}
 .rl-msg.user{justify-content:flex-end}
 .rl-bubble{max-width:86%;padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.6}
@@ -2940,7 +2946,7 @@ function renderRules() {
   const el = document.getElementById('tab-rules');
   if (!el) return;
   if (_rulesData) { el.innerHTML = rulesHTML(_rulesData); return; }
-  el.innerHTML = `<div class="card"><div class="empty-msg"><p>Loading the rulebook…</p></div></div>`;
+  el.innerHTML = `<div class="card"><div class="empty-msg"><p>Loading…</p></div></div>`;
   fetch('/api/rules').then(r => r.json()).then(d => {
     _rulesData = d;
     el.innerHTML = rulesHTML(d);
@@ -2995,9 +3001,9 @@ function rulesHTML(d) {
   // ── The bot, up top: most people arrive with a specific question ──
   h += `<div class="card" style="margin-bottom:18px">
     <div class="card-header">
-      <div class="card-title">Ask the Rulebook</div>
+      <div class="card-title">Ask EDNA</div>
       <div class="card-sub">${bot.botAvailable
-        ? 'Answers come straight from the constitution, with the clause quoted'
+        ? 'Rules, votes and 17 seasons of numbers — clauses quoted, figures precomputed'
         : 'Not configured yet'}</div>
     </div>`;
   if (bot.botAvailable) {
@@ -3005,14 +3011,24 @@ function rulesHTML(d) {
         <div class="rl-msg ${m.role}"><div class="rl-bubble">${m.role === 'assistant' ? mdToHtml(m.content) : escapeHtml(m.content)}</div></div>
       `).join('')}</div>
       <div class="rl-ask">
-        <input id="rl-q" class="rl-input" placeholder="e.g. when is the waiver deadline?"
+        <input id="rl-q" class="rl-input" placeholder="e.g. who's the unluckiest manager ever?"
                onkeydown="if(event.key==='Enter')rulesAsk()" maxlength="500">
         <button class="rl-send" onclick="rulesAsk()">Ask</button>
       </div>
-      <div class="rl-hint">If the constitution doesn't cover something, it'll say so rather than guess.</div>`;
+      <div class="rl-eg">
+        ${[
+          'Which rivalry is the closest?',
+          'Have I ever lost scoring over 150?',
+          'Who has never won a title?',
+          'When is the waiver deadline?',
+        ].map(q => `<button class="rl-chip" onclick="rulesAsk(${JSON.stringify(q).replace(/"/g, '&quot;')})">${q}</button>`).join('')}
+      </div>
+      <div class="rl-hint">EDNA answers from the constitution, the vote archive and a precomputed
+        stat sheet. If something isn't in any of them — trades, or player scores before 2026 —
+        it'll say so rather than guess.</div>`;
   } else {
     h += `<div class="pw-note">${bot.reason === 'ANTHROPIC_API_KEY not set'
-      ? 'The rules bot needs an <code>ANTHROPIC_API_KEY</code> set in Railway before it can answer anything.'
+      ? 'EDNA needs an <code>ANTHROPIC_API_KEY</code> set in Railway before she can answer anything.'
       : 'Once the constitution is uploaded, you\'ll be able to ask it questions here.'}</div>`;
   }
   h += `</div>`;
@@ -3243,14 +3259,14 @@ function rulesToggle(id) {
   if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
 }
 
-function rulesAsk() {
+function rulesAsk(preset) {
   const input = document.getElementById('rl-q');
-  if (!input) return;
-  const q = input.value.trim();
+  // `preset` comes from the example chips; otherwise read the box.
+  const q = (preset != null ? String(preset) : (input ? input.value : '')).trim();
   if (!q) return;
-  input.value = '';
+  if (input && preset == null) input.value = '';
   _rulesChat.push({ role: 'user', content: q });
-  _rulesChat.push({ role: 'assistant', content: '_Checking the constitution…_', pending: true });
+  _rulesChat.push({ role: 'assistant', content: '_EDNA is looking…_', pending: true });
   renderRules();
 
   fetch('/api/rules/ask', {
@@ -3268,7 +3284,7 @@ function rulesAsk() {
     })
     .catch(() => {
       _rulesChat = _rulesChat.filter(m => !m.pending);
-      _rulesChat.push({ role: 'assistant', content: 'Could not reach the rules bot.' });
+      _rulesChat.push({ role: 'assistant', content: "Couldn't reach EDNA." });
       renderRules();
     });
 }

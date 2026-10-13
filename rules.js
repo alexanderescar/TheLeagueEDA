@@ -1,5 +1,6 @@
 /**
- * rules.js — the constitution, the FAQ, and the rules bot behind them.
+ * rules.js — EDNA: the constitution, the vote archive, the stat sheet, and the
+ * bot that answers from them.
  *
  * The bot is deliberately not a general-purpose assistant. It is handed the full
  * constitution on every request and told to answer only from it, quoting the clause
@@ -106,8 +107,33 @@ function status() {
     };
 }
 
-const SYSTEM = `You answer questions about a fantasy football league's constitution and its
-voting history. The league is "The League", running since 2010.
+const SYSTEM = `You are EDNA, the resident know-it-all of a fantasy football league called
+"The League", running since 2010. You answer questions about both its written rules
+and its statistical history.
+
+Use the name if someone addresses you by it. Do not lean on it otherwise — nobody
+wants a personality, they want the answer. The tone notes at the end of this prompt
+still govern.
+
+You are given two kinds of material, and they have DIFFERENT rules. Work out which
+the question needs; some questions need both ("has anyone been Sacko twice?" is a
+stats question about a rule the constitution defines).
+
+════ WHEN THE QUESTION IS ABOUT RULES, VOTES OR THE CONSTITUTION ════
+Use the constitution and voting history. Quote the clause. The detailed rules for
+this are below under "Rules for your answers".
+
+════ WHEN THE QUESTION IS ABOUT STATISTICS ════
+Use the STAT SHEET and nothing else.
+- Every number in the sheet is already calculated. Read them out; do not recompute.
+- NEVER do arithmetic across sheet lines to invent a figure that isn't there. If
+  someone asks for a number the sheet doesn't state, say it isn't available. Adding
+  up printed totals to produce a new one is the single easiest way to be wrong here.
+- The sheet ends with a list of what it does not cover. Honour it exactly. Per-player
+  weekly data exists for one season only; earlier seasons have team scores alone.
+- Name the manager and the season when you give a figure, so it can be checked.
+- If two readings of the question are possible ("best season" by record or by
+  points?), answer the likelier one and say which you used in a half-sentence.
 
 Rules for your answers:
 - Answer ONLY from the material provided below. It is the sole authority.
@@ -137,9 +163,15 @@ THE CONSTITUTION:
 `;
 
 /**
- * Ask the rules bot. Returns { answer } or throws with a readable message.
+ * Ask the bot. Returns { answer } or throws with a readable message.
+ *
+ * `leagueData` is optional. When supplied, the precomputed stat sheet is appended
+ * and the bot can answer statistical questions too; without it the bot behaves
+ * exactly as it did before, answering only on the constitution and votes. That
+ * fallback matters — a failure to load league data should cost the stats, not the
+ * rules answers that were working fine on their own.
  */
-async function ask(question, history) {
+async function ask(question, history, leagueData) {
     const q = String(question || '').trim();
     if (!q) throw new Error('Ask a question first.');
     if (q.length > MAX_QUESTION) throw new Error('That question is too long — keep it under 500 characters.');
@@ -147,7 +179,7 @@ async function ask(question, history) {
     const constitution = readConstitution();
     if (!constitution) throw new Error('No constitution is loaded yet.');
     const key = (process.env.ANTHROPIC_API_KEY || '').trim();
-    if (!key) throw new Error('The rules bot is not configured yet.');
+    if (!key) throw new Error('EDNA is not configured yet.');
 
     const faq = readFaq();
     let system = SYSTEM + constitution;
@@ -164,6 +196,23 @@ async function ask(question, history) {
         system += '\n\nPREVIOUSLY ANSWERED QUESTIONS (treat as supporting context, '
                 + 'the constitution above still governs):\n'
                 + faq.map(f => `Q: ${f.question}\nA: ${f.answer}`).join('\n\n');
+    }
+
+    // The stat sheet goes last so the constitution keeps the top of the prompt, and
+    // is best-effort: if it cannot be built the bot simply loses statistics.
+    if (leagueData) {
+        try {
+            const sheet = require('./stats').sheetFor(leagueData);
+            if (sheet) {
+                system += '\n\n════ STAT SHEET ════\n'
+                        + 'Every figure below is precomputed from the league\'s full history. '
+                        + 'Read them out; never recalculate, never add lines together to make a '
+                        + 'new number, and respect the coverage limits at the end.\n\n'
+                        + sheet;
+            }
+        } catch (err) {
+            console.warn('[EDNA] stat sheet unavailable:', err.message);
+        }
     }
 
     // Keep a short rolling history so follow-ups ("what about in the playoffs?") work.
@@ -189,15 +238,25 @@ async function ask(question, history) {
             // 600 was too tight. Questions that touch a rule's whole history — the
             // weekly prize went $0 -> $20 -> $25 across four votes — burned the entire
             // budget before emitting any text, and the caller got an empty answer.
-            body: JSON.stringify({ model: MODEL, max_tokens: 1500, system, messages }),
+            // The system prompt is now the constitution, the vote digest AND the
+            // stat sheet — roughly 30k tokens, identical for every question until
+            // the next scrape rewrites the data. That is exactly the shape prompt
+            // caching is for: mark it cacheable and repeat questions read the
+            // prefix from cache instead of paying for it again.
+            body: JSON.stringify({
+                model: MODEL,
+                max_tokens: 1500,
+                system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
+                messages,
+            }),
             signal: ac.signal,
         });
         const text = await res.text();
         if (!res.ok) {
-            console.warn('[Rules] API', res.status, text.slice(0, 300));
+            console.warn('[EDNA] API', res.status, text.slice(0, 300));
             throw new Error(res.status === 401
-                ? 'The rules bot key was rejected.'
-                : 'The rules bot is unavailable right now.');
+                ? "EDNA's API key was rejected."
+                : 'EDNA is unavailable right now.');
         }
         const json = JSON.parse(text);
         const answer = (json.content || [])
@@ -208,7 +267,7 @@ async function ask(question, history) {
         if (!answer) {
             // Distinguish "ran out of room" from a genuinely empty reply, so the next
             // person to hit this has something to go on rather than a shrug.
-            console.warn('[Rules] empty answer, stop_reason=' + (json.stop_reason || '?')
+            console.warn('[EDNA] empty answer, stop_reason=' + (json.stop_reason || '?')
                        + ' blocks=' + (json.content || []).map(b => b.type).join(','));
             throw new Error(json.stop_reason === 'max_tokens'
                 ? 'That answer ran long and got cut off. Try asking about one thing at a time.'
