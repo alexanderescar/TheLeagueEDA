@@ -81,6 +81,55 @@ console.log('\nCAREERS  (all-play and luck are the point)');
             .every(c => c.seasons === 2));
 }
 
+console.log('\nREGULAR SEASON VS PLAYOFF SPLITS  (the 2018 case)');
+{
+    // Nick 2018: 13-0 regular at 148.4 ppg, then two playoff wins. Asked for the
+    // regular season alone, the old sheet had nothing and the model guessed the
+    // schedule was 14 weeks. It was 13.
+    const teams = [
+        { id: 1, managerKey: 'n', managerNick: 'Nick', rankCalculatedFinal: 1 },
+        { id: 2, managerKey: 'f', managerNick: 'Foil', rankCalculatedFinal: 12 },
+    ];
+    const sched = [];
+    for (let w = 1; w <= 13; w++) {
+        sched.push({ matchupPeriodId: w, home: { teamId: 1, totalPoints: 148.4 }, away: { teamId: 2, totalPoints: 100 } });
+    }
+    [14, 15].forEach(w => sched.push({ matchupPeriodId: w, home: { teamId: 1, totalPoints: 146.38 }, away: { teamId: 2, totalPoints: 90 } }));
+    const s = { season: 2018, teams, schedule: sched, settings: { scheduleSettings: { matchupPeriodCount: 13 } } };
+    const rows = S.flatten([s]);
+
+    const line = S.seasonLines([s], rows).filter(l => /Nick/.test(l))[0];
+    ok('the regular-season record is stated', /regular season 13-0/.test(line), line);
+    ok('with its own ppg', /148\.4 ppg/.test(line), line);
+    ok('the playoff record is separate', /playoffs 2-0/.test(line), line);
+    ok('the combined record is still there', /overall 15-0/.test(line), line);
+    ok('and its ppg differs from the regular season', /148\.1 ppg/.test(line), line);
+    ok('the real schedule length is stated', /13-week regular season/.test(line), line);
+    ok('the finish is kept', /finished 1/.test(line), line);
+
+    const c = S.careers(rows).filter(x => x.name === 'Nick')[0];
+    ok('career regular-season record split out', c.rw === 13 && c.rl === 0);
+    ok('career playoff record split out', c.pw === 2 && c.pl === 0);
+    ok('career combined record unchanged', c.w === 15 && c.l === 0);
+    ok('regular-season ppg excludes playoffs', Math.abs(c.rppg - 148.4) < 0.05, String(c.rppg));
+    ok('combined ppg differs', Math.abs(c.ppg - 148.1) < 0.1, String(c.ppg));
+
+    const sheet = S.buildSheet({ seasons: [s] });
+    ok('the sheet explains the three records', /regular-season record first/.test(sheet));
+    ok('and tells the reader to say which was used', /say which you used/.test(sheet));
+}
+
+console.log('\nSEASONS WITH NO PLAYOFF GAMES');
+{
+    const teams = [{ id: 1, managerKey: 'a', managerNick: 'A' }, { id: 2, managerKey: 'b', managerNick: 'B' }];
+    const sched = [{ matchupPeriodId: 1, home: { teamId: 1, totalPoints: 120 }, away: { teamId: 2, totalPoints: 100 } }];
+    const s = { season: 2026, teams, schedule: sched, settings: { scheduleSettings: { matchupPeriodCount: 14 } } };
+    const line = S.seasonLines([s], S.flatten([s])).filter(l => /\bA\b/.test(l))[0];
+    ok('says so rather than printing 0-0', /no playoff games/.test(line), line);
+    ok('regular season still reported', /regular season 1-0/.test(line), line);
+    ok('overall matches the regular season', /overall 1-0/.test(line), line);
+}
+
 console.log('\nRIVALRIES');
 {
     const rows = S.flatten([season(2026, [['a', 120, 'b', 100], ['b', 130, 'a', 90]])]);

@@ -74,12 +74,21 @@ function careers(rows) {
     rows.forEach(r => {
         const a = acc[r.key] = acc[r.key] || {
             name: r.name, g: 0, w: 0, l: 0, pf: 0, pa: 0,
+            rg: 0, rw: 0, rl: 0, rpf: 0,          // regular season only
+            pg: 0, pw: 0, pl: 0,                  // playoffs only
             best: -Infinity, worst: Infinity, seasons: {}, apW: 0, apL: 0,
             over150: 0, under80: 0, lostOver130: 0, wonUnder90: 0,
         };
         a.name = r.name;
         a.g++; a.pf += r.pf; a.pa += r.pa;
         if (r.win) a.w++; if (r.loss) a.l++;
+        // Kept separately so "career record" can be stated both ways rather than
+        // silently meaning one of them.
+        if (r.playoff) {
+            a.pg++; if (r.win) a.pw++; if (r.loss) a.pl++;
+        } else {
+            a.rg++; a.rpf += r.pf; if (r.win) a.rw++; if (r.loss) a.rl++;
+        }
         if (r.pf > a.best) a.best = r.pf;
         if (r.pf < a.worst) a.worst = r.pf;
         a.seasons[r.season] = true;
@@ -109,6 +118,8 @@ function careers(rows) {
         const apTot = a.apW + a.apL;
         return {
             key: k, name: a.name, g: a.g, w: a.w, l: a.l,
+            rg: a.rg, rw: a.rw, rl: a.rl, rppg: a.rg ? a.rpf / a.rg : 0,
+            pg: a.pg, pw: a.pw, pl: a.pl,
             ppg: a.pf / a.g, papg: a.pa / a.g,
             best: a.best, worst: a.worst,
             seasons: Object.keys(a.seasons).length,
@@ -179,26 +190,62 @@ function honours(seasons) {
     return out.sort((a, b) => b.season - a.season);
 }
 
-/** Season-by-season finish for every manager. */
+/**
+ * Season-by-season finish for every manager, split regular season from playoffs.
+ *
+ * The first version emitted one combined line per season. Asked for Nick's 2018 it
+ * said "15-0, 148.1 ppg" — correct for all games, but when the follow-up asked for
+ * the regular season alone there was nothing to answer from, and the model filled
+ * the gap by guessing the schedule was 14 weeks. It was 13. A number that isn't in
+ * here gets invented, so both splits go in, and the real regular-season length with
+ * them.
+ */
 function seasonLines(seasons, rows) {
-    const byKeySeason = {};
+    const regWeeksBySeason = {};
+    (seasons || []).forEach(s => {
+        regWeeksBySeason[Number(s.season)] =
+            ((s.settings || {}).scheduleSettings || {}).matchupPeriodCount || null;
+    });
+
+    const acc = {};
     rows.forEach(r => {
         const k = r.season + '|' + r.key;
-        const a = byKeySeason[k] = byKeySeason[k] || { name: r.name, season: r.season, w: 0, l: 0, pf: 0, g: 0 };
-        a.g++; a.pf += r.pf;
-        if (r.win) a.w++; if (r.loss) a.l++;
+        const a = acc[k] = acc[k] || {
+            name: r.name, season: r.season,
+            rw: 0, rl: 0, rpf: 0, rg: 0,      // regular season
+            pw: 0, pl: 0, ppf: 0, pg: 0,      // playoffs
+        };
+        if (r.playoff) {
+            a.pg++; a.ppf += r.pf;
+            if (r.win) a.pw++; if (r.loss) a.pl++;
+        } else {
+            a.rg++; a.rpf += r.pf;
+            if (r.win) a.rw++; if (r.loss) a.rl++;
+        }
     });
+
     const rankByTeam = {};
     (seasons || []).forEach(s => {
         (s.teams || []).forEach(t => {
             rankByTeam[s.season + '|' + (t.managerKey || ('t:' + t.id))] = t.rankCalculatedFinal || null;
         });
     });
-    return Object.keys(byKeySeason).map(k => {
-        const a = byKeySeason[k];
+
+    return Object.keys(acc).map(k => {
+        const a = acc[k];
         const rank = rankByTeam[k];
-        return `${a.season} ${a.name}: ${a.w}-${a.l}, ${n1(a.pf)} pts, ${n1(a.pf / a.g)} ppg`
-             + (rank ? `, finished ${rank}` : '');
+        const reg = a.rg
+            ? `regular season ${a.rw}-${a.rl}, ${n1(a.rpf)} pts, ${n1(a.rpf / a.rg)} ppg`
+            : 'regular season n/a';
+        const po = a.pg
+            ? `; playoffs ${a.pw}-${a.pl}, ${n1(a.ppf)} pts in ${a.pg} game${a.pg === 1 ? '' : 's'}`
+            : '; no playoff games';
+        const tg = a.rg + a.pg;
+        const tot = `; overall ${a.rw + a.pw}-${a.rl + a.pl}, ${n1(a.rpf + a.ppf)} pts, ${n1((a.rpf + a.ppf) / tg)} ppg`;
+        const wk = regWeeksBySeason[a.season];
+        const fmt = wk ? ` (${wk}-week regular season)` : '';
+        return `${a.season} ${a.name}${fmt}: ${reg}${po}${tot}`
+             + (rank ? `; finished ${rank}` : '');
     }).sort();
 }
 
@@ -291,12 +338,16 @@ function buildSheet(data) {
          + `Completed team-games: ${rows.length}.`);
     L.push('');
 
-    L.push('CAREER RECORDS (all seasons; all-play = record against every team each week,');
-    L.push('which removes schedule luck. "luck" is win% minus all-play%, so positive means');
-    L.push('the schedule has helped them.)');
+    L.push('CAREER RECORDS. Each line gives the regular-season record first, then the');
+    L.push('playoff record, then both combined — quote whichever the question asks for and');
+    L.push('say which you used. All-play is the record against every team each week, which');
+    L.push('removes schedule luck; "luck" is win% minus all-play%, so positive means the');
+    L.push('schedule has helped them. Rate stats below cover all games unless marked.');
     car.forEach(c => {
-        L.push(`${c.name}: ${c.w}-${c.l} (${(c.winPct * 100).toFixed(1)}%) over ${c.seasons} seasons, `
-             + `${n1(c.ppg)} ppg, ${n1(c.papg)} against, best ${n1(c.best)}, worst ${n1(c.worst)}, `
+        L.push(`${c.name}: regular season ${c.rw}-${c.rl} (${n1(c.rppg)} ppg); `
+             + `playoffs ${c.pw}-${c.pl}; overall ${c.w}-${c.l} (${(c.winPct * 100).toFixed(1)}%) `
+             + `over ${c.seasons} seasons, ${n1(c.ppg)} ppg, ${n1(c.papg)} against, `
+             + `best ${n1(c.best)}, worst ${n1(c.worst)}, `
              + `all-play ${c.apW}-${c.apL} (${(c.apPct * 100).toFixed(1)}%), luck ${c.luck >= 0 ? '+' : ''}${(c.luck * 100).toFixed(1)}pts, `
              + `150+ games ${c.over150}, sub-80 games ${c.under80}, `
              + `lost scoring 130+ ${c.lostOver130}x, won scoring under 90 ${c.wonUnder90}x`);
