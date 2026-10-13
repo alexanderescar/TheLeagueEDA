@@ -74,6 +74,54 @@ console.log('\nHONOURS EDGE CASES');
         JSON.stringify(noRank.map(r => r.manager)));
 }
 
+console.log('\nIN-PROGRESS SEASONS HAVE NO SACKO YET');
+{
+    // A finished season: everyone has a final rank.
+    const done = {
+        season: 2025,
+        teams: [
+            { id: 1, managerKey: 'a', managerNick: 'A', rankCalculatedFinal: 1 },
+            { id: 2, managerKey: 'b', managerNick: 'B', rankCalculatedFinal: 12 },
+        ],
+    };
+    // A season in progress: no final ranks, only mid-season seeding.
+    const live = {
+        season: 2026,
+        teams: [
+            { id: 1, managerKey: 'a', managerNick: 'A', playoffSeed: 1 },
+            { id: 2, managerKey: 'b', managerNick: 'B', playoffSeed: 12 },
+        ],
+    };
+    const h = L.honours([done, live]);
+    const by = {}; h.forEach(x => { by[x.manager] = x; });
+
+    ok('the finished season records a Sacko',
+        JSON.stringify(by.B.sackos) === '[2025]', JSON.stringify(by.B.sackos));
+    ok('the season in progress does NOT',
+        by.B.sackos.indexOf(2026) === -1, JSON.stringify(by.B.sackos));
+    ok('nobody is given a 2026 Sacko', h.every(x => x.sackos.indexOf(2026) === -1));
+    ok('seasons played still counts the live season', by.B.seasonsPlayed === 2);
+    ok('titles are unaffected', JSON.stringify(by.A.titles) === '[2025]');
+
+    // The exact shape that produced "previousSackos: [2014, 2026]".
+    const lore = L.buildLore([done, live], [
+        { managerKey: 'b', manager: 'B', wins: 0, losses: 5, pointsFor: 400 },
+        { managerKey: 'a', manager: 'A', wins: 5, losses: 0, pointsFor: 700 },
+    ]);
+    ok('the Sacko race still names who is currently last', lore.sackoRace.manager === 'B');
+    ok('but their history excludes the unfinished season',
+        lore.sackoRace.previousSackos.indexOf(2026) === -1,
+        JSON.stringify(lore.sackoRace.previousSackos));
+    ok('and still includes the real one', lore.sackoRace.previousSackos.indexOf(2025) > -1);
+
+    // A rank of 0 is ESPN's "not set", not a first-place finish.
+    const zeroed = { season: 2024, teams: [
+        { id: 1, managerKey: 'a', managerNick: 'A', rankCalculatedFinal: 0 },
+        { id: 2, managerKey: 'b', managerNick: 'B', rankCalculatedFinal: 0 }] };
+    ok('a rank of zero does not create a Sacko',
+        L.honours([zeroed]).every(x => x.sackos.length === 0));
+}
+
 console.log('\nSTAKES  (read from the real constitution on disk)');
 {
     const s = L.readStakes();

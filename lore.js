@@ -108,7 +108,15 @@ function honours(seasons) {
     (seasons || []).forEach(s => {
         const teams = s.teams || [];
         if (!teams.length) return;
-        // Last place by final rank when ESPN gives one, else by regular-season record.
+
+        // A Sacko only exists once a season is OVER. The first version fell back to
+        // playoffSeed when rankCalculatedFinal was absent, which is exactly the state
+        // of a season in progress — so 2026 was being recorded as a finished Sacko
+        // from mid-season seeding, and the blurb writer was handed "previousSackos:
+        // [2014, 2026]" in October. Require a real final rank, and require the season
+        // to have them at all before naming anyone.
+        const finished = teams.some(t => t.rankCalculatedFinal != null && t.rankCalculatedFinal > 0);
+
         let worst = null;
         teams.forEach(t => {
             const key = t.managerKey || ('t:' + t.id);
@@ -116,10 +124,12 @@ function honours(seasons) {
             rec.seasonsPlayed++;
             if (t.rankCalculatedFinal === 1) rec.titles.push(s.season);
             if (t.rankCalculatedFinal === 2) rec.runnerUps.push(s.season);
-            const rank = t.rankCalculatedFinal || t.playoffSeed || null;
-            if (rank != null && (!worst || rank > worst.rank)) worst = { key, rank };
+            const rank = t.rankCalculatedFinal;
+            if (finished && rank != null && rank > 0 && (!worst || rank > worst.rank)) {
+                worst = { key, rank };
+            }
         });
-        if (worst) touch(worst.key).sackos.push(s.season);
+        if (finished && worst) touch(worst.key).sackos.push(s.season);
     });
 
     return Object.keys(acc).map(k => {

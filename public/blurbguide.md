@@ -164,6 +164,16 @@ page. Two traps, both of which have produced wrong published copy:
 If you want a claim the brief doesn't contain, compute it in the page and read the
 result.
 
+### Ties, and why a head-to-head may not add up
+
+`lifetimeVsOpponent` counts every meeting, but `wins` and `losses` only count
+decisive ones. So Peter 12-11 across 24 meetings is not a miscount — it is 23
+decisive games and one tie. This is correct and usable: say "12-11, with a tie",
+or just give the meetings total. A previous run spotted the mismatch, assumed the
+data was broken, and dropped the rivalry from both blurbs, which lost a good line.
+
+A genuine inconsistency is worth flagging in your report. This one is not.
+
 ### Angles, roughly best first
 
 1. A start/sit swing that decided the game (`benchCostThemTheGame` true). Always
