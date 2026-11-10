@@ -172,6 +172,9 @@ app.get('/api/status', (req, res) => {
         fileAgeMinutes: ageMin,
         staleAfterDays: STALE_DATA_DAYS,
         stale,
+        // Declared with `let` further down, but only read at request time, so it is
+        // always initialised by the time anyone calls this.
+        autoRefresh: autoRefreshStatus(),
     });
 });
 
@@ -205,7 +208,9 @@ app.get('/admin/scrape', async (req, res) => {
         }
 
         const { runScrape } = require('./scrape');
-        const result = await runScrape(log);
+        // force=1 is the deliberate override for the "never shrink" guard in
+        // scrape.js — needed only when the league genuinely has fewer seasons.
+        const result = await runScrape(log, { force: req.query.force === '1' });
 
         log(`\n<span class="done">🎉 Done! ${result.seasons.length} seasons scraped and saved.</span>`);
 
@@ -560,6 +565,44 @@ if (!fs.existsSync(path.join(__dirname, 'data', `boxscores_${CURRENT_SEASON}.jso
         require('./boxscores').buildBoxscores(CURRENT_SEASON, null, console.log)
             .catch(e => console.error('[Boot] boxscores failed', e.message));
     }, 30000);
+}
+
+// ── The weekly refresh, server-side.
+//
+// This used to be a Claude scheduled task on a desktop. Desktop tasks only fire
+// while the machine is awake, so a 6:00 AM refresh actually ran whenever the PC
+// was switched on — twice landing AFTER the 9:00 blurb task, which then correctly
+// refused to write commentary about last week's data. The server is up anyway, so
+// the refresh belongs here and the desktop only keeps the part that needs Claude.
+let autoRefresh = null;
+if (ESPN_S2 && SWID && !TURSO_URL && process.env.AUTO_REFRESH !== 'off') {
+    autoRefresh = require('./autorefresh').startAutoRefresh({
+        log: console.log,
+        dataAgeMs: () => {
+            try { return fs.existsSync(DATA_FILE) ? fs.statSync(DATA_FILE).mtimeMs : null; }
+            catch { return null; }
+        },
+        // The same chain /admin/scrape runs. Derived data is best-effort: a failure
+        // to rebuild boxscores should not mark the whole refresh failed, because the
+        // league data itself is already safely written by then.
+        scrape: async () => {
+            const data = await require('./scrape').runScrape(console.log);
+            try { await require('./playerstats').buildPlayerStats(data, console.log); }
+            catch (e) { console.warn('[AutoRefresh] player stats failed:', e.message); }
+            try { await require('./boxscores').buildBoxscores(CURRENT_SEASON, data, console.log); }
+            catch (e) { console.warn('[AutoRefresh] boxscores failed:', e.message); }
+        },
+    });
+    const c = autoRefresh.config;
+    console.log(`[AutoRefresh] on — weekly anchor day ${c.anchorDay} at ${c.anchorHour}:00 ${c.tz}, max age ${c.maxAgeHours}h`);
+} else {
+    console.log('[AutoRefresh] off (no cookies, Turso in use, or AUTO_REFRESH=off)');
+}
+
+// Visible in /api/status so a failing refresh is observable without Railway logs.
+function autoRefreshStatus() {
+    if (!autoRefresh) return { enabled: false };
+    return Object.assign({ enabled: true }, autoRefresh.state, { config: autoRefresh.config });
 }
 
 app.get('/health', (req, res) => res.json({ ok: true }));

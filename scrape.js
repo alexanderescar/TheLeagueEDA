@@ -161,33 +161,121 @@ async function scrapeSeason(season, log) {
   };
 }
 
-async function runScrape(log = console.log) {
+/**
+ * What is already on disk, if it is readable and shaped like our payload.
+ * Returns null rather than throwing: an unreadable file must not stop a scrape,
+ * it just means we have nothing to compare against.
+ */
+function readExisting(file) {
+    try {
+        if (!fs.existsSync(file)) return null;
+        const j = JSON.parse(fs.readFileSync(file, 'utf8'));
+        return Array.isArray(j.seasons) && j.seasons.length ? j : null;
+    } catch { return null; }
+}
+
+/**
+ * May this fresh scrape replace what is on disk?
+ *
+ * This exists because of a real incident. The old guard was
+ * `if (allData.length === 0) throw`, which only caught a TOTAL failure. Every
+ * per-season fetch is wrapped in its own try/catch, so when ESPN returned errors
+ * for fifteen of sixteen seasons the loop finished with ONE season, sailed past
+ * the guard, and overwrote sixteen years of history with 2026 alone — then logged
+ * a cheerful "Saved 1 seasons". The volume is mounted at /app/data, so the file is
+ * persistent: a redeploy does not bring the history back.
+ *
+ * The rule is therefore: never shrink. A scrape that returns fewer seasons than
+ * are already on disk is a failed scrape, not new data.
+ *
+ * Pure on purpose — the filesystem is not involved, so this is testable directly.
+ */
+function mayReplace(freshCount, existingCount, opts) {
+    const o = opts || {};
+    if (!(freshCount > 0)) {
+        return { ok: false, reason: 'the scrape returned no seasons at all' };
+    }
+    if (!existingCount) {
+        return { ok: true, reason: 'nothing usable on disk to compare against' };
+    }
+    if (freshCount < existingCount) {
+        const msg = `the scrape returned ${freshCount} season${freshCount === 1 ? '' : 's'} `
+                  + `but ${existingCount} are already on disk`;
+        if (o.force) return { ok: true, reason: `${msg} — overwriting anyway (force)` };
+        return { ok: false, reason: msg };
+    }
+    return { ok: true, reason: 'ok' };
+}
+
+/**
+ * Write via a temp file and rename. rename(2) is atomic within a filesystem, so a
+ * reader either sees the whole old file or the whole new one — never a half-written
+ * one — and a crash mid-write cannot truncate the live file.
+ */
+function writeAtomic(file, text) {
+    const tmp = `${file}.tmp`;
+    fs.writeFileSync(tmp, text);
+    fs.renameSync(tmp, file);
+}
+
+async function runScrape(log = console.log, opts = {}) {
     log(`🏈 Scraping The League (ID: ${LEAGUE_ID})`);
     log(`   Seasons: ${SEASONS.join(', ')}`);
     log(`   API: ${ESPN_API}`);
     if (ESPN_S2) log(`   Auth: cookies set (decoded)`);
     else         log(`   Auth: none (public seasons only)`);
 
-  fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
+    fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
 
-  const allData = [];
+    const allData = [];
+    const failed  = [];
     for (const season of SEASONS) {
-          try {
-                  const data = await scrapeSeason(season, log);
-                  if (data) allData.push(data);
-                  await new Promise(r => setTimeout(r, 700));
-          } catch (err) {
-                  log(`  ❌ ${season}: ${err.message}`);
-          }
+        try {
+            const data = await scrapeSeason(season, log);
+            if (data) allData.push(data);
+            else failed.push({ season, error: 'no data returned' });
+            await new Promise(r => setTimeout(r, 700));
+        } catch (err) {
+            log(`  ❌ ${season}: ${err.message}`);
+            failed.push({ season, error: err.message });
+        }
     }
 
-  if (allData.length === 0) throw new Error('No data scraped.');
+    // Partial failures used to be invisible: they were logged per season, then the
+    // run ended with a ✅ and nobody scrolled up. Say it once, loudly, at the end.
+    if (failed.length) {
+        log(`\n⚠️  ${failed.length} of ${SEASONS.length} seasons failed: `
+            + failed.map(f => f.season).join(', '));
+    }
 
-  allData.sort((a, b) => b.season - a.season);
+    const existing = readExisting(OUT_FILE);
+    const existingCount = existing ? existing.seasons.length : 0;
+    const verdict = mayReplace(allData.length, existingCount, opts);
+
+    if (!verdict.ok) {
+        // Leave the good file exactly where it is. Throwing here is the point:
+        // the caller reports a failed scrape instead of a successful destruction.
+        throw new Error(
+            `Refusing to overwrite league_data.json — ${verdict.reason}. `
+            + `The existing file is untouched. `
+            + (failed.length ? `Failed seasons: ${failed.map(f => f.season).join(', ')}. ` : '')
+            + `This is usually expired ESPN cookies. `
+            + `Re-run with force=1 only if you genuinely mean to shrink the data.`
+        );
+    }
+    if (/force/.test(verdict.reason)) log(`\n⚠️  ${verdict.reason}`);
+
+    allData.sort((a, b) => b.season - a.season);
     const payload = { seasons: allData, updatedAt: new Date().toISOString() };
-    fs.writeFileSync(OUT_FILE, JSON.stringify(payload, null, 2));
 
-  log(`\n✅ Saved ${allData.length} seasons to data/league_data.json`);
+    // One level of undo, taken before the replace rather than after.
+    if (existing) {
+        try { fs.copyFileSync(OUT_FILE, `${OUT_FILE}.bak`); }
+        catch (e) { log(`   (backup failed: ${e.message})`); }
+    }
+    writeAtomic(OUT_FILE, JSON.stringify(payload, null, 2));
+
+    log(`\n✅ Saved ${allData.length} seasons to data/league_data.json`);
     allData.forEach(s => {
           const picks = s.draftDetail?.picks?.length || '?';
           const sample = s.draftDetail?.picks?.[0];
@@ -201,4 +289,4 @@ if (require.main === module) {
     runScrape().catch(err => { console.error('\n❌', err.message); process.exit(1); });
 }
 
-module.exports = { runScrape };
+module.exports = { runScrape, mayReplace, readExisting, writeAtomic, OUT_FILE };
